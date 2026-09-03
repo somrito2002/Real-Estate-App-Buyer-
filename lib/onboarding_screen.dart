@@ -9,13 +9,11 @@ class _OnboardPage {
   final String imagePath;
   final String title;
   final String description;
-  final bool isDark;
 
   const _OnboardPage({
     required this.imagePath,
     required this.title,
     required this.description,
-    this.isDark = false,
   });
 }
 
@@ -26,7 +24,6 @@ const _pages = [
     title: 'Discover Your Next Property',
     description:
         'Explore verified properties across locations, budgets and property types—all in one place.',
-    isDark: false,
   ),
   _OnboardPage(
     // High-quality tablet-comparison image provided by user
@@ -34,7 +31,6 @@ const _pages = [
     title: 'Compare Before You Decide',
     description:
         'Compare properties, prices, amenities and key details to make a confident decision.',
-    isDark: false,
   ),
   _OnboardPage(
     // 3rd screen: Connect. Visit. Decide.
@@ -42,7 +38,6 @@ const _pages = [
     title: 'Connect. Visit. Decide.',
     description:
         'Contact sellers and agents, schedule property visits and move closer to your next property.',
-    isDark: false,
   ),
 ];
 
@@ -96,9 +91,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final currentPageData = _pages[_currentPage];
     final isLastPage = _currentPage == _pages.length - 1;
-    final bgColor = currentPageData.isDark ? Colors.black : Colors.white;
-    final titleColor = currentPageData.isDark ? Colors.white : const Color(0xFF111111);
-    final descColor = currentPageData.isDark ? const Color(0xFFCCCCCC) : const Color(0xFF888888);
+    final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+    
+    final bgColor = isDarkTheme ? Colors.black : Colors.white;
+    final titleColor = isDarkTheme ? Colors.white : const Color(0xFF111111);
+    final descColor = isDarkTheme ? const Color(0xFFCCCCCC) : const Color(0xFF888888);
 
     return Scaffold(
       backgroundColor: bgColor,
