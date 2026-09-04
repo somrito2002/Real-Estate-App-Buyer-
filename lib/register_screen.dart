@@ -1,0 +1,486 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+
+/// Register screen for Meco Technologies app.
+/// Matches the "Create Your Account" design uploaded by the user.
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+
+  bool _isLoading = false;
+  bool _isConnected = true;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
+  static const Color accentBlue = Color(0xFF4B85F0);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(const AssetImage('assets/images/MECO TECHNOLOGIES PR-Photoroom.png'), context);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _checkConnectivity();
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+        _updateConnectionStatus(results);
+      });
+    });
+  }
+
+  Future<void> _checkConnectivity() async {
+    final results = await Connectivity().checkConnectivity();
+    _updateConnectionStatus(results);
+  }
+
+  void _updateConnectionStatus(List<ConnectivityResult> results) {
+    bool connected = results.any((r) => r != ConnectivityResult.none);
+    setState(() {
+      _isConnected = connected;
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    _fullNameController.dispose();
+    _mobileController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _handleContinue() {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      Future.delayed(const Duration(seconds: 1), () {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account created successfully!')),
+        );
+      });
+    }
+  }
+
+  void _navigateToLogin() {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor    = isDark ? Colors.black        : Colors.white;
+    final titleColor = isDark ? Colors.white        : const Color(0xFF111111);
+    final descColor  = isDark ? const Color(0xFFCCCCCC) : const Color(0xFF888888);
+    final labelColor = isDark ? Colors.white        : Colors.black;
+    final borderColor= isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE0E0E0);
+    final hintColor  = isDark ? const Color(0xFF7A7A7E) : const Color(0xFFB3B3B3);
+    final fieldFill  = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+    final dividerClr = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E7EB);
+    final trackColor = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF0F2F5);
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+
+                // ── HEADER: back arrow + globe logo + brand name ──
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildHeader(context, titleColor),
+                ),
+                const SizedBox(height: 14),
+                Divider(color: dividerClr, thickness: 1, height: 1),
+
+                // ── PROGRESS BAR ──
+                _buildProgressBar(trackColor),
+
+                if (!_isConnected) ...[
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFFFDE8E8),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.wifi_off, color: Color(0xFFEF4444), size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Connection lost. Please try again.',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: _checkConnectivity,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEF4444),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                            minimumSize: const Size(80, 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            'Try Again',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 28),
+
+                      // ── TITLE & SUBTITLE ──
+                      Text(
+                        'Create Your Account',
+                        style: GoogleFonts.inter(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: titleColor,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Join the marketplace and find properties that match your needs.',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: descColor,
+                          height: 1.55,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // ── FULL NAME ──
+                      _buildLabel('Full Name', labelColor),
+                      const SizedBox(height: 8),
+                      _buildFullNameField(fieldFill, borderColor, hintColor, labelColor),
+                      const SizedBox(height: 20),
+
+                      // ── MOBILE NUMBER ──
+                      _buildLabel('Mobile Number', labelColor),
+                      const SizedBox(height: 8),
+                      _buildMobileField(fieldFill, borderColor, hintColor, labelColor),
+                      const SizedBox(height: 20),
+
+                      // ── EMAIL ADDRESS ──
+                      _buildLabel('Email Address', labelColor),
+                      const SizedBox(height: 8),
+                      _buildEmailField(fieldFill, borderColor, hintColor, labelColor),
+                      const SizedBox(height: 32),
+
+                      // ── CONTINUE BUTTON ──
+                      _buildContinueButton(),
+                      const SizedBox(height: 28),
+
+                      // ── LOGIN LINK ──
+                      _buildLoginRow(descColor),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Header: back arrow + globe image + Meco brand ──
+  Widget _buildHeader(BuildContext context, Color titleColor) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Back arrow
+        GestureDetector(
+          onTap: _navigateToLogin,
+          child: Icon(Icons.arrow_back, size: 22, color: titleColor),
+        ),
+        const SizedBox(width: 14),
+
+        // Meco globe logo (from assets)
+        Image.asset(
+          'assets/images/MECO TECHNOLOGIES PR-Photoroom.png',
+          width: 38,
+          height: 38,
+          fit: BoxFit.contain,
+          gaplessPlayback: true,
+        ),
+        const SizedBox(width: 10),
+
+        // Brand name + tagline
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Meco Technologies',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: titleColor,
+                height: 1.1,
+              ),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              'EXCELLENCE IN INNOVATION',
+              style: GoogleFonts.inter(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.6,
+                color: accentBlue,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Progress Bar ──
+  Widget _buildProgressBar(Color trackColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Container(
+        height: 5,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: trackColor,
+          borderRadius: BorderRadius.circular(3),
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: FractionallySizedBox(
+            widthFactor: 0.18,
+            child: Container(
+              decoration: BoxDecoration(
+                color: accentBlue,
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text, Color color) {
+    return Text(
+      text,
+      style: GoogleFonts.inter(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required Color fill,
+    required Color border,
+    String? hintText,
+    TextStyle? hintStyle,
+  }) {
+    return InputDecoration(
+      filled: true,
+      fillColor: fill,
+      hintText: hintText,
+      hintStyle: hintStyle,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: border),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: accentBlue, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
+    );
+  }
+
+  Widget _buildFullNameField(Color fill, Color border, Color hint, Color text) {
+    return TextFormField(
+      controller: _fullNameController,
+      keyboardType: TextInputType.name,
+      textCapitalization: TextCapitalization.words,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      style: GoogleFonts.inter(fontSize: 15, color: text),
+      decoration: _fieldDecoration(
+        fill: fill,
+        border: border,
+        hintText: 'Arjun Malhotra',
+        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter your full name.';
+        }
+        if (value.trim().length < 2) {
+          return 'Name is too short.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildMobileField(Color fill, Color border, Color hint, Color text) {
+    return TextFormField(
+      controller: _mobileController,
+      keyboardType: TextInputType.phone,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      style: GoogleFonts.inter(fontSize: 15, color: text),
+      decoration: _fieldDecoration(
+        fill: fill,
+        border: border,
+        hintText: '+91 98765 43210',
+        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter your mobile number.';
+        }
+        final digits = value.replaceAll(RegExp(r'\D'), '');
+        if (digits.length < 10) {
+          return 'Please enter a valid mobile number.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildEmailField(Color fill, Color border, Color hint, Color text) {
+    return TextFormField(
+      controller: _emailController,
+      keyboardType: TextInputType.emailAddress,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      style: GoogleFonts.inter(fontSize: 15, color: text),
+      decoration: _fieldDecoration(
+        fill: fill,
+        border: border,
+        hintText: 'arjun.malhotra@gmail.com',
+        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter your email address.';
+        }
+        final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
+        if (!emailRegex.hasMatch(value.trim())) {
+          return 'Please enter a valid email address.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildContinueButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _handleContinue,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentBlue,
+          disabledBackgroundColor: accentBlue.withAlpha(153),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.4,
+                ),
+              )
+            : Text(
+                'Continue',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildLoginRow(Color textColor) {
+    return Center(
+      child: RichText(
+        text: TextSpan(
+          style: GoogleFonts.inter(fontSize: 14, color: textColor),
+          children: [
+            const TextSpan(text: 'Already have an account? '),
+            TextSpan(
+              text: 'Login',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                color: accentBlue,
+              ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = _navigateToLogin,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

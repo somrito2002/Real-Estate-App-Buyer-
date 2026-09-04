@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'login_screen.dart';
 
 // ─────────────────────────────────────────────
 // Data model for each onboarding page
@@ -19,21 +20,18 @@ class _OnboardPage {
 
 const _pages = [
   _OnboardPage(
-    // High-quality living room / city-view image provided by user
     imagePath: 'assets/images/onboard_discover.png',
     title: 'Discover Your Next Property',
     description:
         'Explore verified properties across locations, budgets and property types—all in one place.',
   ),
   _OnboardPage(
-    // High-quality tablet-comparison image provided by user
     imagePath: 'assets/images/onboard_compare.png',
     title: 'Compare Before You Decide',
     description:
         'Compare properties, prices, amenities and key details to make a confident decision.',
   ),
   _OnboardPage(
-    // 3rd screen: Connect. Visit. Decide.
     imagePath: 'assets/images/onboard_connect.jpg',
     title: 'Connect. Visit. Decide.',
     description:
@@ -56,6 +54,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    precacheImage(const AssetImage('assets/images/MECO TECHNOLOGIES PR-Photoroom.png'), context);
+    precacheImage(const AssetImage('assets/images/google_logo.png'), context);
+  }
+
+  @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -70,19 +75,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _goToMain() {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const _PlaceholderHome()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const LoginScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 200),
+      ),
     );
   }
 
   void _onNext() {
     if (_currentPage < _pages.length - 1) {
-      // Go to next onboarding page
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOut,
       );
     } else {
-      // Last implemented page — placeholder for Page 3 or go to main
       _goToMain();
     }
   }
@@ -166,7 +175,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: List.generate(_pages.length, (i) {
-                              // 3 total dots
                               final active = i == _currentPage;
                               return AnimatedContainer(
                                 duration: const Duration(milliseconds: 250),
@@ -273,7 +281,7 @@ class _HeroImage extends StatelessWidget {
             path,
             fit: BoxFit.cover,
             filterQuality: FilterQuality.high,
-            // Meco logo is already embedded in the image — no overlay needed
+            gaplessPlayback: true,
           ),
         ),
       ),
@@ -281,27 +289,3 @@ class _HeroImage extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────
-// Placeholder home — replace with real home screen
-// ─────────────────────────────────────────────
-class _PlaceholderHome extends StatelessWidget {
-  const _PlaceholderHome();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          'Home Screen\nComing Soon',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF1A1A1A),
-          ),
-        ),
-      ),
-    );
-  }
-}
