@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
+import 'home_screen.dart';
 
 /// Login screen for Meco Technologies app.
 /// Matches the "Welcome Back" design (something.png reference).
@@ -23,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
   bool _isLoading = false;
   bool _isConnected = true;
+  bool _showVerificationError = false;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   static const Color accentBlue = Color(0xFF4B85F0);
@@ -67,12 +72,36 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+        _showVerificationError = false;
+      });
       // TODO: replace with your real authentication call.
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(seconds: 1), () async {
         if (!mounted) return;
         setState(() => _isLoading = false);
-        // Navigator.of(context).pushReplacementNamed('/home');
+        
+        bool isEmailCorrect = _emailController.text.trim() == 'user1@gmail.com';
+        bool isPasswordCorrect = _passwordController.text == 'nopass';
+        
+        if (isEmailCorrect && isPasswordCorrect) {
+          // Save login state
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isLoggedIn', true);
+          if (!mounted) return;
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        } else if (!isEmailCorrect && !isPasswordCorrect) {
+          setState(() => _showVerificationError = true);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('invalid login credentials'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       });
     }
   }
@@ -114,6 +143,52 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: _buildHeader(context, titleColor, dividerClr),
                 ),
+
+                if (_showVerificationError) ...[
+                  Container(
+                    width: double.infinity,
+                    color: isDark ? const Color(0xFF1A233A) : const Color(0xFFF4F8FF),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, color: accentBlue, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Your account hasn't been verified yet.",
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: titleColor,
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            // TODO: implement verify action
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: accentBlue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                            minimumSize: const Size(80, 32),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            'Verify Now',
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 if (!_isConnected) ...[
                   Container(
