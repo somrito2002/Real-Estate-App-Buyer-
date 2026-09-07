@@ -100,14 +100,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final currentPageData = _pages[_currentPage];
     final isLastPage = _currentPage == _pages.length - 1;
-    final bool isDarkTheme = Theme.of(context).brightness == Brightness.dark;
-    
-    final bgColor = isDarkTheme ? Colors.black : Colors.white;
-    final titleColor = isDarkTheme ? Colors.white : const Color(0xFF111111);
-    final descColor = isDarkTheme ? const Color(0xFFCCCCCC) : const Color(0xFF888888);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -151,7 +148,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           style: GoogleFonts.inter(
                             fontSize: screenW * 0.062,
                             fontWeight: FontWeight.bold,
-                            color: titleColor,
+                            color: theme.colorScheme.onSurface,
                             height: 1.2,
                           ),
                         ),
@@ -163,7 +160,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           currentPageData.description,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: descColor,
+                            color: colorScheme.onSurfaceVariant,
                             height: 1.55,
                           ),
                         ),
@@ -185,8 +182,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 height: 8,
                                 decoration: BoxDecoration(
                                   color: active
-                                      ? const Color(0xFF4A90E8)
-                                      : const Color(0xFFD0D5DD),
+                                      ? colorScheme.primary
+                                      : colorScheme.outline,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                               );
@@ -203,7 +200,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: ElevatedButton(
                             onPressed: _onNext,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4A90E8),
+                              backgroundColor: colorScheme.primary,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -230,7 +227,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 'Skip',
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  color: const Color(0xFF888888),
+                                  color: colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),

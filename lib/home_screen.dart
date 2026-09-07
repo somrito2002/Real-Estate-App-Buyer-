@@ -16,7 +16,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentLocation = 'Locating...';
 
   static const Color accentBlue = Color(0xFF4B85F0);
-  static const Color bgLight = Color(0xFFF8F9FA);
 
   @override
   void initState() {
@@ -66,8 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgLight,
-      appBar: _bottomNavIndex == 4 ? _buildProfileAppBar() : (_bottomNavIndex == 0 ? _buildAppBar() : AppBar(title: const Text('Coming Soon'), backgroundColor: Colors.white, elevation: 0)),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: _bottomNavIndex == 4 ? _buildProfileAppBar() : (_bottomNavIndex == 0 ? _buildAppBar() : AppBar(title: Text('Coming Soon'), backgroundColor: Theme.of(context).scaffoldBackgroundColor, elevation: 0)),
       body: _buildBody(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _bottomNavIndex,
@@ -107,10 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSizeWidget _buildProfileAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.black),
+        icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
         onPressed: () {
           setState(() {
             _bottomNavIndex = 0;
@@ -119,17 +118,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       title: Text(
         'My Profile',
-        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+        style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.more_vert, color: Colors.black),
+          icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () {},
         ),
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(color: Colors.grey.shade200, height: 1),
+        child: Container(color: Theme.of(context).colorScheme.surfaceVariant, height: 1),
       ),
     );
   }
@@ -146,26 +145,26 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.search, color: Colors.grey.shade600, size: 22),
+                    Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: 'Search properties, projects, localities...',
-                          hintStyle: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 14),
+                          hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
                     ),
-                    Icon(Icons.mic_off_outlined, color: Colors.grey.shade600, size: 22),
+                    Icon(Icons.mic_off_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
                   ],
                 ),
               ),
@@ -290,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'Explore by Category',
-                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF111111)),
+                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
             const SizedBox(height: 12),
@@ -356,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       elevation: 0,
       titleSpacing: 16,
       title: Row(
@@ -375,12 +374,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(
                   'MECO Real Estate',
-                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.black, height: 1.1),
+                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'EXCELLENCE IN INNOVATION',
-                  style: GoogleFonts.inter(fontSize: 7, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: accentBlue),
+                  style: GoogleFonts.inter(fontSize: 7, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: Theme.of(context).colorScheme.primary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -397,32 +396,32 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, color: accentBlue, size: 14),
+                  Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.primary, size: 14),
                   const SizedBox(width: 2),
                   Expanded(
                     child: Text(
                       _currentLocation,
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: accentBlue),
+                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down, color: accentBlue, size: 14),
+                  Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary, size: 14),
                 ],
               ),
             ),
           ),
           const SizedBox(width: 12),
-          const Badge(
+          Badge(
             backgroundColor: Colors.red,
             smallSize: 8,
-            child: Icon(Icons.notifications_outlined, color: Colors.black, size: 26),
+            child: Icon(Icons.notifications_outlined, color: Theme.of(context).colorScheme.onSurface, size: 26),
           ),
         ],
       ),
       actions: const [],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(color: Colors.grey.shade200, height: 1),
+        child: Container(color: Theme.of(context).colorScheme.surfaceVariant, height: 1),
       ),
     );
   }
@@ -432,7 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: isSelected ? accentBlue : Colors.white,
+        color: isSelected ? accentBlue : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
       ),
@@ -441,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
         style: GoogleFonts.inter(
           fontSize: 13,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isSelected ? Colors.white : Colors.black87,
+          color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -453,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFF0F5FF) : Colors.white,
+          color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
         ),
@@ -462,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? accentBlue : Colors.black87,
+            color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -477,15 +476,15 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             title,
-            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF111111)),
+            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
           ),
           Row(
             children: [
               Text(
                 'View All',
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: accentBlue),
+                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
               ),
-              const Icon(Icons.chevron_right, color: accentBlue, size: 16),
+              Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
             ],
           ),
         ],
@@ -498,9 +497,9 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 260,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -521,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 right: 8,
                 child: CircleAvatar(
                   radius: 14,
-                  backgroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade800),
                 ),
               ),
@@ -531,12 +530,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onSurface,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     price,
-                    style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                    style: GoogleFonts.inter(color: Theme.of(context).colorScheme.surface, fontWeight: FontWeight.w700, fontSize: 13),
                   ),
                 ),
               ),
@@ -557,19 +556,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 12, color: Colors.grey.shade600),
+                    Icon(Icons.location_on_outlined, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 4),
-                    Text(location, style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 11)),
+                    Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Text(beds, style: GoogleFonts.inter(fontSize: 11, color: Colors.black87)),
+                    Text(beds, style: GoogleFonts.inter(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
                     _dot(),
-                    Text(baths, style: GoogleFonts.inter(fontSize: 11, color: Colors.black87)),
+                    Text(baths, style: GoogleFonts.inter(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
                     _dot(),
-                    Text(sqft, style: GoogleFonts.inter(fontSize: 11, color: Colors.black87)),
+                    Text(sqft, style: GoogleFonts.inter(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
                   ],
                 ),
               ],
@@ -585,9 +584,9 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 260,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -607,13 +606,13 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15)),
                 const SizedBox(height: 2),
-                Text('By $builder', style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 11)),
+                Text('By $builder', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 12, color: Colors.grey.shade600),
+                    Icon(Icons.location_on_outlined, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                     const SizedBox(width: 4),
-                    Text(location, style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 11)),
+                    Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -625,7 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child: Text(
                     startingPrice,
-                    style: GoogleFonts.inter(color: accentBlue, fontWeight: FontWeight.w600, fontSize: 11),
+                    style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 11),
                   ),
                 ),
               ],
@@ -644,12 +643,12 @@ class _HomeScreenState extends State<HomeScreen> {
           CircleAvatar(
             radius: 32,
             backgroundColor: Colors.grey.shade200,
-            child: Icon(icon, size: 30, color: Colors.grey.shade600),
+            child: Icon(icon, size: 30, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Text(city, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
           const SizedBox(height: 2),
-          Text(subtitle, style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 9)),
+          Text(subtitle, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 9)),
         ],
       ),
     );
@@ -660,9 +659,9 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 180,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -680,11 +679,11 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(price, style: GoogleFonts.inter(color: accentBlue, fontWeight: FontWeight.w700, fontSize: 12)),
+                Text(price, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 12)),
                 const SizedBox(height: 4),
                 Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
                 const SizedBox(height: 2),
-                Text(location, style: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 10)),
+                Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
               ],
             ),
           )
@@ -700,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
-        child: Icon(icon, color: accentBlue, size: 28),
+        child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
       ),
     );
   }

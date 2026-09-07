@@ -8,6 +8,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
+import 'phone_number_screen.dart';
 
 /// Login screen for Meco Technologies app.
 /// Matches the "Welcome Back" design (something.png reference).
@@ -165,7 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         ElevatedButton(
                           onPressed: () {
-                            // TODO: implement verify action
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) => const PhoneNumberScreen()),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: accentBlue,
@@ -416,8 +419,6 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: _fieldDecoration(
         fill: fill,
         border: border,
-        hintText: 'arjun.malhotra@gmail.com',
-        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {

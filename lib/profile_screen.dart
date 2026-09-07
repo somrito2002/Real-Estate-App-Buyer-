@@ -19,19 +19,19 @@ class ProfileScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
               ),
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 40,
                     backgroundColor: Color(0xFF4B85F0),
                     child: Text(
                       'U1',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -43,7 +43,7 @@ class ProfileScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF111111),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -51,14 +51,14 @@ class ProfileScreen extends StatelessWidget {
                     'user1@gmail.com',
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: Colors.grey.shade500,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: Theme.of(context).colorScheme.outline),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -66,7 +66,7 @@ class ProfileScreen extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF111111),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                   ),
@@ -80,25 +80,25 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
               ),
               child: Column(
                 children: [
-                  _buildMenuItem(Icons.home_outlined, 'Overview'),
-                  _buildDivider(),
-                  _buildMenuItem(Icons.favorite_border, 'Saved Properties'),
-                  _buildDivider(),
-                  _buildMenuItem(Icons.search_outlined, 'Saved Searches'),
-                  _buildDivider(),
-                  _buildMenuItem(Icons.chat_bubble_outline, 'My Enquiries'),
-                  _buildDivider(),
-                  _buildMenuItem(Icons.calendar_today_outlined, 'My Visits'),
-                  _buildDivider(),
-                  _buildMenuItem(Icons.notifications_none_outlined, 'Notifications'),
-                  _buildDivider(),
-                  _buildMenuItem(Icons.settings_outlined, 'Settings'),
+                  _buildMenuItem(context, Icons.home_outlined, 'Overview'),
+                  _buildDivider(context),
+                  _buildMenuItem(context, Icons.favorite_border, 'Saved Properties'),
+                  _buildDivider(context),
+                  _buildMenuItem(context, Icons.search_outlined, 'Saved Searches'),
+                  _buildDivider(context),
+                  _buildMenuItem(context, Icons.chat_bubble_outline, 'My Enquiries'),
+                  _buildDivider(context),
+                  _buildMenuItem(context, Icons.calendar_today_outlined, 'My Visits'),
+                  _buildDivider(context),
+                  _buildMenuItem(context, Icons.notifications_none_outlined, 'Notifications'),
+                  _buildDivider(context),
+                  _buildMenuItem(context, Icons.settings_outlined, 'Settings'),
                 ],
               ),
             ),
@@ -112,16 +112,60 @@ class ProfileScreen extends StatelessWidget {
               height: 54,
               child: TextButton(
                 onPressed: () async {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.setBool('isLoggedIn', false);
-                  if (!context.mounted) return;
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (Route<dynamic> route) => false,
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      title: Text(
+                        'Log Out',
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: Text(
+                        'Do you want to log out?',
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text(
+                            'No',
+                            style: GoogleFonts.inter(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text(
+                            'Yes',
+                            style: GoogleFonts.inter(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   );
+
+                  if (confirm == true) {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('isLoggedIn', false);
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFF0F0),
+                  backgroundColor: Colors.red.withOpacity(0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -143,15 +187,15 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {String? badge}) {
+  Widget _buildMenuItem(BuildContext context, IconData icon, String title, {String? badge}) {
     return ListTile(
-      leading: Icon(icon, color: Colors.grey.shade700, size: 22),
+      leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
       title: Text(
         title,
         style: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF111111),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       trailing: Row(
@@ -167,14 +211,14 @@ class ProfileScreen extends StatelessWidget {
               child: Text(
                 badge,
                 style: GoogleFonts.inter(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           if (badge != null) const SizedBox(width: 8),
-          Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+          Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
         ],
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -182,10 +226,10 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(color: Colors.grey.shade200, height: 1, thickness: 1),
+      child: Divider(color: Theme.of(context).colorScheme.outline, height: 1, thickness: 1),
     );
   }
 }
