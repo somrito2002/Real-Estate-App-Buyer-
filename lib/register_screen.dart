@@ -4,6 +4,8 @@ import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
+import 'create_password_screen.dart';
+
 /// Register screen for Meco Technologies app.
 /// Matches the "Create Your Account" design uploaded by the user.
 class RegisterScreen extends StatefulWidget {
@@ -67,11 +69,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleContinue() {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(milliseconds: 600), () {
         if (!mounted) return;
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Account created successfully!')),
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => const CreatePasswordScreen(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.fastOutSlowIn;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(position: animation.drive(tween), child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 220),
+          ),
         );
       });
     }
@@ -87,20 +99,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final bgColor    = isDark ? Colors.black        : Colors.white;
-    final titleColor = isDark ? Colors.white        : const Color(0xFF111111);
-    final descColor  = isDark ? const Color(0xFFCCCCCC) : const Color(0xFF888888);
-    final labelColor = isDark ? Colors.white        : Colors.black;
-    final borderColor= isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE0E0E0);
-    final hintColor  = isDark ? const Color(0xFF7A7A7E) : const Color(0xFFB3B3B3);
-    final fieldFill  = isDark ? const Color(0xFF1C1C1E) : Colors.white;
-    final dividerClr = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E7EB);
-    final trackColor = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF0F2F5);
-
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Form(
@@ -113,13 +113,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // ── HEADER: back arrow + globe logo + brand name ──
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: _buildHeader(context, titleColor),
+                  child: _buildHeader(context),
                 ),
                 const SizedBox(height: 14),
-                Divider(color: dividerClr, thickness: 1, height: 1),
+                Divider(color: Theme.of(context).colorScheme.outline, thickness: 1, height: 1),
 
                 // ── PROGRESS BAR ──
-                _buildProgressBar(trackColor),
+                _buildProgressBar(),
 
                 if (!_isConnected) ...[
                   Container(
@@ -178,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
-                          color: titleColor,
+                          color: Theme.of(context).colorScheme.onSurface,
                           height: 1.2,
                         ),
                       ),
@@ -187,28 +187,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Join the marketplace and find properties that match your needs.',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: descColor,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           height: 1.55,
                         ),
                       ),
                       const SizedBox(height: 28),
 
                       // ── FULL NAME ──
-                      _buildLabel('Full Name', labelColor),
+                      _buildLabel('Full Name', Theme.of(context).colorScheme.onSurface),
                       const SizedBox(height: 8),
-                      _buildFullNameField(fieldFill, borderColor, hintColor, labelColor),
+                      _buildFullNameField(),
                       const SizedBox(height: 20),
 
                       // ── MOBILE NUMBER ──
-                      _buildLabel('Mobile Number', labelColor),
+                      _buildLabel('Mobile Number', Theme.of(context).colorScheme.onSurface),
                       const SizedBox(height: 8),
-                      _buildMobileField(fieldFill, borderColor, hintColor, labelColor),
+                      _buildMobileField(),
                       const SizedBox(height: 20),
 
                       // ── EMAIL ADDRESS ──
-                      _buildLabel('Email Address', labelColor),
+                      _buildLabel('Email Address', Theme.of(context).colorScheme.onSurface),
                       const SizedBox(height: 8),
-                      _buildEmailField(fieldFill, borderColor, hintColor, labelColor),
+                      _buildEmailField(),
                       const SizedBox(height: 32),
 
                       // ── CONTINUE BUTTON ──
@@ -216,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 28),
 
                       // ── LOGIN LINK ──
-                      _buildLoginRow(descColor),
+                      _buildLoginRow(),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -230,14 +230,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // ── Header: back arrow + globe image + Meco brand ──
-  Widget _buildHeader(BuildContext context, Color titleColor) {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Back arrow
         GestureDetector(
           onTap: _navigateToLogin,
-          child: Icon(Icons.arrow_back, size: 22, color: titleColor),
+          child: Icon(Icons.arrow_back, size: 22, color: Theme.of(context).colorScheme.onSurface),
         ),
         const SizedBox(width: 14),
 
@@ -261,7 +261,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               style: GoogleFonts.inter(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: titleColor,
+                color: Theme.of(context).colorScheme.onSurface,
                 height: 1.1,
               ),
             ),
@@ -282,7 +282,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // ── Progress Bar ──
-  Widget _buildProgressBar(Color trackColor) {
+  Widget _buildProgressBar() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -290,7 +290,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         height: 5,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: trackColor,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(3),
         ),
         child: Align(
@@ -351,18 +351,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildFullNameField(Color fill, Color border, Color hint, Color text) {
+  Widget _buildFullNameField() {
     return TextFormField(
       controller: _fullNameController,
       keyboardType: TextInputType.name,
       textCapitalization: TextCapitalization.words,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      style: GoogleFonts.inter(fontSize: 15, color: text),
+      style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
       decoration: _fieldDecoration(
-        fill: fill,
-        border: border,
+        fill: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outline,
         hintText: 'Arjun Malhotra',
-        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
+        hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -376,17 +376,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildMobileField(Color fill, Color border, Color hint, Color text) {
+  Widget _buildMobileField() {
     return TextFormField(
       controller: _mobileController,
       keyboardType: TextInputType.phone,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      style: GoogleFonts.inter(fontSize: 15, color: text),
+      style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
       decoration: _fieldDecoration(
-        fill: fill,
-        border: border,
+        fill: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outline,
         hintText: '+91 98765 43210',
-        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
+        hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -401,17 +401,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildEmailField(Color fill, Color border, Color hint, Color text) {
+  Widget _buildEmailField() {
     return TextFormField(
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      style: GoogleFonts.inter(fontSize: 15, color: text),
+      style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
       decoration: _fieldDecoration(
-        fill: fill,
-        border: border,
+        fill: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outline,
         hintText: 'arjun.malhotra@gmail.com',
-        hintStyle: GoogleFonts.inter(color: hint, fontSize: 15),
+        hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -462,11 +462,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildLoginRow(Color textColor) {
+  Widget _buildLoginRow() {
     return Center(
       child: RichText(
         text: TextSpan(
-          style: GoogleFonts.inter(fontSize: 14, color: textColor),
+          style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
           children: [
             const TextSpan(text: 'Already have an account? '),
             TextSpan(

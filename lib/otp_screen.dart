@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'complete_profile_screen.dart';
+import 'reset_password_screen.dart';
 
 /// OTP verification screen shown after the user taps "Send OTP".
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final bool isPasswordRecovery;
 
-  const OtpScreen({super.key, required this.phoneNumber});
+  const OtpScreen({super.key, required this.phoneNumber, this.isPasswordRecovery = false});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -96,11 +98,19 @@ class _OtpScreenState extends State<OtpScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() => _isLoading = false);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const CompleteProfileScreen(),
-          ),
-        );
+        if (widget.isPasswordRecovery) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const ResetPasswordScreen(),
+            ),
+          );
+        } else {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CompleteProfileScreen(),
+            ),
+          );
+        }
       }
     });
   }
@@ -146,7 +156,7 @@ class _OtpScreenState extends State<OtpScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Verify Your Number',
+          widget.phoneNumber.contains('@') ? 'Verify Your Email' : 'Verify Your Number',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -155,7 +165,7 @@ class _OtpScreenState extends State<OtpScreen> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: colorScheme.surfaceVariant, height: 1),
+          child: Container(color: colorScheme.surfaceContainerHighest, height: 1),
         ),
       ),
       body: SafeArea(
@@ -196,7 +206,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
               // Subtitle with phone number
               Text(
-                'We sent a 6-digit code to +91 ${widget.phoneNumber}',
+                widget.phoneNumber.contains('@') ? 'OTP sent to mail' : 'We sent a 6-digit code to +91 ${widget.phoneNumber}',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 14,

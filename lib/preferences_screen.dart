@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'success_screen.dart';
+import 'complete_profile_screen.dart';
 
 /// Screen shown after completing the profile to capture user preferences.
 class PreferencesScreen extends StatefulWidget {
@@ -42,9 +42,8 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
         // Navigate to SuccessScreen
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const SuccessScreen()),
-          (route) => false,
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
         );
       }
     });
@@ -110,7 +109,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
               Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -166,7 +165,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
               const SizedBox(height: 8),
               TextField(
                 controller: _locationController,
-                style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface?.withOpacity(0.87)),
+                style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
                 decoration: InputDecoration(
                   prefixIcon:
                       const Icon(Icons.location_on_outlined, color: Colors.grey),
@@ -195,7 +194,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                     child: TextField(
                       controller: _minBudgetController,
                       style: GoogleFonts.inter(
-                          fontSize: 15, color: Theme.of(context).colorScheme.onSurface?.withOpacity(0.87)),
+                          fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),
@@ -218,7 +217,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                     child: TextField(
                       controller: _maxBudgetController,
                       style: GoogleFonts.inter(
-                          fontSize: 15, color: Theme.of(context).colorScheme.onSurface?.withOpacity(0.87)),
+                          fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),

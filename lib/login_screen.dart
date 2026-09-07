@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 import 'phone_number_screen.dart';
+import 'forgot_password_screen.dart';
 
 /// Login screen for Meco Technologies app.
 /// Matches the "Welcome Back" design (something.png reference).
@@ -82,7 +83,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         setState(() => _isLoading = false);
         
-        bool isEmailCorrect = _emailController.text.trim() == 'user1@gmail.com';
+        String inputId = _emailController.text.trim();
+        bool isEmailCorrect = inputId == 'user1@gmail.com' || inputId == '8900096422';
         bool isPasswordCorrect = _passwordController.text == 'nopass';
         
         if (isEmailCorrect && isPasswordCorrect) {
@@ -523,7 +525,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         GestureDetector(
           onTap: () {
-            // TODO: navigate to forgot password screen.
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => const ForgotPasswordScreen(),
+              ),
+            );
           },
           child: Text(
             'Forgot Password?',

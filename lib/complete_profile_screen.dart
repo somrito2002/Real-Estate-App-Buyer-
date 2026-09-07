@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'preferences_screen.dart';
+import 'terms_consent_screen.dart';
 
 /// Profile completion screen shown after OTP is successfully verified.
 class CompleteProfileScreen extends StatefulWidget {
@@ -102,7 +102,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         setState(() => _isLoading = false);
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => const PreferencesScreen(),
+            builder: (_) => const TermsConsentScreen(showSuccessScreen: true),
           ),
         );
       }
@@ -112,7 +112,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   void _onSkip() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const PreferencesScreen(),
+        builder: (_) => const TermsConsentScreen(showSuccessScreen: false),
       ),
     );
   }
@@ -183,7 +183,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: colorScheme.surfaceVariant,
+                        color: colorScheme.surfaceContainerHighest,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: Theme.of(context).colorScheme.outline,
@@ -376,7 +376,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   }) {
     return TextField(
       controller: controller,
-      style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface?.withOpacity(0.87)),
+      style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.outline, fontSize: 15),
