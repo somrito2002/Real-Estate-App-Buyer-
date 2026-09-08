@@ -1,0 +1,59 @@
+Created At: 2026-09-08T13:21:01+05:30
+Completed At: 2026-09-08T13:21:01+05:30
+File Path: `file:///d:/realty-app/lib/buy_properties_screen.dart`
+Total Lines: 773
+Total Bytes: 29813
+Showing lines 450 to 500
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+450:                           color: Theme.of(context).colorScheme.onSurfaceVariant,
+451:                         ),
+452:                         maxLines: 1,
+453:                         overflow: TextOverflow.ellipsis,
+454:                       ),
+455:                     ),
+456:                   ],
+457:                 ),
+458:                 const SizedBox(height: 12),
+459:                 Divider(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5), height: 1),
+460:                 const SizedBox(height: 12),
+461:                 Text(
+462:                   property.specs,
+463:                   style: GoogleFonts.inter(
+464:                     fontSize: 12,
+465:                     fontWeight: FontWeight.w600,
+466:                     color: Theme.of(context).colorScheme.onSurface,
+467:                   ),
+468:                 ),
+469:               ],
+470:             ),
+471:           ),
+472:         ],
+473:       ),
+474:     );
+475:   }
+476: 
+477:   Widget _buildMapView() {
+478:     return Column(
+479:       children: [
+480:         Expanded(
+481:           child: Stack(
+482:             children: [
+483:               // Background Map Placeholder
+484:               Container(
+485:                 width: double.infinity,
+486:                 height: double.infinity,
+487:                 color: const Color(0xFFEFE9E1), // Map background color
+488:                 child: CustomPaint(
+489:                   painter: _MapGridPainter(),
+490:                 ),
+491:               ),
+492:               // Price markers
+493:               Positioned(
+494:                 top: 100, left: 50,
+495:                 child: _buildPriceMarker('₹75L', false),
+496:               ),
+497:               Positioned(
+498:                 top: 180, right: 80,
+499:                 child: _buildPriceMarker('₹85L', false),
+500:               ),
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

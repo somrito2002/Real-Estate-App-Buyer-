@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:flutter/services.dart';
 import 'profile_screen.dart';
+import 'search_screen.dart' as import_search_screen;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -64,31 +66,74 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: _bottomNavIndex == 4 ? _buildProfileAppBar() : (_bottomNavIndex == 0 ? _buildAppBar() : AppBar(title: Text('Coming Soon'), backgroundColor: Theme.of(context).scaffoldBackgroundColor, elevation: 0)),
-      body: _buildBody(),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _bottomNavIndex,
-        onTap: (i) => setState(() => _bottomNavIndex = i),
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: accentBlue,
-        unselectedItemColor: Colors.grey.shade500,
-        selectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.search_outlined), label: 'Search'),
-          BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: 'Saved'),
-          BottomNavigationBarItem(
-            icon: Badge(
-              backgroundColor: Colors.red,
-              child: Icon(Icons.notifications_none),
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        if (_bottomNavIndex != 0) {
+          setState(() {
+            _bottomNavIndex = 0;
+          });
+        } else {
+          final shouldPop = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              title: Text('Leave App?', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              content: Text('Do you want to leave the app?', style: GoogleFonts.inter()),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('No', style: GoogleFonts.inter(color: accentBlue)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: Text('Yes', style: GoogleFonts.inter(color: Colors.red)),
+                ),
+              ],
             ),
-            label: 'Inbox',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
+          );
+          if (shouldPop == true) {
+            // Using SystemNavigator.pop to exit app on Android
+            // ignore: unawaited_futures
+            SystemNavigator.pop();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: _bottomNavIndex == 4 
+            ? _buildProfileAppBar() 
+            : (_bottomNavIndex == 1 
+                ? null 
+                : (_bottomNavIndex == 0 ? _buildAppBar() : AppBar(title: const Text('Coming Soon'), backgroundColor: Theme.of(context).scaffoldBackgroundColor, elevation: 0))),
+        body: _buildBody(),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _bottomNavIndex,
+          onTap: (i) => setState(() => _bottomNavIndex = i),
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: accentBlue,
+          unselectedItemColor: Colors.grey.shade500,
+          selectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.search_outlined), activeIcon: Icon(Icons.search), label: 'Search'),
+            BottomNavigationBarItem(icon: Icon(Icons.favorite_border), activeIcon: Icon(Icons.favorite), label: 'Saved'),
+            BottomNavigationBarItem(
+              icon: Badge(
+                backgroundColor: Colors.red,
+                child: Icon(Icons.notifications_none),
+              ),
+              activeIcon: Badge(
+                backgroundColor: Colors.red,
+                child: Icon(Icons.notifications),
+              ),
+              label: 'Inbox',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
       ),
     );
   }
@@ -154,13 +199,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Search properties, projects, localities...',
-                          hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
+                        },
+                        child: AbsorbPointer(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Search properties, projects, localities...',
+                              hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
+                              border: InputBorder.none,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -710,4 +762,149 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Icon(Icons.circle, size: 3, color: Colors.grey.shade400),
     );
   }
+
+  Widget _buildSearchTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Search Properties',
+            style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+          ),
+          const SizedBox(height: 16),
+          // Search Input
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: Theme.of(context).colorScheme.outline),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    onTap: () {
+                      // Navigate to search/filter screen
+                      Navigator.pushNamed(context, '/filter');
+                    },
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: 'Search by city, locality, project...',
+                      hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Popular Localities
+          Text(
+            'Popular Localities',
+            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 12,
+            children: [
+              _buildLocationChip('Durg'),
+              _buildLocationChip('Raipur'),
+              _buildLocationChip('Bhilai'),
+              _buildLocationChip('Mumbai'),
+              _buildLocationChip('Gurgaon'),
+              _buildLocationChip('Bangalore'),
+            ],
+          ),
+          const SizedBox(height: 24),
+          
+          // Trending Searches
+          Text(
+            'Trending Searches',
+            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+          ),
+          const SizedBox(height: 16),
+          _buildTrendingSearchItem('DLF The Crest Gurgaon'),
+          _buildTrendingSearchItem('Gachibowli Hyderabad Flats'),
+          _buildTrendingSearchItem('Plots in Raipur'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchFilterChip(String label, bool isSelected) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 13,
+          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
+          color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentSearchItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        children: [
+          Icon(Icons.access_time, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationChip(String location) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+      ),
+      child: Text(
+        location,
+        style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  Widget _buildTrendingSearchItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        children: [
+          Icon(Icons.trending_up, size: 18, color: accentBlue),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
+
