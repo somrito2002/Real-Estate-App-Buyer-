@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
@@ -603,7 +601,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: Text(
-          'do it later',
+          'Do it Later',
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w600,

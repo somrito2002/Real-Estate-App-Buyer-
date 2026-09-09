@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(color: Theme.of(context).colorScheme.surfaceVariant, height: 1),
+        child: Container(color: Theme.of(context).colorScheme.surfaceContainerHighest, height: 1),
       ),
     );
   }
@@ -480,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
       actions: const [],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(color: Theme.of(context).colorScheme.surfaceVariant, height: 1),
+        child: Container(color: Theme.of(context).colorScheme.surfaceContainerHighest, height: 1),
       ),
     );
   }
@@ -564,7 +564,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -658,7 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -740,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceVariant),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

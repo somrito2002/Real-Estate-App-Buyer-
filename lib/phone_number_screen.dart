@@ -79,7 +79,7 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: colorScheme.surfaceVariant, height: 1),
+          child: Container(color: colorScheme.surfaceContainerHighest, height: 1),
         ),
       ),
       body: SafeArea(

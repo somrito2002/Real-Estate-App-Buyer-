@@ -132,7 +132,7 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
                 child: Container(
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -624,7 +624,7 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       height: 180,
-                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       child: Center(
                         child: Icon(Icons.image_not_supported, size: 48, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
@@ -788,7 +788,7 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
           child: Text(
             'Swipe card above to browse ${_filteredProperties.length} properties in this area',
             textAlign: TextAlign.center,
@@ -979,7 +979,7 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
                         ),
                       ),
                     );
-                  }).toList(),
+                  }),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,

@@ -161,7 +161,7 @@ class _FilterScreenState extends State<FilterScreen> {
                         _residentialCounts[key] ?? '',
                         _residentialProperties[key]!, 
                         (val) => setState(() => _residentialProperties[key] = val ?? false),
-                      )).toList(),
+                      )),
                   
                   const SizedBox(height: 16),
                   
@@ -173,7 +173,7 @@ class _FilterScreenState extends State<FilterScreen> {
                         _commercialCounts[key] ?? '',
                         _commercialProperties[key]!, 
                         (val) => setState(() => _commercialProperties[key] = val ?? false),
-                      )).toList(),
+                      )),
                   
                   _buildDivider(),
                   

@@ -216,7 +216,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 errorBuilder: (context, error, stackTrace) => Container(
                   width: 60,
                   height: 60,
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   child: const Icon(Icons.image_not_supported, size: 24, color: Colors.grey),
                 ),
               ),
@@ -292,7 +292,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: Theme.of(context).colorScheme.surfaceVariant, height: 1),
+          child: Container(color: Theme.of(context).colorScheme.surfaceContainerHighest, height: 1),
         ),
       ),
       body: Column(
