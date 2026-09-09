@@ -291,6 +291,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       _buildDivider(borderColor, descColor),
                       const SizedBox(height: 20),
 
+                      // ── DO IT LATER BUTTON ──
+                      _buildDoItLaterButton(),
+                      const SizedBox(height: 20),
+
                       // ── SOCIAL BUTTONS ──
                       _buildSocialButtons(borderColor, labelColor),
                       const SizedBox(height: 28),
@@ -576,6 +580,36 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.white,
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildDoItLaterButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accentBlue.withAlpha(40), // Light blue background
+          foregroundColor: accentBlue,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+        ),
+        child: Text(
+          'do it later',
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: accentBlue,
+          ),
+        ),
       ),
     );
   }

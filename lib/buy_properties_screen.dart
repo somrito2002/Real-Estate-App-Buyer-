@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'property_details_screen.dart';
 
 class BuyPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -585,7 +586,11 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       statusBgColor = accentBlue.withOpacity(0.1);
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+      },
+      child: Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
@@ -720,6 +725,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           ),
         ],
       ),
+    ),
     );
   }
   Widget _buildMapView() {

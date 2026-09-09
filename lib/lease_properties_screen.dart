@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'property_details_screen.dart';
 
 class LeasePropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -599,7 +600,11 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
       statusText = 'COMMERCIAL';
     }
 
-    return Container(
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+      },
+      child: Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
@@ -734,6 +739,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
           ),
         ],
       ),
+    ),
     );
   }
   Widget _buildMapView() {

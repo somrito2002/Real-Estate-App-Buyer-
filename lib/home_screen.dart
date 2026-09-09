@@ -5,6 +5,8 @@ import 'package:geocoding/geocoding.dart';
 import 'package:flutter/services.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart' as import_search_screen;
+import 'models/property_model.dart';
+import 'property_details_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -268,6 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     '3 Beds',
                     '3 Baths',
                     '2,215 sqft',
+                    property: mockProperties[2],
                   ),
                   _buildFeaturedPropertyCard(
                     'M3M Golf',
@@ -276,6 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     '2 Beds',
                     '2 Baths',
                     '1,500 sqft',
+                    property: mockProperties[3],
                   ),
                 ],
               ),
@@ -294,12 +298,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Smart World Developers',
                     'Sector 113, Gurgaon',
                     'Starting ₹1.15 Cr',
+                    property: mockProperties[4],
                   ),
                   _buildNewProjectCard(
                     'Emaar Digi H...',
                     'Emaar India',
                     'Sector 62, Gur...',
                     'Starting ₹1.90...',
+                    property: mockProperties[5],
                   ),
                 ],
               ),
@@ -330,8 +336,8 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹95 L'),
-                  _buildRecentlyViewedCard('SS The Leaf', 'Sector 85, Gurgaon', '₹1.30 Cr'),
+                  _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹95 L', property: mockProperties[0]),
+                  _buildRecentlyViewedCard('SS The Leaf', 'Sector 85, Gurgaon', '₹1.30 Cr', property: mockProperties[1]),
                 ],
               ),
             ),
@@ -545,8 +551,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeaturedPropertyCard(String title, String location, String price, String beds, String baths, String sqft) {
-    return Container(
+  Widget _buildFeaturedPropertyCard(String title, String location, String price, String beds, String baths, String sqft, {Property? property}) {
+    return GestureDetector(
+      onTap: property != null
+          ? () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+            }
+          : null,
+      child: Container(
       width: 260,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
@@ -629,11 +641,18 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
+    ),
     );
   }
 
-  Widget _buildNewProjectCard(String title, String builder, String location, String startingPrice) {
-    return Container(
+  Widget _buildNewProjectCard(String title, String builder, String location, String startingPrice, {Property? property}) {
+    return GestureDetector(
+      onTap: property != null
+          ? () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+            }
+          : null,
+      child: Container(
       width: 260,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
@@ -685,6 +704,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
+    ),
     );
   }
 
@@ -707,8 +727,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildRecentlyViewedCard(String title, String location, String price) {
-    return Container(
+  Widget _buildRecentlyViewedCard(String title, String location, String price, {Property? property}) {
+    return GestureDetector(
+      onTap: property != null
+          ? () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+            }
+          : null,
+      child: Container(
       width: 180,
       margin: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
@@ -742,6 +768,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
+    ),
     );
   }
 
