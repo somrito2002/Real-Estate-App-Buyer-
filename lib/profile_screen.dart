@@ -3,11 +3,43 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _isLoggedIn = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    String displayName = _isLoggedIn ? 'User1' : 'Guest';
+    String displayEmail = _isLoggedIn ? 'user1@gmail.com' : 'No email';
+    String initial = _isLoggedIn ? 'U1' : 'G';
+
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -27,9 +59,9 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: Color(0xFF4B85F0),
+                    backgroundColor: const Color(0xFF4B85F0),
                     child: Text(
-                      'U1',
+                      initial,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.surface,
                         fontSize: 24,
@@ -39,7 +71,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'User1',
+                    displayName,
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -48,28 +80,29 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'user1@gmail.com',
+                    displayEmail,
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Edit Profile',
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.onSurface,
+                  if (_isLoggedIn)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).colorScheme.outline),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Edit Profile',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -104,7 +137,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          // Logout Button
+          // Logout / Login Button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
@@ -112,52 +145,59 @@ class ProfileScreen extends StatelessWidget {
               height: 54,
               child: TextButton(
                 onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      backgroundColor: Theme.of(context).colorScheme.surface,
-                      title: Text(
-                        'Log Out',
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      content: Text(
-                        'Do you want to log out?',
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text(
-                            'No',
-                            style: GoogleFonts.inter(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                  if (_isLoggedIn) {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        title: Text(
+                          'Log Out',
+                          style: GoogleFonts.inter(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text(
-                            'Yes',
-                            style: GoogleFonts.inter(
-                              color: Colors.red,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        content: Text(
+                          'Do you want to log out?',
+                          style: GoogleFonts.inter(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
-                      ],
-                    ),
-                  );
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(
+                              'No',
+                              style: GoogleFonts.inter(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(
+                              'Yes',
+                              style: GoogleFonts.inter(
+                                color: Colors.red,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
 
-                  if (confirm == true) {
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setBool('isLoggedIn', false);
-                    if (!context.mounted) return;
+                    if (confirm == true) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setBool('isLoggedIn', false);
+                      if (!context.mounted) return;
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (Route<dynamic> route) => false,
+                      );
+                    }
+                  } else {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(builder: (context) => const LoginScreen()),
                       (Route<dynamic> route) => false,
@@ -165,17 +205,17 @@ class ProfileScreen extends StatelessWidget {
                   }
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: Colors.red.withOpacity(0.1),
+                  backgroundColor: _isLoggedIn ? Colors.red.withOpacity(0.1) : const Color(0xFF4B85F0).withOpacity(0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
                 child: Text(
-                  'Logout',
+                  _isLoggedIn ? 'Logout' : 'Login',
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                    color: _isLoggedIn ? Colors.red : const Color(0xFF4B85F0),
                   ),
                 ),
               ),
