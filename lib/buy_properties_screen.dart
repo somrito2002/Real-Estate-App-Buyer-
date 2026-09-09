@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'filter_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class BuyPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -20,11 +21,29 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   String _currentSortOption = 'Recommended';
   static const Color accentBlue = Color(0xFF4B85F0);
 
+  bool _isConnected = true;
+
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialSearchQuery);
-    _filterProperties();
+    _checkInternetConnection();
+  }
+
+  Future<void> _checkInternetConnection() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+      setState(() {
+        _isConnected = !connectivityResult.contains(ConnectivityResult.none);
+      });
+    } catch (e) {
+      setState(() {
+        _isConnected = true;
+      });
+    }
+    if (_isConnected) {
+      _filterProperties();
+    }
   }
 
   @override
@@ -174,6 +193,9 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   }
 
   Widget _buildBody() {
+    if (!_isConnected) {
+      return _buildNoInternetScreen();
+    }
     if (_isMapView) {
       return _buildMapView();
     }
@@ -329,6 +351,89 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           ),
         ],
       );
+  }
+
+  Widget _buildNoInternetScreen() {
+    return Column(
+      children: [
+        // The chips header
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5))),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: _buildAppliedFilterChips(),
+            ),
+          ),
+        ),
+        // Empty body
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(Icons.cloud_off, size: 50, color: Colors.red.shade400),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Unable to Load Results',
+                  style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Please check your internet connection or network\nsignal and try again.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _checkInternetConnection();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentBlue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text('Retry Connection', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Go Back', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildEmptyStateScreen() {

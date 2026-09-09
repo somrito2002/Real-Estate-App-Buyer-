@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'buy_properties_screen.dart';
+import 'rent_properties_screen.dart';
+import 'lease_properties_screen.dart';
 
 class FilterScreen extends StatefulWidget {
-  const FilterScreen({super.key});
+  final String initialCategory;
+
+  const FilterScreen({super.key, this.initialCategory = 'Buy'});
 
   @override
   State<FilterScreen> createState() => _FilterScreenState();
@@ -420,11 +424,22 @@ class _FilterScreenState extends State<FilterScreen> {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Normally this would pass the filter options back or directly push the search screen
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const BuyPropertiesScreen()),
-                        );
+                        if (widget.initialCategory == 'Rent') {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const RentPropertiesScreen()),
+                          );
+                        } else if (widget.initialCategory == 'Lease') {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LeasePropertiesScreen()),
+                          );
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const BuyPropertiesScreen()),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentBlue,

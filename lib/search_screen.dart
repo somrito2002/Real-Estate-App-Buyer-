@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'filter_screen.dart';
 import 'buy_properties_screen.dart';
+import 'rent_properties_screen.dart';
+import 'lease_properties_screen.dart';
+import 'filter_screen.dart';
 import 'models/property_model.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final String initialCategory;
+
+  const SearchScreen({super.key, this.initialCategory = 'Buy'});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -13,7 +17,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
-  String _selectedCategory = 'Buy';
+  late String _selectedCategory;
   
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -21,6 +25,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedCategory = widget.initialCategory;
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.trim();
@@ -87,6 +92,13 @@ class _SearchScreenState extends State<SearchScreen> {
     return InkWell(
       onTap: () {
         _searchController.text = text;
+        if (_selectedCategory == 'Rent') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: text)));
+        } else if (_selectedCategory == 'Lease') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => LeasePropertiesScreen(initialSearchQuery: text)));
+        } else {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: text)));
+        }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -116,6 +128,13 @@ class _SearchScreenState extends State<SearchScreen> {
     return InkWell(
       onTap: () {
         _searchController.text = location;
+        if (_selectedCategory == 'Rent') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: location)));
+        } else if (_selectedCategory == 'Lease') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => LeasePropertiesScreen(initialSearchQuery: location)));
+        } else {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: location)));
+        }
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -141,6 +160,11 @@ class _SearchScreenState extends State<SearchScreen> {
     return InkWell(
       onTap: () {
         _searchController.text = text;
+        if (_selectedCategory == 'Rent') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: text)));
+        } else {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: text)));
+        }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -170,8 +194,13 @@ class _SearchScreenState extends State<SearchScreen> {
     return InkWell(
       onTap: () {
         // When a property is selected, navigate to properties screen
-        // In a fully wired app, we might pass the selected property or filter to BuyPropertiesScreen
-        Navigator.push(context, MaterialPageRoute(builder: (_) => const BuyPropertiesScreen()));
+        if (property.category == 'Rent') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: property.title)));
+        } else if (property.category == 'Lease') {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => LeasePropertiesScreen(initialSearchQuery: property.title)));
+        } else {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: property.title)));
+        }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -302,7 +331,13 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           onSubmitted: (value) {
                             if (value.isNotEmpty) {
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const BuyPropertiesScreen()));
+                              if (_selectedCategory == 'Rent') {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: value)));
+                              } else if (_selectedCategory == 'Lease') {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => LeasePropertiesScreen(initialSearchQuery: value)));
+                              } else {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: value)));
+                              }
                             }
                           },
                         ),
@@ -317,7 +352,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       const SizedBox(width: 8),
                       InkWell(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => FilterScreen(initialCategory: _selectedCategory)));
                         },
                         child: Icon(Icons.tune, color: Theme.of(context).colorScheme.onSurface, size: 22),
                       ),

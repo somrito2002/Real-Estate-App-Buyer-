@@ -16,6 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _bottomNavIndex = 0;
   String _currentLocation = 'Locating...';
+  String _selectedPrimaryCategory = 'Buy';
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -201,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => import_search_screen.SearchScreen(initialCategory: _selectedPrimaryCategory)));
                         },
                         child: AbsorbPointer(
                           child: TextField(
@@ -228,11 +229,11 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  Expanded(child: _buildPrimaryFilter('Buy', true)),
+                  Expanded(child: GestureDetector(onTap: () => setState(() => _selectedPrimaryCategory = 'Buy'), child: _buildPrimaryFilter('Buy', _selectedPrimaryCategory == 'Buy'))),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildPrimaryFilter('Rent', false)),
+                  Expanded(child: GestureDetector(onTap: () => setState(() => _selectedPrimaryCategory = 'Rent'), child: _buildPrimaryFilter('Rent', _selectedPrimaryCategory == 'Rent'))),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildPrimaryFilter('Lease', false)),
+                  Expanded(child: GestureDetector(onTap: () => setState(() => _selectedPrimaryCategory = 'Lease'), child: _buildPrimaryFilter('Lease', _selectedPrimaryCategory == 'Lease'))),
                 ],
               ),
             ),
