@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/property_model.dart';
+import 'compare_properties_screen.dart';
 import 'property_details_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
+import 'widgets/remove_shortlist_dialog.dart';
 
 class SavedScreen extends StatefulWidget {
   const SavedScreen({super.key});
@@ -15,8 +18,14 @@ class SavedScreen extends StatefulWidget {
 
 class _SavedScreenState extends State<SavedScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
+  static const Color accentRed = Color(0xFFEF4444);
+
   bool _isLoggedIn = false;
   bool _isLoading = true;
+
+  // Multi-select state
+  bool _isSelecting = false;
+  final Set<int> _selectedIndices = {};
 
   @override
   void initState() {
@@ -37,19 +46,97 @@ class _SavedScreenState extends State<SavedScreen> {
   List<Property> get _savedProperties =>
       mockProperties.where((p) => p.isFavorite).toList();
 
+  void _enterSelectMode(int index) {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _isSelecting = true;
+      _selectedIndices.add(index);
+    });
+  }
+
+  void _exitSelectMode() {
+    setState(() {
+      _isSelecting = false;
+      _selectedIndices.clear();
+    });
+  }
+
+  void _toggleSelection(int index) {
+    setState(() {
+      if (_selectedIndices.contains(index)) {
+        _selectedIndices.remove(index);
+        if (_selectedIndices.isEmpty) _isSelecting = false;
+      } else {
+        _selectedIndices.add(index);
+      }
+    });
+  }
+
+  Future<void> _removeSelected(List<Property> saved) async {
+    final toRemove = _selectedIndices.map((i) => saved[i]).toList();
+    // Show dialog only if single item; bulk remove directly for multiple
+    if (toRemove.length == 1) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (_) => RemoveShortlistDialog(propertyTitle: toRemove.first.title),
+      );
+      if (confirm != true) return;
+    }
+    setState(() {
+      for (final p in toRemove) {
+        p.isFavorite = false;
+      }
+      _exitSelectMode();
+    });
+  }
+
+  Future<void> _removeAll(List<Property> saved) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Remove All?',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        content: Text(
+          'This will remove all ${saved.length} saved properties from your shortlist.',
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600),
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel', style: GoogleFonts.inter(color: accentBlue)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Remove All', style: GoogleFonts.inter(color: accentRed, fontWeight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      setState(() {
+        for (final p in saved) { p.isFavorite = false; }
+        _exitSelectMode();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    if (!_isLoggedIn) {
-      return _buildGuestView();
-    }
-
+    if (!_isLoggedIn) return _buildGuestView();
     return _buildSavedList();
   }
 
+  // ── GUEST VIEW ──────────────────────────────────────────────────────────────
   Widget _buildGuestView() {
     return Center(
       child: Padding(
@@ -58,84 +145,50 @@ class _SavedScreenState extends State<SavedScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                shape: BoxShape.circle,
-              ),
+              width: 80, height: 80,
+              decoration: BoxDecoration(color: Colors.red.shade50, shape: BoxShape.circle),
               child: Icon(Icons.favorite, color: Colors.red.shade400, size: 40),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Save to Shortlist',
-              style: GoogleFonts.inter(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
+            Text('Save to Shortlist',
+                style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 12),
             Text(
               'Please sign in or create an account to save properties to your shortlist and monitor price drops.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                height: 1.5,
-              ),
+              style: GoogleFonts.inter(fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5),
             ),
             const SizedBox(height: 32),
             SizedBox(
-              width: double.infinity,
-              height: 50,
+              width: double.infinity, height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  ).then((_) => _checkLoginStatus());
-                },
+                onPressed: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => const LoginScreen()))
+                    .then((_) => _checkLoginStatus()),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: accentBlue,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  backgroundColor: accentBlue, foregroundColor: Colors.white, elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text(
-                  'Sign In',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text('Sign In',
+                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
             const SizedBox(height: 12),
             SizedBox(
-              width: double.infinity,
-              height: 50,
+              width: double.infinity, height: 50,
               child: OutlinedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                  ).then((_) => _checkLoginStatus());
-                },
+                onPressed: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => const RegisterScreen()))
+                    .then((_) => _checkLoginStatus()),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Theme.of(context).colorScheme.onSurface,
                   side: BorderSide(color: Theme.of(context).colorScheme.outline),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text(
-                  'Create Account',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text('Create Account',
+                    style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -144,6 +197,7 @@ class _SavedScreenState extends State<SavedScreen> {
     );
   }
 
+  // ── SAVED LIST ───────────────────────────────────────────────────────────────
   Widget _buildSavedList() {
     final saved = _savedProperties;
 
@@ -152,183 +206,383 @@ class _SavedScreenState extends State<SavedScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.bookmark_border_rounded,
-              size: 72,
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
+            Icon(Icons.bookmark_border_rounded, size: 72,
+                color: Theme.of(context).colorScheme.outlineVariant),
             const SizedBox(height: 16),
-            Text(
-              'No Saved Properties',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
+            Text('No Shortlisted Properties',
+                style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 8),
-            Text(
-              'Tap the heart icon on any property to save it here.',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+            Text('Tap the heart icon on any property to save it here.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ],
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: saved.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final property = saved[index];
-        return _buildPropertyCard(property);
-      },
+    return Column(
+      children: [
+        // ── HEADER ──
+        _buildHeader(saved),
+
+        // ── PROPERTY LIST ──
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            itemCount: saved.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final property = saved[index];
+              final isSelected = _selectedIndices.contains(index);
+              return _buildPropertyCard(property, index, isSelected, saved);
+            },
+          ),
+        ),
+
+        // ── BOTTOM ACTION BAR ──
+        _buildBottomBar(saved),
+      ],
     );
   }
 
-  Widget _buildPropertyCard(Property property) {
+  Widget _buildHeader(List<Property> saved) {
+    if (!_isSelecting) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _exitSelectMode,
+            child: const Icon(Icons.close, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '${_selectedIndices.length} Selected',
+            style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                if (_selectedIndices.length == saved.length) {
+                  _selectedIndices.clear();
+                } else {
+                  _selectedIndices.addAll(
+                      List.generate(saved.length, (i) => i));
+                }
+              });
+            },
+            child: Text(
+              _selectedIndices.length == saved.length ? 'Deselect All' : 'Select All',
+              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
+                  color: accentBlue),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyCard(Property property, int index, bool isSelected, List<Property> saved) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PropertyDetailsScreen(property: property),
-          ),
-        ).then((_) => setState(() {}));
+        if (_isSelecting) {
+          _toggleSelection(index);
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)),
+          ).then((_) => setState(() {}));
+        }
       },
-      child: Container(
+      onLongPress: () {
+        if (!_isSelecting) {
+          _enterSelectMode(index);
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          color: isSelected
+              ? accentBlue.withAlpha(12)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? accentBlue : Colors.grey.shade200,
+            width: isSelected ? 1.5 : 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withAlpha(10),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Stack(
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── IMAGE with selection indicator ──
+              Stack(
                 children: [
-                  Image.network(
-                    property.imageUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 180,
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: _buildPropertyImage(property),
                     ),
                   ),
+                  // Selection circle / check
                   Positioned(
-                    top: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade600,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        property.status,
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          property.isFavorite = false;
-                        });
-                      },
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.favorite, color: Colors.red, size: 20),
-                      ),
+                    top: 6, left: 6,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: _isSelecting
+                          ? Container(
+                              key: const ValueKey('check'),
+                              width: 24, height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected ? accentBlue : Colors.white.withAlpha(220),
+                                border: Border.all(
+                                  color: isSelected ? accentBlue : Colors.grey.shade400,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: isSelected
+                                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                  : null,
+                            )
+                          : const SizedBox.shrink(key: ValueKey('empty')),
                     ),
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    property.price,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: accentBlue,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    property.title,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on_outlined,
-                          size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          property.location,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+              const SizedBox(width: 12),
+
+              // ── DETAILS ──
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            property.price,
+                            style: GoogleFonts.inter(
+                              fontSize: 16, fontWeight: FontWeight.bold, color: accentBlue),
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    property.specs,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        // Heart icon
+                        GestureDetector(
+                          onTap: _isSelecting
+                              ? null
+                              : () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (_) => RemoveShortlistDialog(
+                                        propertyTitle: property.title),
+                                  );
+                                  if (confirm == true) {
+                                    setState(() => property.isFavorite = false);
+                                  }
+                                },
+                          child: Icon(Icons.favorite,
+                              color: _isSelecting ? Colors.grey.shade300 : accentRed,
+                              size: 20),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      property.title,
+                      style: GoogleFonts.inter(
+                        fontSize: 14, fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      property.specs,
+                      style: GoogleFonts.inter(fontSize: 12,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            property.location,
+                            style: GoogleFonts.inter(fontSize: 12,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: _isSelecting
+                              ? null
+                              : () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (_) => RemoveShortlistDialog(
+                                        propertyTitle: property.title),
+                                  );
+                                  if (confirm == true) {
+                                    setState(() => property.isFavorite = false);
+                                  }
+                                },
+                          child: Text(
+                            'Remove',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _isSelecting ? Colors.grey.shade300 : accentRed,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPropertyImage(Property property) {
+    if (property.imageUrl.startsWith('assets/')) {
+      return Image.asset(property.imageUrl, fit: BoxFit.cover,
+          errorBuilder: (context, error, stack) => _imagePlaceholder());
+    }
+    return Image.network(property.imageUrl, fit: BoxFit.cover,
+        errorBuilder: (context, error, stack) => _imagePlaceholder());
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      color: Colors.grey.shade200,
+      child: const Icon(Icons.home_outlined, color: Colors.grey, size: 32),
+    );
+  }
+
+  // ── BOTTOM ACTION BAR ────────────────────────────────────────────────────────
+  Widget _buildBottomBar(List<Property> saved) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: _isSelecting && _selectedIndices.isNotEmpty
+          ? Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _removeSelected(saved),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: accentRed,
+                      side: const BorderSide(color: accentRed),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      'Remove (${_selectedIndices.length})',
+                      style: GoogleFonts.inter(
+                          fontSize: 15, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selectedIndices.length == 2
+                        ? () {
+                            final p1 = saved[_selectedIndices.elementAt(0)];
+                            final p2 = saved[_selectedIndices.elementAt(1)];
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => ComparePropertiesScreen(prop1: p1, prop2: p2),
+                            ));
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentBlue,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      foregroundColor: Colors.white,
+                      disabledForegroundColor: Colors.grey.shade500,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Compare Properties',
+                        style: GoogleFonts.inter(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _removeAll(saved),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: accentRed,
+                      side: const BorderSide(color: accentRed),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Remove All',
+                        style: GoogleFonts.inter(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selectedIndices.length == 2
+                        ? () {
+                            final p1 = saved[_selectedIndices.elementAt(0)];
+                            final p2 = saved[_selectedIndices.elementAt(1)];
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => ComparePropertiesScreen(prop1: p1, prop2: p2),
+                            ));
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentBlue,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      foregroundColor: Colors.white,
+                      disabledForegroundColor: Colors.grey.shade500,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Compare Properties',
+                        style: GoogleFonts.inter(
+                            fontSize: 15, fontWeight: FontWeight.w600)),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

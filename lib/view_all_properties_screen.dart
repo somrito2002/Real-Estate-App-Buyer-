@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
+import 'widgets/remove_shortlist_dialog.dart';
 
 class ViewAllPropertiesScreen extends StatefulWidget {
   final String title;
@@ -122,10 +123,24 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
                   top: 12,
                   right: 12,
                   child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        property.isFavorite = !property.isFavorite;
-                      });
+                    onTap: () async {
+                      if (property.isFavorite) {
+                        final bool? confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => RemoveShortlistDialog(
+                            propertyTitle: property.title,
+                          ),
+                        );
+                        if (confirm == true) {
+                          setState(() {
+                            property.isFavorite = false;
+                          });
+                        }
+                      } else {
+                        setState(() {
+                          property.isFavorite = true;
+                        });
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.all(6),

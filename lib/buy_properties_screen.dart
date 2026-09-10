@@ -4,6 +4,7 @@ import 'models/property_model.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'property_details_screen.dart';
+import 'widgets/remove_shortlist_dialog.dart';
 
 class BuyPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -644,10 +645,24 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 top: 12,
                 right: 12,
                 child: InkWell(
-                  onTap: () {
-                    setState(() {
-                      property.isFavorite = !property.isFavorite;
-                    });
+                  onTap: () async {
+                    if (property.isFavorite) {
+                      final bool? confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => RemoveShortlistDialog(
+                          propertyTitle: property.title,
+                        ),
+                      );
+                      if (confirm == true) {
+                        setState(() {
+                          property.isFavorite = false;
+                        });
+                      }
+                    } else {
+                      setState(() {
+                        property.isFavorite = true;
+                      });
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),

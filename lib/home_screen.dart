@@ -113,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? null
                 : (_bottomNavIndex == 2
                     ? AppBar(
-                        title: Text('Saved Properties',
+                        title: Text('Shortlisted Properties',
                             style: GoogleFonts.inter(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

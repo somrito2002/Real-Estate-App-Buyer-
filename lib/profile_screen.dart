@@ -161,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildMenuItem(context, Icons.home_outlined, 'Overview'),
                   _buildDivider(context),
-                  _buildMenuItem(context, Icons.favorite_border, 'Saved Properties'),
+                  _buildMenuItem(context, Icons.favorite_border, 'Shortlisted Properties'),
                   _buildDivider(context),
                   _buildMenuItem(context, Icons.search_outlined, 'Saved Searches'),
                   _buildDivider(context),

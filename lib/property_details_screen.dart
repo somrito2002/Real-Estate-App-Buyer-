@@ -12,6 +12,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'login_screen.dart';
 import 'create_account_screen.dart';
 import 'register_screen.dart';
+import 'widgets/remove_shortlist_dialog.dart';
+import 'full_screen_image_gallery.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -43,13 +45,29 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     }
   }
 
-  void _onHeartTapped(Property property) {
+  void _onHeartTapped(Property property) async {
     if (!_isLoggedIn) {
       _showSaveToShortlistSheet();
     } else {
-      setState(() {
-        property.isFavorite = !property.isFavorite;
-      });
+      if (property.isFavorite) {
+        // Show confirm dialog before removing
+        final bool? confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => RemoveShortlistDialog(
+            propertyTitle: property.title,
+          ),
+        );
+        
+        if (confirm == true) {
+          setState(() {
+            property.isFavorite = false;
+          });
+        }
+      } else {
+        setState(() {
+          property.isFavorite = true;
+        });
+      }
     }
   }
 
@@ -290,11 +308,34 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 // Image Header
                 Stack(
                   children: [
-                    Image.network(
-                      property.imageUrl,
-                      height: 250,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => FullScreenImageGallery(
+                              imageUrls: [
+                                property.imageUrl,
+                                'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&auto=format&fit=crop',
+                                'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop',
+                                'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&auto=format&fit=crop',
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: property.imageUrl.startsWith('assets/')
+                          ? Image.asset(
+                              property.imageUrl,
+                              height: 250,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.network(
+                              property.imageUrl,
+                              height: 250,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                     ),
                     Positioned(
                       top: MediaQuery.of(context).padding.top + 8,
