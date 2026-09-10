@@ -81,19 +81,36 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         setState(() => _isLoading = false);
         
-        String inputId = _emailController.text.trim();
-        bool isEmailCorrect = inputId == 'user1@gmail.com' || inputId == '8900096422';
-        bool isPasswordCorrect = _passwordController.text == 'nopass';
+        final prefs = await SharedPreferences.getInstance();
+        final cachedEmail = prefs.getString('cached_email');
+        final cachedMobile = prefs.getString('cached_mobile');
+        final cachedPassword = prefs.getString('cached_password');
         
-        if (isEmailCorrect && isPasswordCorrect) {
+        String inputId = _emailController.text.trim();
+        String inputPassword = _passwordController.text;
+        
+        // Match against cached credentials or fallback hardcoded credentials
+        bool isCachedMatch = false;
+        if (cachedPassword != null && inputPassword == cachedPassword) {
+          if ((cachedEmail != null && inputId == cachedEmail) ||
+              (cachedMobile != null && inputId == cachedMobile)) {
+            isCachedMatch = true;
+          }
+        }
+        
+        bool isHardcodedMatch = (inputId == 'user1@gmail.com' || inputId == '8900096422') &&
+                                inputPassword == 'nopass';
+        
+        if (isCachedMatch || isHardcodedMatch) {
           // Save login state
-          final prefs = await SharedPreferences.getInstance();
           await prefs.setBool('isLoggedIn', true);
+          // Track whether this is the hardcoded demo user or a real registered user
+          await prefs.setBool('isHardcodedUser', isHardcodedMatch && !isCachedMatch);
           if (!mounted) return;
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const HomeScreen()),
           );
-        } else if (!isEmailCorrect && !isPasswordCorrect) {
+        } else if (!isCachedMatch && !isHardcodedMatch) {
           setState(() => _showVerificationError = true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -130,14 +147,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  MediaQuery.of(context).padding.bottom,
+            ),
+            child: IntrinsicHeight(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
 
                 // ── HEADER: back arrow + globe logo + brand name ──
                 Padding(
@@ -242,7 +268,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 36),
+                      const SizedBox(height: 20),
 
                       // ── WELCOME TEXT ──
                       Text(
@@ -254,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         'Login to access premium listings and personalised property updates.',
                         style: GoogleFonts.inter(
@@ -263,52 +289,54 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 1.55,
                         ),
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
 
                       // ── EMAIL ──
                       _buildLabel('Email / Phone Number', labelColor),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       _buildEmailField(fieldFill, borderColor, hintColor, labelColor),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       // ── PASSWORD ──
                       _buildLabel('Password', labelColor),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       _buildPasswordField(fieldFill, borderColor, labelColor, descColor),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
 
                       // ── REMEMBER ME + FORGOT PASSWORD ──
                       _buildRememberForgotRow(descColor, borderColor),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
                       // ── LOGIN BUTTON ──
                       _buildLoginButton(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
                       // ── OR CONTINUE WITH ──
                       _buildDivider(borderColor, descColor),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       // ── DO IT LATER BUTTON ──
                       _buildDoItLaterButton(),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
                       // ── SOCIAL BUTTONS ──
                       _buildSocialButtons(borderColor, labelColor),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 20),
 
                       // ── REGISTER LINK ──
                       _buildRegisterRow(descColor),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 16),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+                ),   // end inner Padding
+                  ],  // end outer Column children
+                ),   // end Column
+              ),     // end Form
+            ),       // end IntrinsicHeight
+          ),         // end ConstrainedBox
+        ),           // end SingleChildScrollView
+      ),             // end SafeArea
+    );               // end Scaffold
   }
 
   // ── Header: back arrow + globe image + Meco brand + divider ──
@@ -393,7 +421,7 @@ class _LoginScreenState extends State<LoginScreen> {
       fillColor: fill,
       hintText: hintText,
       hintStyle: hintStyle,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       suffixIcon: suffixIcon,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

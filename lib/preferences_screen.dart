@@ -22,11 +22,26 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   final TextEditingController _locationController =
       TextEditingController(text: 'Gurugram, Haryana');
   final TextEditingController _minBudgetController =
-      TextEditingController(text: 'Min: ₹50 Lakh');
+      TextEditingController(text: '50');
   final TextEditingController _maxBudgetController =
-      TextEditingController(text: 'Max: ₹2 Crore');
+      TextEditingController(text: '200');
+
+  RangeValues _budgetRange = const RangeValues(50, 200);
 
   bool _isLoading = false;
+
+  void _updateBudgetFromText() {
+    double min = double.tryParse(_minBudgetController.text) ?? _budgetRange.start;
+    double max = double.tryParse(_maxBudgetController.text) ?? _budgetRange.end;
+    
+    if (min > max && _maxBudgetController.text.isNotEmpty) max = min;
+    if (min < 0) min = 0;
+    if (max > 1000) max = 1000;
+    
+    setState(() {
+      _budgetRange = RangeValues(min, max);
+    });
+  }
 
   @override
   void dispose() {
@@ -186,16 +201,56 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
               const SizedBox(height: 28),
 
               // Budget
-              _buildLabel('Budget (INR)'),
-              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildLabel('Budget (INR)'),
+                  Text(
+                    '₹${_budgetRange.start.toInt()} L - ₹${_budgetRange.end.toInt()} L',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: Theme.of(context).colorScheme.primary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              RangeSlider(
+                values: _budgetRange,
+                min: 0,
+                max: 1000,
+                divisions: 100,
+                activeColor: Theme.of(context).colorScheme.primary,
+                inactiveColor: Theme.of(context).colorScheme.outlineVariant,
+                labels: RangeLabels(
+                  '₹${_budgetRange.start.toInt()} L',
+                  '₹${_budgetRange.end.toInt()} L',
+                ),
+                onChanged: (values) {
+                  setState(() {
+                    _budgetRange = values;
+                    _minBudgetController.text = values.start.toInt().toString();
+                    _maxBudgetController.text = values.end.toInt().toString();
+                  });
+                },
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('₹0', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey)),
+                  Text('₹10 Cr', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey)),
+                ],
+              ),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _minBudgetController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (val) => _updateBudgetFromText(),
                       style: GoogleFonts.inter(
                           fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
+                        prefixText: 'Min: ₹ ',
+                        suffixText: ' L',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),
                         enabledBorder: OutlineInputBorder(
@@ -216,9 +271,13 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                   Expanded(
                     child: TextField(
                       controller: _maxBudgetController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (val) => _updateBudgetFromText(),
                       style: GoogleFonts.inter(
                           fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
+                        prefixText: 'Max: ₹ ',
+                        suffixText: ' L',
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 14),
                         enabledBorder: OutlineInputBorder(

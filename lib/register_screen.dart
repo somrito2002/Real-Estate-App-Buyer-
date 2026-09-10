@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'create_password_screen.dart';
 
@@ -24,8 +27,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   bool _isConnected = true;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  String? _profileImagePath;
 
   static const Color accentBlue = Color(0xFF4B85F0);
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 512,
+      maxHeight: 512,
+    );
+    if (picked != null && mounted) {
+      setState(() {
+        _profileImagePath = picked.path;
+      });
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -69,12 +88,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _handleContinue() {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(milliseconds: 600), () {
+      Future.delayed(const Duration(milliseconds: 600), () async {
         if (!mounted) return;
         setState(() => _isLoading = false);
+        // Save profile photo path to cache immediately if selected
+        if (_profileImagePath != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cached_profilePhotoPath', _profileImagePath!);
+        }
+        if (!mounted) return;
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => const CreatePasswordScreen(),
+            pageBuilder: (context, animation, secondaryAnimation) => CreatePasswordScreen(
+              fullName: _fullNameController.text.trim(),
+              mobile: _mobileController.text.trim(),
+              email: _emailController.text.trim(),
+            ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;

@@ -4,9 +4,11 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/services.dart';
 import 'profile_screen.dart';
+import 'saved_screen.dart';
 import 'search_screen.dart' as import_search_screen;
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
+import 'view_all_properties_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -105,11 +107,27 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: _bottomNavIndex == 4 
-            ? _buildProfileAppBar() 
-            : (_bottomNavIndex == 1 
-                ? null 
-                : (_bottomNavIndex == 0 ? _buildAppBar() : AppBar(title: const Text('Coming Soon'), backgroundColor: Theme.of(context).scaffoldBackgroundColor, elevation: 0))),
+        appBar: _bottomNavIndex == 4
+            ? _buildProfileAppBar()
+            : (_bottomNavIndex == 1
+                ? null
+                : (_bottomNavIndex == 2
+                    ? AppBar(
+                        title: Text('Saved Properties',
+                            style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.onSurface)),
+                        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                        elevation: 0,
+                        scrolledUnderElevation: 0,
+                      )
+                    : (_bottomNavIndex == 0
+                        ? _buildAppBar()
+                        : AppBar(
+                            title: const Text('Coming Soon'),
+                            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                            elevation: 0)))),
         body: _buildBody(),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _bottomNavIndex,
@@ -145,6 +163,10 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (_bottomNavIndex) {
       case 0:
         return _buildHomeTab();
+      case 1:
+        return const import_search_screen.SearchScreen();
+      case 2:
+        return const SavedScreen();
       case 4:
         return const ProfileScreen();
       default:
@@ -257,7 +279,12 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
             
             // Featured Properties
-            _buildSectionHeader('Featured Properties'),
+            _buildSectionHeader('Featured Properties', onViewAll: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+                title: 'Featured Properties',
+                properties: [mockProperties[2], mockProperties[3], mockProperties[8], mockProperties[9]],
+              )));
+            }),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -281,13 +308,36 @@ class _HomeScreenState extends State<HomeScreen> {
                     '1,500 sqft',
                     property: mockProperties[3],
                   ),
+                  _buildFeaturedPropertyCard(
+                    mockProperties[8].title,
+                    mockProperties[8].location,
+                    mockProperties[8].price,
+                    '3 Beds',
+                    '3 Baths',
+                    '1,800 sqft',
+                    property: mockProperties[8],
+                  ),
+                  _buildFeaturedPropertyCard(
+                    mockProperties[9].title,
+                    mockProperties[9].location,
+                    mockProperties[9].price,
+                    '4 Beds',
+                    '3 Baths',
+                    '2,400 sqft',
+                    property: mockProperties[9],
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
             
             // New Projects
-            _buildSectionHeader('New Projects'),
+            _buildSectionHeader('New Projects', onViewAll: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+                title: 'New Projects',
+                properties: [mockProperties[4], mockProperties[5], mockProperties[10]],
+              )));
+            }),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -297,15 +347,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     'Smart World One DXP',
                     'Smart World Developers',
                     'Sector 113, Gurgaon',
-                    'Starting ₹1.15 Cr',
+                    'Starting ₹3.15 Cr',
                     property: mockProperties[4],
                   ),
                   _buildNewProjectCard(
                     'Emaar Digi H...',
                     'Emaar India',
                     'Sector 62, Gur...',
-                    'Starting ₹1.90...',
+                    'Starting ₹1.90 Cr',
                     property: mockProperties[5],
+                  ),
+                  _buildNewProjectCard(
+                    mockProperties[10].title,
+                    'Classic Builders',
+                    mockProperties[10].location,
+                    'Starting ${mockProperties[10].price}',
+                    property: mockProperties[10],
                   ),
                 ],
               ),
@@ -330,14 +387,20 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 24),
             
             // Recently Viewed
-            _buildSectionHeader('Recently Viewed'),
+            _buildSectionHeader('Recently Viewed', onViewAll: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+                title: 'Recently Viewed',
+                properties: [mockProperties[0], mockProperties[1], mockProperties[11]],
+              )));
+            }),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹95 L', property: mockProperties[0]),
-                  _buildRecentlyViewedCard('SS The Leaf', 'Sector 85, Gurgaon', '₹1.30 Cr', property: mockProperties[1]),
+                  _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹85 L', property: mockProperties[0]),
+                  _buildRecentlyViewedCard('SS The Leaf', 'Bhilai, Chhattisgarh', '₹1.20 Cr', property: mockProperties[1]),
+                  _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
                 ],
               ),
             ),
@@ -527,7 +590,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, {VoidCallback? onViewAll}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -537,15 +600,29 @@ class _HomeScreenState extends State<HomeScreen> {
             title,
             style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
           ),
-          Row(
-            children: [
-              Text(
-                'View All',
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
+          if (onViewAll != null)
+            GestureDetector(
+              onTap: onViewAll,
+              child: Row(
+                children: [
+                  Text(
+                    'View All',
+                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
+                  ),
+                  Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
+                ],
               ),
-              Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
-            ],
-          ),
+            )
+          else
+            Row(
+              children: [
+                Text(
+                  'View All',
+                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
+                ),
+                Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
+              ],
+            ),
         ],
       ),
     );
@@ -571,14 +648,25 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Stack(
             children: [
-              Container(
-                height: 140,
-                decoration: const BoxDecoration(
-                  color: Colors.grey,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-                ),
-                // Placeholders since we don't have real images
-                child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54)),
+              ClipRRect(
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                child: (property != null && property.imageUrl.isNotEmpty)
+                    ? Image.network(
+                        property.imageUrl,
+                        height: 140,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          height: 140,
+                          color: Colors.grey.shade300,
+                          child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54)),
+                        ),
+                      )
+                    : Container(
+                        height: 140,
+                        color: Colors.grey.shade300,
+                        child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54)),
+                      ),
               ),
               Positioned(
                 top: 8,
@@ -663,13 +751,25 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 120,
-            decoration: const BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-            ),
-            child: const Center(child: Icon(Icons.landscape, size: 50, color: Colors.white54)),
+          ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+            child: (property != null && property.imageUrl.isNotEmpty)
+                ? Image.network(
+                    property.imageUrl,
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 120,
+                      color: Colors.grey.shade300,
+                      child: const Center(child: Icon(Icons.landscape, size: 50, color: Colors.white54)),
+                    ),
+                  )
+                : Container(
+                    height: 120,
+                    color: Colors.grey.shade300,
+                    child: const Center(child: Icon(Icons.landscape, size: 50, color: Colors.white54)),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),
@@ -745,13 +845,25 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 100,
-            decoration: const BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-            ),
-            child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
+          ClipRRect(
+            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+            child: (property != null && property.imageUrl.isNotEmpty)
+                ? Image.network(
+                    property.imageUrl,
+                    height: 100,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 100,
+                      color: Colors.grey.shade300,
+                      child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
+                    ),
+                  )
+                : Container(
+                    height: 100,
+                    color: Colors.grey.shade300,
+                    child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.all(12),

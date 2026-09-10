@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'preferences_screen.dart';
 
@@ -7,7 +8,16 @@ const Color accentBlue = Color(0xFF4285F4);
 const Color successGreen = Color(0xFF22C55E);
 
 class CreatePasswordScreen extends StatefulWidget {
-  const CreatePasswordScreen({super.key});
+  final String? fullName;
+  final String? mobile;
+  final String? email;
+
+  const CreatePasswordScreen({
+    super.key,
+    this.fullName,
+    this.mobile,
+    this.email,
+  });
 
   @override
   State<CreatePasswordScreen> createState() => _CreatePasswordScreenState();
@@ -91,8 +101,18 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
     }
   }
 
-  void _handleContinue() {
+  void _handleContinue() async {
     if (_formKey.currentState!.validate()) {
+      // Save credentials to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      if (widget.fullName != null) await prefs.setString('cached_fullName', widget.fullName!);
+      if (widget.mobile != null) await prefs.setString('cached_mobile', widget.mobile!);
+      if (widget.email != null) await prefs.setString('cached_email', widget.email!);
+      await prefs.setString('cached_password', _passwordController.text);
+      // We don't set isLoggedIn to true here, they might need to complete preferences
+      // or we can set it during login.
+
+      if (!mounted) return;
       Navigator.of(context).push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => const PreferencesScreen(),

@@ -3,10 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'seller_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'login_screen.dart';
 import 'create_account_screen.dart';
+import 'register_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -20,6 +25,147 @@ class PropertyDetailsScreen extends StatefulWidget {
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
   static const Color backgroundLight = Color(0xFFF8FAFC);
+
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      });
+    }
+  }
+
+  void _onHeartTapped(Property property) {
+    if (!_isLoggedIn) {
+      _showSaveToShortlistSheet();
+    } else {
+      setState(() {
+        property.isFavorite = !property.isFavorite;
+      });
+    }
+  }
+
+  void _showSaveToShortlistSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.favorite, color: Colors.red.shade400, size: 36),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Save to Shortlist',
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Please sign in or create an account to save properties to your shortlist and monitor price drops.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  ).then((_) => _checkLoginStatus());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: accentBlue,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Sign In',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  ).then((_) => _checkLoginStatus());
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Create Account',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 12),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildSectionHeader(String title) {
     return Text(
@@ -180,11 +326,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     ? Colors.red
                                     : Colors.black,
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  property.isFavorite = !property.isFavorite;
-                                });
-                              },
+                              onPressed: () => _onHeartTapped(property),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -1098,150 +1240,260 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   void _showShareBottomSheet(BuildContext context) {
+    final propertyUrl =
+        'https://mecotechnologies.com/property/${widget.property.id}';
+    final shareText =
+        'Check out ${widget.property.title} in ${widget.property.location} for ${widget.property.price}!\n\n$propertyUrl';
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
-              vertical: 16.0,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                'Share Property',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Property preview card
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant
+                        .withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        widget.property.imageUrl,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 56,
+                          height: 56,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.home, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.property.title,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.property.location,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Share via all device apps (with image)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _sharePropertyWithImage(context);
+                  },
+                  icon: const Icon(Icons.share_rounded, size: 20),
+                  label: Text(
+                    'Share via Apps',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'Share Property',
+              ),
+              const SizedBox(height: 20),
+
+              // Copy link row
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Or copy property link',
                   style: GoogleFonts.inter(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // Property Card
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant
+                        .withOpacity(0.4),
                   ),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          widget.property.imageUrl.isNotEmpty
-                              ? widget.property.imageUrl
-                              : 'assets/images/placeholder.jpg',
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
+                        child: Text(
+                          propertyUrl,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.property.title,
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(
+                            ClipboardData(text: propertyUrl));
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Link copied!',
                               style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+                                  color: Colors.white),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${widget.property.location} • ${widget.property.price}',
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
+                            backgroundColor: accentBlue,
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: accentBlue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Copy',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Cancel button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outlineVariant
+                            .withOpacity(0.5)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // Share Options
-                _buildShareOption(
-                  icon: Icons.link,
-                  iconColor: Colors.black87,
-                  title: 'Copy Link',
-                  onTap: () {
-                    Clipboard.setData(
-                      ClipboardData(
-                        text:
-                            'https://mecotechnologies.com/property/${widget.property.id}',
-                      ),
-                    );
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Link copied to clipboard'),
-                        backgroundColor: accentBlue,
-                      ),
-                    );
-                  },
-                ),
-                _buildShareOption(
-                  icon: Icons.chat_bubble_outline,
-                  iconColor: Colors.green,
-                  title: 'WhatsApp',
-                  onTap: () => _sharePropertyToSystem(context),
-                ),
-                _buildShareOption(
-                  icon: Icons.mail_outline,
-                  iconColor: Colors.red,
-                  title: 'Email Address',
-                  onTap: () => _sharePropertyToSystem(context),
-                ),
-                _buildShareOption(
-                  icon: Icons.message_outlined,
-                  iconColor: Colors.blue,
-                  title: 'SMS Message',
-                  onTap: () => _sharePropertyToSystem(context),
-                ),
-                _buildShareOption(
-                  icon: Icons.more_horiz,
-                  iconColor: Colors.grey.shade700,
-                  title: 'More Options',
-                  onTap: () => _sharePropertyToSystem(context),
-                  hideDivider: true,
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
     );
   }
+
+
 
   Widget _buildShareOption({
     required IconData icon,
@@ -1291,13 +1543,81 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  void _sharePropertyToSystem(BuildContext context) {
-    Navigator.pop(context); // Close bottom sheet
-    final String textToShare =
-        'Check out ${widget.property.title} in ${widget.property.location} for ${widget.property.price}!\n\nView more details here: https://mecotechnologies.com/property/${widget.property.id}';
-    Share.share(
-      textToShare,
-      subject: 'Property Recommendation: ${widget.property.title}',
-    );
+  /// Downloads the property image to a temp file, then shares it
+  /// together with the caption text and property link via the native
+  /// OS share sheet (shows every app on the device that handles sharing).
+  Future<void> _sharePropertyWithImage(BuildContext context) async {
+    final propertyUrl =
+        'https://mecotechnologies.com/property/${widget.property.id}';
+    final shareText =
+        '🏠 ${widget.property.title}\n'
+        '📍 ${widget.property.location}\n'
+        '💰 ${widget.property.price}\n\n'
+        'View full details:\n$propertyUrl';
+
+    // Show a brief loading snackbar
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Preparing to share...',
+                style: GoogleFonts.inter(color: Colors.white),
+              ),
+            ],
+          ),
+          backgroundColor: accentBlue,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+
+    try {
+      // Download image bytes
+      final response = await http
+          .get(Uri.parse(widget.property.imageUrl))
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        // Write to a temp file
+        final tempDir = await getTemporaryDirectory();
+        final filePath = '${tempDir.path}/property_share.jpg';
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        }
+
+        // Share image + text together
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: 'image/jpeg')],
+          text: shareText,
+          subject: 'Property: ${widget.property.title}',
+        );
+      } else {
+        throw Exception('Image download failed: ${response.statusCode}');
+      }
+    } catch (_) {
+      // Fallback: share text + link only
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+      await Share.share(
+        shareText,
+        subject: 'Property: ${widget.property.title}',
+      );
+    }
   }
 }

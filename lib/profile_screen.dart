@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,10 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoggedIn = false;
   bool _isLoading = true;
+  bool _isHardcodedUser = false;
+  String _cachedFullName = '';
+  String _cachedEmail = '';
+  String? _cachedProfilePhotoPath;
 
   @override
   void initState() {
@@ -25,6 +30,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       setState(() {
         _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+        _isHardcodedUser = prefs.getBool('isHardcodedUser') ?? false;
+        _cachedFullName = prefs.getString('cached_fullName') ?? 'User1';
+        _cachedEmail = prefs.getString('cached_email') ?? 'user1@gmail.com';
+        _cachedProfilePhotoPath = prefs.getString('cached_profilePhotoPath');
         _isLoading = false;
       });
     }
@@ -36,9 +45,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    String displayName = _isLoggedIn ? 'User1' : 'Guest';
-    String displayEmail = _isLoggedIn ? 'user1@gmail.com' : 'No email';
-    String initial = _isLoggedIn ? 'U1' : 'G';
+    // For hardcoded demo login, always show static data
+    // For registered users, show their real data
+    final bool showRealData = _isLoggedIn && !_isHardcodedUser;
+
+    String displayName = _isLoggedIn
+        ? (showRealData ? _cachedFullName.toUpperCase() : 'USER1')
+        : 'Guest';
+    String displayEmail = _isLoggedIn
+        ? (showRealData ? _cachedEmail : 'user1@gmail.com')
+        : 'No email';
+
+    // Parse initials from real name, or use 'U1' for hardcoded, 'G' for guest
+    String initial;
+    if (!_isLoggedIn) {
+      initial = 'G';
+    } else if (_isHardcodedUser) {
+      initial = 'U1';
+    } else {
+      final names = _cachedFullName.trim().split(' ');
+      final firstLetter = names.first.isNotEmpty ? names.first[0].toUpperCase() : '';
+      final lastLetter = names.length > 1 && names.last.isNotEmpty ? names.last[0].toUpperCase() : '';
+      initial = '$firstLetter$lastLetter';
+      if (initial.isEmpty) initial = 'U';
+    }
+
+    // Profile photo: only show for registered users who set one
+    final bool showPhoto = showRealData &&
+        _cachedProfilePhotoPath != null &&
+        File(_cachedProfilePhotoPath!).existsSync();
 
     return SingleChildScrollView(
       child: Column(
@@ -60,14 +95,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: const Color(0xFF4B85F0),
-                    child: Text(
-                      initial,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.surface,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    backgroundImage: showPhoto
+                        ? FileImage(File(_cachedProfilePhotoPath!))
+                        : null,
+                    child: showPhoto
+                        ? null
+                        : Text(
+                            initial,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.surface,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                   const SizedBox(height: 16),
                   Text(
