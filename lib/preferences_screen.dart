@@ -212,24 +212,36 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              RangeSlider(
-                values: _budgetRange,
-                min: 0,
-                max: 1000,
-                divisions: 100,
-                activeColor: Theme.of(context).colorScheme.primary,
-                inactiveColor: Theme.of(context).colorScheme.outlineVariant,
-                labels: RangeLabels(
-                  '₹${_budgetRange.start.toInt()} L',
-                  '₹${_budgetRange.end.toInt()} L',
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  trackHeight: 2.0,
+                  rangeThumbShape: const RoundRangeSliderThumbShape(
+                    enabledThumbRadius: 8.0,
+                    elevation: 2.0,
+                  ),
+                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+                  activeTrackColor: Theme.of(context).colorScheme.primary,
+                  inactiveTrackColor: Colors.grey.shade200,
+                  thumbColor: Theme.of(context).colorScheme.primary,
+                  overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                 ),
-                onChanged: (values) {
-                  setState(() {
-                    _budgetRange = values;
-                    _minBudgetController.text = values.start.toInt().toString();
-                    _maxBudgetController.text = values.end.toInt().toString();
-                  });
-                },
+                child: RangeSlider(
+                  values: _budgetRange,
+                  min: 0,
+                  max: 1000,
+                  divisions: 100,
+                  labels: RangeLabels(
+                    '₹${_budgetRange.start.toInt()} L',
+                    '₹${_budgetRange.end.toInt()} L',
+                  ),
+                  onChanged: (values) {
+                    setState(() {
+                      _budgetRange = values;
+                      _minBudgetController.text = values.start.toInt().toString();
+                      _maxBudgetController.text = values.end.toInt().toString();
+                    });
+                  },
+                ),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
