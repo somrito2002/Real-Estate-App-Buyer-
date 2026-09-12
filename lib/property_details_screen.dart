@@ -77,7 +77,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
+      builder: (ctx) => SingleChildScrollView(
+        child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -182,6 +183,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 12),
           ],
         ),
+      ),
       ),
     );
   }
@@ -563,7 +565,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       _buildSectionHeader('Features & Amenities'),
                       const SizedBox(height: 16),
                       GridView.count(
-                        crossAxisCount: 2,
+                        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 2,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         mainAxisSpacing: 8,
@@ -1320,7 +1322,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => Container(
+      builder: (ctx) => SingleChildScrollView(
+        child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
@@ -1425,6 +1428,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 12),
           ],
         ),
+      ),
       ),
     );
   }

@@ -13,10 +13,15 @@ class SuccessScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
               // Checkmark circle
@@ -99,7 +104,10 @@ class SuccessScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
             ],
-          ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
