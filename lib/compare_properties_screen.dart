@@ -45,26 +45,26 @@ class ComparePropertiesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF111111), size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).colorScheme.onSurface, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Compare Properties',
           style: GoogleFonts.inter(
-            color: const Color(0xFF111111),
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: Colors.grey.shade200, height: 1),
+          child: Container(color: Theme.of(context).colorScheme.outlineVariant, height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -85,7 +85,7 @@ class ComparePropertiesScreen extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade700,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -93,24 +93,24 @@ class ComparePropertiesScreen extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 3,
-                    child: _buildPropertyHeaderCard(prop1),
+                    child: _buildPropertyHeaderCard(context, prop1),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     flex: 3,
-                    child: _buildPropertyHeaderCard(prop2),
+                    child: _buildPropertyHeaderCard(context, prop2),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
               
               // Comparison Table Rows
-              _buildTableRow('BHK', prop1.type, prop2.type, isStriped: false),
-              _buildTableRow('Area', _extractArea(prop1.specs), _extractArea(prop2.specs), isStriped: true),
-              _buildTableRow('Rate/sqft', _generateRate(prop1), _generateRate(prop2), isStriped: false),
-              _buildTableRow('Furnish', _generateFurnish(prop1), _generateFurnish(prop2), isStriped: true),
-              _buildBoolTableRow('Pool', _generateBool(prop1, 1), _generateBool(prop2, 1), isStriped: false),
-              _buildBoolTableRow('Power', _generateBool(prop1, 2), _generateBool(prop2, 2), isStriped: true),
+              _buildTableRow(context, 'BHK', prop1.type, prop2.type, isStriped: false),
+              _buildTableRow(context, 'Area', _extractArea(prop1.specs), _extractArea(prop2.specs), isStriped: true),
+              _buildTableRow(context, 'Rate/sqft', _generateRate(prop1), _generateRate(prop2), isStriped: false),
+              _buildTableRow(context, 'Furnish', _generateFurnish(prop1), _generateFurnish(prop2), isStriped: true),
+              _buildBoolTableRow(context, 'Pool', _generateBool(prop1, 1), _generateBool(prop2, 1), isStriped: false),
+              _buildBoolTableRow(context, 'Power', _generateBool(prop1, 2), _generateBool(prop2, 2), isStriped: true),
               
               const SizedBox(height: 32),
               
@@ -120,9 +120,9 @@ class ComparePropertiesScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF111111),
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Colors.grey.shade300),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outline),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -144,12 +144,12 @@ class ComparePropertiesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPropertyHeaderCard(Property property) {
+  Widget _buildPropertyHeaderCard(BuildContext context, Property property) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(10),
@@ -188,7 +188,7 @@ class ComparePropertiesScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF111111),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -199,11 +199,11 @@ class ComparePropertiesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTableRow(String criteria, String val1, String val2, {required bool isStriped}) {
+  Widget _buildTableRow(BuildContext context, String criteria, String val1, String val2, {required bool isStriped}) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: isStriped ? Colors.grey.shade50 : Colors.white,
+        color: isStriped ? Theme.of(context).colorScheme.onSurface.withOpacity(0.05) : Colors.transparent,
       ),
       child: Row(
         children: [
@@ -214,7 +214,7 @@ class ComparePropertiesScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -226,7 +226,7 @@ class ComparePropertiesScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF111111),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -239,7 +239,7 @@ class ComparePropertiesScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: const Color(0xFF111111),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -248,7 +248,7 @@ class ComparePropertiesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBoolTableRow(String criteria, bool val1, bool val2, {required bool isStriped}) {
+  Widget _buildBoolTableRow(BuildContext context, String criteria, bool val1, bool val2, {required bool isStriped}) {
     Widget buildIcon(bool val) {
       return val
           ? const Icon(Icons.check, color: Color(0xFF10B981), size: 18) // Green check
@@ -258,7 +258,7 @@ class ComparePropertiesScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: isStriped ? Colors.grey.shade50 : Colors.white,
+        color: isStriped ? Theme.of(context).colorScheme.onSurface.withOpacity(0.05) : Colors.transparent,
       ),
       child: Row(
         children: [
@@ -269,7 +269,7 @@ class ComparePropertiesScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),

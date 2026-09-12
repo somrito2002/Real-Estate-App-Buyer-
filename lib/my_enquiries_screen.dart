@@ -44,39 +44,39 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
     const Color accentBlue = Color(0xFF4B85F0);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'My Enquiries',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
+            icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () {},
           ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: Colors.grey.shade200, height: 1),
+          child: Container(color: Theme.of(context).colorScheme.outlineVariant, height: 1),
         ),
       ),
       body: Column(
         children: [
           // Filters
           Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -89,7 +89,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                       label: Text(
                         filter,
                         style: GoogleFonts.inter(
-                          color: isSelected ? Colors.white : Colors.grey.shade700,
+                          color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           fontSize: 14,
                         ),
@@ -103,9 +103,9 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                         }
                       },
                       selectedColor: accentBlue,
-                      backgroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       side: BorderSide(
-                        color: isSelected ? accentBlue : Colors.grey.shade300,
+                        color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
@@ -134,22 +134,22 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                 Color statusColor;
                 Color statusBgColor;
                 if (enquiry['status'] == 'Pending') {
-                  statusColor = Colors.orange.shade800;
-                  statusBgColor = Colors.orange.shade100;
+                  statusColor = Colors.orange;
+                  statusBgColor = Colors.orange.withOpacity(0.15);
                 } else if (enquiry['status'] == 'Responded') {
-                  statusColor = Colors.green.shade700;
-                  statusBgColor = Colors.green.shade50;
+                  statusColor = Colors.green;
+                  statusBgColor = Colors.green.withOpacity(0.15);
                 } else {
-                  statusColor = Colors.grey.shade700;
-                  statusBgColor = Colors.grey.shade200;
+                  statusColor = Theme.of(context).colorScheme.onSurfaceVariant;
+                  statusBgColor = Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.15);
                 }
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,8 +170,8 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                                 errorBuilder: (_, __, ___) => Container(
                                   width: 50,
                                   height: 50,
-                                  color: Colors.grey.shade200,
-                                  child: const Icon(Icons.home, color: Colors.grey),
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  child: Icon(Icons.home, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                 ),
                               ),
                             ),
@@ -185,13 +185,14 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                                     style: GoogleFonts.inter(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Sent: ${enquiry['date']}',
                                     style: GoogleFonts.inter(
-                                      color: Colors.grey.shade500,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       fontSize: 12,
                                     ),
                                   ),
@@ -221,7 +222,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                         child: Text(
                           enquiry['message'],
                           style: GoogleFonts.inter(
-                            color: Colors.grey.shade700,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             height: 1.5,
                             fontSize: 14,
                           ),

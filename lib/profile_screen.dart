@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
+import 'my_enquiries_screen.dart';
+import 'saved_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -161,11 +163,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildMenuItem(context, Icons.home_outlined, 'Overview'),
                   _buildDivider(context),
-                  _buildMenuItem(context, Icons.favorite_border, 'Shortlisted Properties'),
+                  _buildMenuItem(
+                    context,
+                    Icons.favorite_border,
+                    'Shortlisted Properties',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SavedScreen(),
+                      ),
+                    ),
+                  ),
                   _buildDivider(context),
                   _buildMenuItem(context, Icons.search_outlined, 'Saved Searches'),
                   _buildDivider(context),
-                  _buildMenuItem(context, Icons.chat_bubble_outline, 'My Enquiries'),
+                  _buildMenuItem(
+                    context,
+                    Icons.chat_bubble_outline,
+                    'My Enquiries',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyEnquiriesScreen(),
+                      ),
+                    ),
+                  ),
                   _buildDivider(context),
                   _buildMenuItem(context, Icons.calendar_today_outlined, 'My Visits'),
                   _buildDivider(context),
@@ -267,8 +289,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, {String? badge}) {
+  Widget _buildMenuItem(BuildContext context, IconData icon, String title, {String? badge, VoidCallback? onTap}) {
     return ListTile(
+      onTap: onTap,
       leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
       title: Text(
         title,

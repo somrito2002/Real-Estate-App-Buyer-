@@ -102,8 +102,8 @@ class _SavedScreenState extends State<SavedScreen> {
           textAlign: TextAlign.center,
         ),
         content: Text(
-          'This will remove all ${saved.length} saved properties from your shortlist.',
-          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600),
+          'This will remove all ${saved.length} shortlisted properties from your shortlist.',
+          style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
         actionsAlignment: MainAxisAlignment.center,
@@ -132,8 +132,31 @@ class _SavedScreenState extends State<SavedScreen> {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (!_isLoggedIn) return _buildGuestView();
-    return _buildSavedList();
+    
+    Widget content = !_isLoggedIn ? _buildGuestView() : _buildSavedList();
+
+    if (Navigator.canPop(context)) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Shortlisted Properties',
+            style: GoogleFonts.inter(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: content,
+      );
+    }
+
+    return content;
   }
 
   // ── GUEST VIEW ──────────────────────────────────────────────────────────────
@@ -254,7 +277,7 @@ class _SavedScreenState extends State<SavedScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -316,7 +339,7 @@ class _SavedScreenState extends State<SavedScreen> {
               : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? accentBlue : Colors.grey.shade200,
+            color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant,
             width: isSelected ? 1.5 : 1,
           ),
           boxShadow: [
@@ -340,7 +363,7 @@ class _SavedScreenState extends State<SavedScreen> {
                     child: SizedBox(
                       width: 100,
                       height: 100,
-                      child: _buildPropertyImage(property),
+                      child: _buildPropertyImage(context, property),
                     ),
                   ),
                   // Selection circle / check
@@ -354,9 +377,9 @@ class _SavedScreenState extends State<SavedScreen> {
                               width: 24, height: 24,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isSelected ? accentBlue : Colors.white.withAlpha(220),
+                                color: isSelected ? accentBlue : Theme.of(context).colorScheme.surface.withAlpha(220),
                                 border: Border.all(
-                                  color: isSelected ? accentBlue : Colors.grey.shade400,
+                                  color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline,
                                   width: 1.5,
                                 ),
                               ),
@@ -400,7 +423,7 @@ class _SavedScreenState extends State<SavedScreen> {
                                   }
                                 },
                           child: Icon(Icons.favorite,
-                              color: _isSelecting ? Colors.grey.shade300 : accentRed,
+                              color: _isSelecting ? Theme.of(context).colorScheme.outline : accentRed,
                               size: 20),
                         ),
                       ],
@@ -448,7 +471,7 @@ class _SavedScreenState extends State<SavedScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: _isSelecting ? Colors.grey.shade300 : accentRed,
+                              color: _isSelecting ? Theme.of(context).colorScheme.outline : accentRed,
                             ),
                           ),
                         ),
@@ -464,19 +487,19 @@ class _SavedScreenState extends State<SavedScreen> {
     );
   }
 
-  Widget _buildPropertyImage(Property property) {
+  Widget _buildPropertyImage(BuildContext context, Property property) {
     if (property.imageUrl.startsWith('assets/')) {
       return Image.asset(property.imageUrl, fit: BoxFit.cover,
-          errorBuilder: (context, error, stack) => _imagePlaceholder());
+          errorBuilder: (context, error, stack) => _imagePlaceholder(context));
     }
     return Image.network(property.imageUrl, fit: BoxFit.cover,
-        errorBuilder: (context, error, stack) => _imagePlaceholder());
+        errorBuilder: (context, error, stack) => _imagePlaceholder(context));
   }
 
-  Widget _imagePlaceholder() {
+  Widget _imagePlaceholder(BuildContext context) {
     return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(Icons.home_outlined, color: Colors.grey, size: 32),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Icon(Icons.home_outlined, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 32),
     );
   }
 
@@ -486,7 +509,7 @@ class _SavedScreenState extends State<SavedScreen> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
       ),
       child: _isSelecting && _selectedIndices.isNotEmpty
           ? Row(
@@ -522,9 +545,9 @@ class _SavedScreenState extends State<SavedScreen> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentBlue,
-                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       foregroundColor: Colors.white,
-                      disabledForegroundColor: Colors.grey.shade500,
+                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -568,9 +591,9 @@ class _SavedScreenState extends State<SavedScreen> {
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentBlue,
-                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       foregroundColor: Colors.white,
-                      disabledForegroundColor: Colors.grey.shade500,
+                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
