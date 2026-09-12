@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'buy_properties_screen.dart';
 import 'rent_properties_screen.dart';
 import 'lease_properties_screen.dart';
+import 'location_bottom_sheet.dart';
 
 class FilterScreen extends StatefulWidget {
   final String initialCategory;
@@ -110,6 +111,20 @@ class _FilterScreenState extends State<FilterScreen> {
               fontSize: 18),
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.onSurface),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (ctx) => Padding(
+                  padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+                  child: const LocationBottomSheet(),
+                ),
+              );
+            },
+          ),
           TextButton(
             onPressed: _clearAll,
             child: Text(

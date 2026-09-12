@@ -9,6 +9,7 @@ import 'search_screen.dart' as import_search_screen;
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
 import 'view_all_properties_screen.dart';
+import 'tilt_property_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -508,8 +509,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 4),
-          Expanded(
-            flex: 3,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 160),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
@@ -517,17 +518,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.primary, size: 14),
-                  const SizedBox(width: 2),
-                  Expanded(
+                  const SizedBox(width: 4),
+                  Flexible(
                     child: Text(
                       _currentLocation,
                       style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary, size: 14),
                 ],
               ),
             ),
@@ -629,19 +630,46 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFeaturedPropertyCard(String title, String location, String price, String beds, String baths, String sqft, {Property? property}) {
-    return GestureDetector(
-      onTap: property != null
-          ? () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
-            }
-          : null,
-      child: Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 16),
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: TiltPropertyCard(
+        onTap: property != null
+            ? () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+              }
+            : null,
+        child: Container(
+        width: 260,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+        boxShadow: Theme.of(context).brightness == Brightness.dark
+            ? [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -730,23 +758,51 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     ),
+    ),
     );
   }
 
   Widget _buildNewProjectCard(String title, String builder, String location, String startingPrice, {Property? property}) {
-    return GestureDetector(
-      onTap: property != null
-          ? () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
-            }
-          : null,
-      child: Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 16),
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: TiltPropertyCard(
+        onTap: property != null
+            ? () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+              }
+            : null,
+        child: Container(
+        width: 260,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+        boxShadow: Theme.of(context).brightness == Brightness.dark
+            ? [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -805,6 +861,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     ),
+    ),
     );
   }
 
@@ -828,19 +885,46 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildRecentlyViewedCard(String title, String location, String price, {Property? property}) {
-    return GestureDetector(
-      onTap: property != null
-          ? () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
-            }
-          : null,
-      child: Container(
-      width: 180,
-      margin: const EdgeInsets.only(right: 16),
+    return Padding(
+      padding: const EdgeInsets.only(right: 16),
+      child: TiltPropertyCard(
+        onTap: property != null
+            ? () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+              }
+            : null,
+        child: Container(
+        width: 180,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+        boxShadow: Theme.of(context).brightness == Brightness.dark
+            ? [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -880,6 +964,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
+    ),
     ),
     );
   }
