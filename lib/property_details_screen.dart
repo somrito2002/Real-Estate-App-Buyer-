@@ -984,6 +984,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         onPressed: () {
                           if (!_isLoggedIn) {
                             _showScheduleVisitLoginSheet(context);
+                          } else {
+                            _showScheduleVisitSheet(context);
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -1554,6 +1556,480 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showScheduleVisitSheet(BuildContext context) {
+    final property = widget.property;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        // Local state managed with StatefulBuilder
+        int selectedVisitType = 0; // 0 = In-Person, 1 = Virtual Tour
+        DateTime focusedMonth = DateTime.now();
+        int? selectedDay;
+
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final colorScheme = Theme.of(context).colorScheme;
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+
+            final daysInMonth = DateTimeRange(
+              start: DateTime(focusedMonth.year, focusedMonth.month, 1),
+              end: DateTime(focusedMonth.year, focusedMonth.month + 1, 0),
+            ).duration.inDays;
+            final firstWeekday =
+                DateTime(focusedMonth.year, focusedMonth.month, 1).weekday % 7; // 0=Sun
+            final today = DateTime.now();
+            final monthNames = [
+              '', 'January', 'February', 'March', 'April', 'May', 'June',
+              'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+
+            return Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                  20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Drag handle + header row ──────────────────────────
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Schedule a Visit',
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => Navigator.of(ctx).pop(),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              size: 18,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── Property card ─────────────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.08)
+                              : Colors.grey.shade200,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              property.imageUrl,
+                              width: 64,
+                              height: 64,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 64,
+                                height: 64,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.home, color: Colors.grey),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  property.title,
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  property.price,
+                                  style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: accentBlue,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on_outlined,
+                                      size: 12,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Expanded(
+                                      child: Text(
+                                        property.location,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Visit Type toggle ─────────────────────────────────
+                    Text(
+                      'Visit Type',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.07)
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          _visitTypeTab(
+                            context: context,
+                            label: 'In-Person Visit',
+                            icon: Icons.directions_walk_outlined,
+                            selected: selectedVisitType == 0,
+                            onTap: () =>
+                                setSheetState(() => selectedVisitType = 0),
+                          ),
+                          _visitTypeTab(
+                            context: context,
+                            label: 'Virtual Tour',
+                            icon: Icons.videocam_outlined,
+                            selected: selectedVisitType == 1,
+                            onTap: () =>
+                                setSheetState(() => selectedVisitType = 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ── Calendar header ───────────────────────────────────
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            setSheetState(() {
+                              focusedMonth = DateTime(
+                                  focusedMonth.year, focusedMonth.month - 1);
+                              selectedDay = null;
+                            });
+                          },
+                          icon: Icon(Icons.chevron_left,
+                              color: colorScheme.onSurfaceVariant),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        Text(
+                          '${monthNames[focusedMonth.month]} ${focusedMonth.year}',
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setSheetState(() {
+                              focusedMonth = DateTime(
+                                  focusedMonth.year, focusedMonth.month + 1);
+                              selectedDay = null;
+                            });
+                          },
+                          icon: Icon(Icons.chevron_right,
+                              color: colorScheme.onSurfaceVariant),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+
+                    // ── Day-of-week headers ───────────────────────────────
+                    Row(
+                      children: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+                          .map((d) => Expanded(
+                                child: Center(
+                                  child: Text(
+                                    d,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // ── Calendar grid ─────────────────────────────────────
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 7,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: firstWeekday + daysInMonth,
+                      itemBuilder: (_, index) {
+                        if (index < firstWeekday) return const SizedBox();
+                        final day = index - firstWeekday + 1;
+                        final thisDate = DateTime(
+                            focusedMonth.year, focusedMonth.month, day);
+                        final isPast = thisDate
+                            .isBefore(DateTime(today.year, today.month, today.day));
+                        final isToday = thisDate.year == today.year &&
+                            thisDate.month == today.month &&
+                            thisDate.day == today.day;
+                        final isSelected = selectedDay == day;
+
+                        return GestureDetector(
+                          onTap: isPast
+                              ? null
+                              : () =>
+                                  setSheetState(() => selectedDay = day),
+                          child: Container(
+                            margin: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? accentBlue
+                                  : isToday
+                                      ? accentBlue.withOpacity(0.12)
+                                      : Colors.transparent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '$day',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: isSelected || isToday
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : isPast
+                                          ? colorScheme.onSurfaceVariant
+                                              .withOpacity(0.35)
+                                          : isToday
+                                              ? accentBlue
+                                              : colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ── Cancel / Next buttons ─────────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: colorScheme.onSurface,
+                                side: BorderSide(
+                                    color: colorScheme.outline),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: selectedDay == null
+                                  ? null
+                                  : () {
+                                      Navigator.of(ctx).pop();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Visit booked for ${monthNames[focusedMonth.month]} $selectedDay, ${focusedMonth.year}!',
+                                            style: GoogleFonts.inter(),
+                                          ),
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: accentBlue,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor:
+                                    accentBlue.withOpacity(0.4),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Next',
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// Pill tab for visit type selector
+  Widget _visitTypeTab({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(4),
+          height: 36,
+          decoration: BoxDecoration(
+            color: selected
+                ? (isDark ? Colors.white : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: selected
+                    ? accentBlue
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected
+                      ? accentBlue
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
