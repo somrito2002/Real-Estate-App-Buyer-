@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
+import 'my_visits_screen.dart';
 
 class VisitScheduledSuccessScreen extends StatelessWidget {
   final Property property;
@@ -166,7 +167,11 @@ class VisitScheduledSuccessScreen extends StatelessWidget {
               
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const MyVisitsScreen(),
+                    ),
+                  );
                 },
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
