@@ -981,7 +981,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     child: SizedBox(
                       height: 48,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          if (!_isLoggedIn) {
+                            _showScheduleVisitLoginSheet(context);
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: accentBlue,
                           foregroundColor: Colors.white,
@@ -1429,6 +1433,132 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           ],
         ),
       ),
+      ),
+    );
+  }
+
+  void _showScheduleVisitLoginSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => SingleChildScrollView(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: EdgeInsets.fromLTRB(
+            28,
+            20,
+            28,
+            MediaQuery.of(context).viewInsets.bottom + 32,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 28),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Calendar icon circle
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: accentBlue.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.calendar_month_outlined,
+                  color: accentBlue,
+                  size: 40,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Schedule a Visit',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Please sign in or create an account to select comfortable time slots and lock visits with agents.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 28),
+              // Sign In button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    ).then((_) => _checkLoginStatus());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Sign In',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              // Create Account text button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
+                    ).then((_) => _checkLoginStatus());
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.onSurface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Create Account',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
