@@ -15,6 +15,7 @@ import 'register_screen.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 import 'full_screen_image_gallery.dart';
 import 'enquiry_success_screen.dart';
+import 'confirm_visit_details_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -1578,9 +1579,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         int? selectedDay;
 
         return StatefulBuilder(
-          builder: (context, setSheetState) {
-            final colorScheme = Theme.of(context).colorScheme;
-            final isDark = Theme.of(context).brightness == Brightness.dark;
+          builder: (sheetBuilderCtx, setSheetState) {
+            final colorScheme = Theme.of(sheetBuilderCtx).colorScheme;
+            final isDark = Theme.of(sheetBuilderCtx).brightness == Brightness.dark;
 
             final daysInMonth = DateTimeRange(
               start: DateTime(focusedMonth.year, focusedMonth.month, 1),
@@ -1601,7 +1602,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     const BorderRadius.vertical(top: Radius.circular(28)),
               ),
               padding: EdgeInsets.fromLTRB(
-                  20, 16, 20, MediaQuery.of(context).viewInsets.bottom + 24),
+                  20, 16, 20, MediaQuery.of(sheetBuilderCtx).viewInsets.bottom + 24),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1737,46 +1738,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // ── Visit Type toggle ─────────────────────────────────
-                    Text(
-                      'Visit Type',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.07)
-                            : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          _visitTypeTab(
-                            context: context,
-                            label: 'In-Person Visit',
-                            icon: Icons.directions_walk_outlined,
-                            selected: selectedVisitType == 0,
-                            onTap: () =>
-                                setSheetState(() => selectedVisitType = 0),
-                          ),
-                          _visitTypeTab(
-                            context: context,
-                            label: 'Virtual Tour',
-                            icon: Icons.videocam_outlined,
-                            selected: selectedVisitType == 1,
-                            onTap: () =>
-                                setSheetState(() => selectedVisitType = 1),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
 
                     // ── Calendar header ───────────────────────────────────
                     Row(
@@ -1934,20 +1895,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                   ? null
                                   : () {
                                       Navigator.of(ctx).pop();
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Visit booked for ${monthNames[focusedMonth.month]} $selectedDay, ${focusedMonth.year}!',
-                                            style: GoogleFonts.inter(),
-                                          ),
-                                          behavior: SnackBarBehavior.floating,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                        ),
-                                      );
+                                      _showSelectTimeSlotSheet(context, DateTime(focusedMonth.year, focusedMonth.month, selectedDay!));
                                     },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: accentBlue,
@@ -1963,6 +1911,299 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 'Next',
                                 style: GoogleFonts.inter(
                                     fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showSelectTimeSlotSheet(BuildContext screenContext, DateTime selectedDate) {
+    showModalBottomSheet(
+      context: screenContext,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        String? selectedTime;
+        final phoneController = TextEditingController();
+        final nameController = TextEditingController();
+        final timeSlots = [
+          '10:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
+        ];
+        
+        final monthNames = [
+          '', 'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        
+        final weekdayNames = [
+          '', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+        ];
+        
+        final dateString = '${weekdayNames[selectedDate.weekday]}, ${selectedDate.day} ${monthNames[selectedDate.month]} ${selectedDate.year}';
+
+        return StatefulBuilder(
+          builder: (statefulCtx, setSheetState) {
+            final colorScheme = Theme.of(statefulCtx).colorScheme;
+            final isDark = Theme.of(statefulCtx).brightness == Brightness.dark;
+
+            return Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: EdgeInsets.fromLTRB(
+                  20, 16, 20, MediaQuery.of(statefulCtx).viewInsets.bottom + 24),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Drag handle ───────────────────────────────────────
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'Select Time Slot',
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      dateString,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: accentBlue,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Divider(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    const SizedBox(height: 16),
+                    
+                    // ── Time Slots ────────────────────────────────────────
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: timeSlots.map((time) {
+                        final isSelected = selectedTime == time;
+                        return GestureDetector(
+                          onTap: () => setSheetState(() => selectedTime = time),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected 
+                                  ? accentBlue 
+                                  : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSelected 
+                                    ? accentBlue 
+                                    : (isDark ? Colors.white12 : Colors.grey.shade300),
+                              ),
+                            ),
+                            child: Text(
+                              time,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                color: isSelected 
+                                    ? Colors.white 
+                                    : colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    Divider(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    const SizedBox(height: 16),
+                    
+                    // ── Name Field ────────────────────────────────────────
+                    Text(
+                      'Name',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: nameController,
+                      onChanged: (value) => setSheetState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Arjun Malhotra',
+                        hintStyle: GoogleFonts.inter(color: colorScheme.onSurfaceVariant),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: accentBlue),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // ── Phone Number Field ────────────────────────────────
+                    Text(
+                      'Phone Number',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: phoneController,
+                      onChanged: (value) => setSheetState(() {}),
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        hintText: '+91 98102 34567',
+                        hintStyle: GoogleFonts.inter(color: colorScheme.onSurfaceVariant),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: accentBlue),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // ── Special Requirements Field ────────────────────────
+                    Text(
+                      'Special Requirements (Optional)',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'e.g. key location, gate pass security...',
+                        hintStyle: GoogleFonts.inter(color: colorScheme.onSurfaceVariant),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: accentBlue),
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // ── Back and Finish Buttons ───────────────────────────
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Navigator.of(sheetCtx).pop();
+                                _showScheduleVisitSheet(screenContext);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: colorScheme.onSurface,
+                                side: BorderSide(color: colorScheme.outline),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Back',
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: (selectedTime == null || phoneController.text.trim().length != 10)
+                                  ? null
+                                  : () async {
+                                      final shouldEdit = await Navigator.of(screenContext).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => ConfirmVisitDetailsScreen(
+                                            property: widget.property,
+                                            visitDate: dateString,
+                                            visitTime: selectedTime!,
+                                            contactName: nameController.text.trim().isEmpty ? 'Arjun Malhotra' : nameController.text.trim(),
+                                            phoneNumber: phoneController.text.trim(),
+                                          ),
+                                        ),
+                                      );
+                                      Navigator.of(sheetCtx).pop(); // close time slot sheet now that we're back
+                                      if (shouldEdit == true && mounted) {
+                                        _showScheduleVisitSheet(screenContext);
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: accentBlue,
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: accentBlue.withOpacity(0.4),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Finish',
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
