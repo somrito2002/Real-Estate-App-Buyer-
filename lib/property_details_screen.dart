@@ -2187,10 +2187,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                           ),
                                         ),
                                       );
-                                      Navigator.of(sheetCtx).pop(); // close time slot sheet now that we're back
-                                      if (shouldEdit == true && mounted) {
-                                        _showScheduleVisitSheet(screenContext);
-                                      }
+                                      // If they tapped 'Edit Details' or 'Back', they simply return to this sheet.
+                                      // If they tapped 'Confirm', popUntil is used, so we won't even reach here.
                                     },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: accentBlue,
