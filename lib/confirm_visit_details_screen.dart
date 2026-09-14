@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
+import 'visit_scheduled_success_screen.dart';
 
 
 class ConfirmVisitDetailsScreen extends StatelessWidget {
@@ -190,7 +191,15 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
               height: 52,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => VisitScheduledSuccessScreen(
+                        property: property,
+                        visitDate: visitDate,
+                        visitTime: visitTime,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: accentBlue,
