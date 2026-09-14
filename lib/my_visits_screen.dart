@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'visit_details_screen.dart';
 
 class VisitMock {
   final String imageUrl;
@@ -7,6 +8,12 @@ class VisitMock {
   final String visitType;
   final String status; // 'Upcoming', 'Completed', 'Cancelled'
   final String dateTime;
+  final String location;
+  final String price;
+  final String timeSlot;
+  final String refId;
+  final String agentName;
+  final String agentRole;
 
   VisitMock({
     required this.imageUrl,
@@ -14,16 +21,28 @@ class VisitMock {
     required this.visitType,
     required this.status,
     required this.dateTime,
+    required this.location,
+    required this.price,
+    required this.timeSlot,
+    required this.refId,
+    required this.agentName,
+    required this.agentRole,
   });
 }
 
-final List<VisitMock> _mockVisits = [
+List<VisitMock> get _mockVisits => [
   VisitMock(
     imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&auto=format&fit=crop', // Building
     title: 'DLF The Crest',
     visitType: 'In-Person Visit',
     status: 'Upcoming',
     dateTime: 'Sunday, 28 Jan • 11:30 AM',
+    location: 'DLF Phase 5, Gurgaon',
+    price: '₹2.45 Cr',
+    timeSlot: '11:30 AM - 12:30 PM',
+    refId: 'MECO-893011',
+    agentName: 'Arjun Malhotra',
+    agentRole: 'Assigned Property Agent',
   ),
   VisitMock(
     imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&auto=format&fit=crop', // Modern interior
@@ -31,6 +50,12 @@ final List<VisitMock> _mockVisits = [
     visitType: 'In-Person Visit',
     status: 'Completed',
     dateTime: 'Sunday, 14 Jan • 02:00 PM',
+    location: 'Vasant Vihar, New Delhi',
+    price: '₹5.50 Cr',
+    timeSlot: '02:00 PM - 03:00 PM',
+    refId: 'MECO-748392',
+    agentName: 'Priya Sharma',
+    agentRole: 'Senior Property Agent',
   ),
   VisitMock(
     imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&auto=format&fit=crop', // House
@@ -38,6 +63,12 @@ final List<VisitMock> _mockVisits = [
     visitType: 'Virtual Visit',
     status: 'Completed',
     dateTime: 'Wednesday, 10 Jan • 04:30 PM',
+    location: 'Bandra West, Mumbai',
+    price: '₹3.20 Cr',
+    timeSlot: '04:30 PM - 05:30 PM',
+    refId: 'MECO-229103',
+    agentName: 'Rahul Desai',
+    agentRole: 'Virtual Tour Expert',
   ),
 ];
 
@@ -286,7 +317,13 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => VisitDetailsScreen(visit: visit),
+                      ),
+                    );
+                  },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
                     minimumSize: const Size(0, 0),
