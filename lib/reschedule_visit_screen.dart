@@ -285,7 +285,12 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
                         backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.black87,
                       ),
                     );
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const MyVisitsScreen(),
+                      ),
+                      (route) => false,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentBlue,
