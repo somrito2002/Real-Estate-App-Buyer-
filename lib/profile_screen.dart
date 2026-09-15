@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'my_enquiries_screen.dart';
+import 'my_visits_screen.dart';
+import 'notifications_screen.dart';
 import 'saved_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -189,9 +191,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   _buildDivider(context),
-                  _buildMenuItem(context, Icons.calendar_today_outlined, 'My Visits'),
+                  _buildMenuItem(
+                    context,
+                    Icons.calendar_today_outlined,
+                    'My Visits',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyVisitsScreen(),
+                      ),
+                    ),
+                  ),
                   _buildDivider(context),
-                  _buildMenuItem(context, Icons.notifications_none_outlined, 'Notifications'),
+                  _buildMenuItem(
+                    context,
+                    Icons.notifications_none_outlined,
+                    'Notifications',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    ),
+                  ),
                   _buildDivider(context),
                   _buildMenuItem(context, Icons.settings_outlined, 'Settings'),
                 ],

@@ -10,6 +10,7 @@ import 'models/property_model.dart';
 import 'property_details_screen.dart';
 import 'view_all_properties_screen.dart';
 import 'tilt_property_card.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -534,10 +535,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          Badge(
-            backgroundColor: Colors.red,
-            smallSize: 8,
-            child: Icon(Icons.notifications_outlined, color: Theme.of(context).colorScheme.onSurface, size: 26),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+            },
+            child: Badge(
+              backgroundColor: Colors.red,
+              smallSize: 8,
+              child: Icon(Icons.notifications_outlined, color: Theme.of(context).colorScheme.onSurface, size: 26),
+            ),
           ),
         ],
       ),
