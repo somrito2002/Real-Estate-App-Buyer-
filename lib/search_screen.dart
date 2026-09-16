@@ -6,6 +6,7 @@ import 'lease_properties_screen.dart';
 import 'filter_screen.dart';
 import 'models/property_model.dart';
 import 'home_screen.dart';
+import 'services/search_history_service.dart';
 
 class SearchScreen extends StatefulWidget {
   final String initialCategory;
@@ -22,11 +23,19 @@ class _SearchScreenState extends State<SearchScreen> {
   
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  List<String> _recentSearches = [];
 
   @override
   void initState() {
     super.initState();
     _selectedCategory = widget.initialCategory;
+    SearchHistoryService.getRecentSearches().then((value) {
+      if (mounted) {
+        setState(() {
+          _recentSearches = value;
+        });
+      }
+    });
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.trim();
@@ -91,8 +100,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildRecentSearchItem(String text) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         _searchController.text = text;
+        await SearchHistoryService.addSearch(text);
+        if (!mounted) return;
         if (_selectedCategory == 'Rent') {
           Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: text)));
         } else if (_selectedCategory == 'Lease') {
@@ -334,8 +345,10 @@ class _SearchScreenState extends State<SearchScreen> {
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(vertical: 12),
                           ),
-                          onSubmitted: (value) {
+                          onSubmitted: (value) async {
                             if (value.isNotEmpty) {
+                              await SearchHistoryService.addSearch(value);
+                              if (!mounted) return;
                               if (_selectedCategory == 'Rent') {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: value)));
                               } else if (_selectedCategory == 'Lease') {
@@ -387,20 +400,19 @@ class _SearchScreenState extends State<SearchScreen> {
                       children: [
                         const SizedBox(height: 8),
                         // Recent Searches
-                        Text(
-                          'Recent Searches',
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
+                        if (_recentSearches.isNotEmpty) ...[
+                          Text(
+                            'Recent Searches',
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildRecentSearchItem('3 BHK in Durg'),
-                        _buildRecentSearchItem('2 BHK Apartments near Railway Station'),
-                        _buildRecentSearchItem('Commercial space in Bhilai'),
-                        
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 8),
+                          ..._recentSearches.map((s) => _buildRecentSearchItem(s)).toList(),
+                          const SizedBox(height: 24),
+                        ],
                         
                         // Popular Locations
                         Text(
