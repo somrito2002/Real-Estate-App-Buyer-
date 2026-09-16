@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'create_password_screen.dart';
@@ -31,20 +29,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 80,
-      maxWidth: 512,
-      maxHeight: 512,
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        _profileImagePath = picked.path;
-      });
-    }
-  }
+
 
   @override
   void didChangeDependencies() {

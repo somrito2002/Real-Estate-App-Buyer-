@@ -116,7 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (available) {
       setState(() {
         _isListening = true;
-        _existingVoiceText = appendToExisting ? _searchController.text.trim() + ' ' : '';
+        _existingVoiceText = appendToExisting ? '${_searchController.text.trim()} ' : '';
         _voiceText = _existingVoiceText;
       });
       
@@ -197,10 +197,10 @@ class _SearchScreenState extends State<SearchScreen> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? accentBlue.withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? accentBlue.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline.withOpacity(0.5),
+            color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
           ),
         ),
         child: Text(
@@ -271,7 +271,7 @@ class _SearchScreenState extends State<SearchScreen> {
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+          border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
         ),
         child: Text(
           location,
@@ -442,7 +442,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+                    border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     children: [
@@ -491,7 +491,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
-                            color: _isListening ? accentBlue.withOpacity(0.15) : Colors.transparent,
+                            color: _isListening ? accentBlue.withValues(alpha: 0.15) : Colors.transparent,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -544,7 +544,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          ..._recentSearches.map((s) => _buildRecentSearchItem(s)).toList(),
+                          ..._recentSearches.map((s) => _buildRecentSearchItem(s)),
                           const SizedBox(height: 24),
                         ],
                         
@@ -620,7 +620,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         itemCount: _suggestions.length,
                         separatorBuilder: (context, index) => Divider(
-                          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
                           height: 1,
                         ),
                         itemBuilder: (context, index) {

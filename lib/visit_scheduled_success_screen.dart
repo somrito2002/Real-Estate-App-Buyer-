@@ -9,11 +9,11 @@ class VisitScheduledSuccessScreen extends StatelessWidget {
   final String visitTime;
 
   const VisitScheduledSuccessScreen({
-    Key? key,
+    super.key,
     required this.property,
     required this.visitDate,
     required this.visitTime,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

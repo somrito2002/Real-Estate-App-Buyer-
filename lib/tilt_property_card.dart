@@ -6,10 +6,10 @@ class TiltPropertyCard extends StatefulWidget {
   final VoidCallback? onTap;
 
   const TiltPropertyCard({
-    Key? key,
+    super.key,
     required this.child,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   State<TiltPropertyCard> createState() => _TiltPropertyCardState();

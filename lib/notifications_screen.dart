@@ -41,7 +41,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       time: 'Just now',
       icon: Icons.chat_bubble_outline_rounded,
       iconColor: const Color(0xFF4B85F0),
-      iconBgColor: const Color(0xFF4B85F0).withOpacity(0.1),
+      iconBgColor: const Color(0xFF4B85F0).withValues(alpha: 0.1),
       isUnread: true,
     ),
     NotificationItem(
@@ -50,7 +50,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       time: '2 hours ago',
       icon: Icons.calendar_today_outlined,
       iconColor: const Color(0xFF10B981),
-      iconBgColor: const Color(0xFF10B981).withOpacity(0.1),
+      iconBgColor: const Color(0xFF10B981).withValues(alpha: 0.1),
       isUnread: true,
     ),
     NotificationItem(
@@ -59,7 +59,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       time: '1 day ago',
       icon: Icons.trending_down,
       iconColor: const Color(0xFFEF4444),
-      iconBgColor: const Color(0xFFEF4444).withOpacity(0.1),
+      iconBgColor: const Color(0xFFEF4444).withValues(alpha: 0.1),
     ),
     NotificationItem(
       title: 'New Match Found',
@@ -67,7 +67,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       time: '2 days ago',
       icon: Icons.home_outlined,
       iconColor: const Color(0xFFF59E0B),
-      iconBgColor: const Color(0xFFF59E0B).withOpacity(0.1),
+      iconBgColor: const Color(0xFFF59E0B).withValues(alpha: 0.1),
     ),
     NotificationItem(
       title: 'System Maintenance',
@@ -75,7 +75,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       time: '1 week ago',
       icon: Icons.settings_outlined,
       iconColor: const Color(0xFF6B7280),
-      iconBgColor: const Color(0xFF6B7280).withOpacity(0.1),
+      iconBgColor: const Color(0xFF6B7280).withValues(alpha: 0.1),
     ),
   ];
 
@@ -201,7 +201,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: isDark ? notification.iconColor.withOpacity(0.2) : notification.iconBgColor,
+                          color: isDark ? notification.iconColor.withValues(alpha: 0.2) : notification.iconBgColor,
                           shape: BoxShape.circle,
                         ),
                         child: Center(

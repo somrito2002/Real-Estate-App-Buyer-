@@ -135,13 +135,13 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                 Color statusBgColor;
                 if (enquiry['status'] == 'Pending') {
                   statusColor = Colors.orange;
-                  statusBgColor = Colors.orange.withOpacity(0.15);
+                  statusBgColor = Colors.orange.withValues(alpha: 0.15);
                 } else if (enquiry['status'] == 'Responded') {
                   statusColor = Colors.green;
-                  statusBgColor = Colors.green.withOpacity(0.15);
+                  statusBgColor = Colors.green.withValues(alpha: 0.15);
                 } else {
                   statusColor = Theme.of(context).colorScheme.onSurfaceVariant;
-                  statusBgColor = Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.15);
+                  statusBgColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.15);
                 }
 
                 return Container(
@@ -167,7 +167,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                errorBuilder: (_, _, _) => Container(
                                   width: 50,
                                   height: 50,
                                   color: Theme.of(context).colorScheme.surfaceContainerHighest,

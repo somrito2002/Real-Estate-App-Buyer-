@@ -15,7 +15,6 @@ class _PhoneNumberScreenState extends State<PhoneNumberScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isLoading = false;
 
-  static const Color accentBlue = Color(0xFF4B85F0);
 
   @override
   void dispose() {

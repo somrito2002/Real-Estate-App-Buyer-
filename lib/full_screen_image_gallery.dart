@@ -127,7 +127,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
@@ -148,7 +148,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.arrow_forward, color: Colors.white, size: 24),

@@ -255,7 +255,7 @@ class _SavedScreenState extends State<SavedScreen> {
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             itemCount: saved.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final property = saved[index];
               final isSelected = _selectedIndices.contains(index);
@@ -547,7 +547,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       backgroundColor: accentBlue,
                       disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       foregroundColor: Colors.white,
-                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -593,7 +593,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       backgroundColor: accentBlue,
                       disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                       foregroundColor: Colors.white,
-                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(

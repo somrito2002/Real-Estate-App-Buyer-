@@ -343,7 +343,7 @@ class _OtpScreenState extends State<OtpScreen> {
             borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
           ),
           filled: true,
-          fillColor: isFocused ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Colors.transparent,
+          fillColor: isFocused ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
           contentPadding: EdgeInsets.zero,
         ),
         onChanged: (val) => _onOtpChanged(index, val),

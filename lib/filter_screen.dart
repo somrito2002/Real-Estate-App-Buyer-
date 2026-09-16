@@ -140,7 +140,7 @@ class _FilterScreenState extends State<FilterScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
             height: 1,
           ),
         ),
@@ -239,7 +239,7 @@ class _FilterScreenState extends State<FilterScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: accentBlue.withOpacity(0.08),
+                      color: accentBlue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -348,17 +348,17 @@ class _FilterScreenState extends State<FilterScreen> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+                      border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
+                        Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20),
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
                             decoration: InputDecoration(
                               hintText: 'Search amenities...',
-                              hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5), fontSize: 13),
+                              hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 13),
                               border: InputBorder.none,
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -415,7 +415,7 @@ class _FilterScreenState extends State<FilterScreen> {
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               border: Border(
-                top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+                top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
               ),
             ),
             child: Row(
@@ -497,7 +497,7 @@ class _FilterScreenState extends State<FilterScreen> {
   Widget _buildDivider() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
-      child: Divider(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5), height: 1),
+      child: Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),
     );
   }
 
@@ -511,7 +511,7 @@ class _FilterScreenState extends State<FilterScreen> {
           children: [
             Icon(
               isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -519,7 +519,7 @@ class _FilterScreenState extends State<FilterScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.08),
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -542,7 +542,7 @@ class _FilterScreenState extends State<FilterScreen> {
           children: [
             Icon(
               value ? Icons.check_box : Icons.check_box_outline_blank,
-              color: value ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: value ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -550,7 +550,7 @@ class _FilterScreenState extends State<FilterScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.08),
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -572,7 +572,7 @@ class _FilterScreenState extends State<FilterScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+          color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
         ),
@@ -599,7 +599,7 @@ class _FilterScreenState extends State<FilterScreen> {
           height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isSelected ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+            color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
             border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
           ),
           child: Center(
@@ -624,7 +624,7 @@ class _FilterScreenState extends State<FilterScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+          color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
         ),
@@ -647,7 +647,7 @@ class _FilterScreenState extends State<FilterScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+          color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
         ),

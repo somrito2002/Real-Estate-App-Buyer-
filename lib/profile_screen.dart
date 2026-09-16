@@ -289,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: _isLoggedIn ? Colors.red.withOpacity(0.1) : const Color(0xFF4B85F0).withOpacity(0.1),
+                  backgroundColor: _isLoggedIn ? Colors.red.withValues(alpha: 0.1) : const Color(0xFF4B85F0).withValues(alpha: 0.1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

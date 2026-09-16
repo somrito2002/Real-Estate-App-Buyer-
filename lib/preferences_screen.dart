@@ -151,7 +151,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Colors.transparent,
+                        color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isSelected
@@ -223,7 +223,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                   activeTrackColor: Theme.of(context).colorScheme.primary,
                   inactiveTrackColor: Colors.grey.shade200,
                   thumbColor: Theme.of(context).colorScheme.primary,
-                  overlayColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  overlayColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 ),
                 child: RangeSlider(
                   values: _budgetRange,

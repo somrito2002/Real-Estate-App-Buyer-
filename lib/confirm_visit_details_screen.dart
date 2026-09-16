@@ -14,17 +14,16 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
   final String phoneNumber;
 
   const ConfirmVisitDetailsScreen({
-    Key? key,
+    super.key,
     required this.property,
     required this.visitDate,
     required this.visitTime,
     required this.contactName,
     required this.phoneNumber,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final bgColor = isDark ? const Color(0xFF121212) : Colors.white;
@@ -82,7 +81,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -102,7 +101,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                             width: 64,
                             height: 64,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
+                            errorBuilder: (_, _, _) => Container(
                               width: 64,
                               height: 64,
                               decoration: BoxDecoration(

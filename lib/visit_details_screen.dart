@@ -6,7 +6,7 @@ import 'reschedule_visit_screen.dart';
 class VisitDetailsScreen extends StatelessWidget {
   final VisitMock visit;
 
-  const VisitDetailsScreen({Key? key, required this.visit}) : super(key: key);
+  const VisitDetailsScreen({super.key, required this.visit});
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -194,7 +194,7 @@ class VisitDetailsScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -459,7 +459,7 @@ class VisitDetailsScreen extends StatelessWidget {
             ? []
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),

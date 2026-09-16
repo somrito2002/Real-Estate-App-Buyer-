@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'login_screen.dart';
 import 'create_account_screen.dart';
 import 'register_screen.dart';
@@ -28,7 +27,7 @@ class PropertyDetailsScreen extends StatefulWidget {
 
 class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
-  static const Color backgroundLight = Color(0xFFF8FAFC);
+
 
   bool _isLoggedIn = false;
 
@@ -218,7 +217,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return Divider(
       height: 32,
       thickness: 1,
-      color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
     );
   }
 
@@ -228,7 +227,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -259,7 +258,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       decoration: BoxDecoration(
         color: Theme.of(
           context,
-        ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -411,7 +410,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
@@ -451,7 +450,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.1),
+                              color: Colors.green.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -509,7 +508,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: accentBlue.withOpacity(0.1),
+                          color: accentBlue.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
@@ -874,7 +873,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 border: Border.all(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.outlineVariant.withOpacity(0.3),
+                                  ).colorScheme.outlineVariant.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Column(
@@ -956,7 +955,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 color: Theme.of(context).scaffoldBackgroundColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     offset: const Offset(0, -4),
                     blurRadius: 8,
                   ),
@@ -1088,7 +1087,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -1107,7 +1106,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                errorBuilder: (_, _, _) => Container(
                                   width: 60,
                                   height: 60,
                                   color: Colors.grey.shade200,
@@ -1218,7 +1217,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     decoration: InputDecoration(
                       hintText: 'Interested',
                       hintStyle: GoogleFonts.inter(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                       ),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                       enabledBorder: OutlineInputBorder(
@@ -1321,7 +1320,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.inter(
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             enabledBorder: OutlineInputBorder(
@@ -1367,7 +1366,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: accentBlue.withOpacity(0.1),
+                color: accentBlue.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.chat_bubble_outline, color: accentBlue, size: 36),
@@ -1489,7 +1488,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: accentBlue.withOpacity(0.1),
+                  color: accentBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -1588,7 +1587,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       isScrollControlled: true,
       builder: (ctx) {
         // Local state managed with StatefulBuilder
-        int selectedVisitType = 0; // 0 = In-Person, 1 = Virtual Tour
+
         DateTime focusedMonth = DateTime.now();
         int? selectedDay;
 
@@ -1652,7 +1651,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             height: 32,
                             decoration: BoxDecoration(
                               color: isDark
-                                  ? Colors.white.withOpacity(0.08)
+                                  ? Colors.white.withValues(alpha: 0.08)
                                   : Colors.grey.shade100,
                               shape: BoxShape.circle,
                             ),
@@ -1672,12 +1671,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withOpacity(0.05)
+                            ? Colors.white.withValues(alpha: 0.05)
                             : Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: isDark
-                              ? Colors.white.withOpacity(0.08)
+                              ? Colors.white.withValues(alpha: 0.08)
                               : Colors.grey.shade200,
                         ),
                       ),
@@ -1690,7 +1689,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               width: 64,
                               height: 64,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, _, _) => Container(
                                 width: 64,
                                 height: 64,
                                 color: Colors.grey.shade300,
@@ -1847,7 +1846,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               color: isSelected
                                   ? accentBlue
                                   : isToday
-                                      ? accentBlue.withOpacity(0.12)
+                                      ? accentBlue.withValues(alpha: 0.12)
                                       : Colors.transparent,
                               shape: BoxShape.circle,
                             ),
@@ -1863,7 +1862,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                       ? Colors.white
                                       : isPast
                                           ? colorScheme.onSurfaceVariant
-                                              .withOpacity(0.35)
+                                              .withValues(alpha: 0.35)
                                           : isToday
                                               ? accentBlue
                                               : colorScheme.onSurface,
@@ -1915,7 +1914,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 backgroundColor: accentBlue,
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor:
-                                    accentBlue.withOpacity(0.4),
+                                    accentBlue.withValues(alpha: 0.4),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -2010,7 +2009,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Divider(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                     const SizedBox(height: 16),
                     
                     // ── Time Slots ────────────────────────────────────────
@@ -2026,7 +2025,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             decoration: BoxDecoration(
                               color: isSelected 
                                   ? accentBlue 
-                                  : (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100),
+                                  : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: isSelected 
@@ -2050,7 +2049,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                     
                     const SizedBox(height: 24),
-                    Divider(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                     const SizedBox(height: 16),
                     
                     // ── Name Field ────────────────────────────────────────
@@ -2076,7 +2075,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -2111,7 +2110,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -2145,7 +2144,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                          borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -2189,7 +2188,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               onPressed: (_visitSelectedTime == null || _visitPhoneController.text.trim().length != 10)
                                   ? null
                                   : () async {
-                                      final shouldEdit = await Navigator.of(screenContext).push(
+                                      await Navigator.of(screenContext).push(
                                         MaterialPageRoute(
                                           builder: (_) => ConfirmVisitDetailsScreen(
                                             property: widget.property,
@@ -2206,7 +2205,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: accentBlue,
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor: accentBlue.withOpacity(0.4),
+                                disabledBackgroundColor: accentBlue.withValues(alpha: 0.4),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -2231,65 +2230,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  /// Pill tab for visit type selector
-  Widget _visitTypeTab({
-    required BuildContext context,
-    required String label,
-    required IconData icon,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.all(4),
-          height: 36,
-          decoration: BoxDecoration(
-            color: selected
-                ? (isDark ? Colors.white : Colors.white)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 15,
-                color: selected
-                    ? accentBlue
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 5),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected
-                      ? accentBlue
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   void _showLoginRequiredBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -2577,8 +2517,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   void _showShareBottomSheet(BuildContext context) {
     final propertyUrl =
         'https://mecotechnologies.com/property/${widget.property.id}';
-    final shareText =
-        'Check out ${widget.property.title} in ${widget.property.location} for ${widget.property.price}!\n\n$propertyUrl';
+
 
     showModalBottomSheet(
       context: context,
@@ -2626,13 +2565,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   color: Theme.of(context)
                       .colorScheme
                       .surfaceContainerHighest
-                      .withOpacity(0.4),
+                      .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: Theme.of(context)
                         .colorScheme
                         .outlineVariant
-                        .withOpacity(0.3),
+                        .withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
@@ -2644,7 +2583,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        errorBuilder: (_, _, _) => Container(
                           width: 56,
                           height: 56,
                           color: Colors.grey.shade200,
@@ -2732,7 +2671,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     color: Theme.of(context)
                         .colorScheme
                         .outlineVariant
-                        .withOpacity(0.4),
+                        .withValues(alpha: 0.4),
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -2806,7 +2745,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         color: Theme.of(context)
                             .colorScheme
                             .outlineVariant
-                            .withOpacity(0.5)),
+                            .withValues(alpha: 0.5)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -2830,53 +2769,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
 
 
-  Widget _buildShareOption({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required VoidCallback onTap,
-    bool hideDivider = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconColor.withAlpha(20),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: iconColor, size: 20),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey.shade400,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-          if (!hideDivider) Divider(color: Colors.grey.shade200, height: 1),
-        ],
-      ),
-    );
-  }
 
   /// Downloads the property image to a temp file, then shares it
   /// together with the caption text and property link via the native

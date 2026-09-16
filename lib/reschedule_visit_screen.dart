@@ -5,7 +5,7 @@ import 'my_visits_screen.dart';
 class RescheduleVisitScreen extends StatefulWidget {
   final VisitMock visit;
 
-  const RescheduleVisitScreen({Key? key, required this.visit}) : super(key: key);
+  const RescheduleVisitScreen({super.key, required this.visit});
 
   @override
   State<RescheduleVisitScreen> createState() => _RescheduleVisitScreenState();
@@ -376,7 +376,7 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: isSelected ? FontWeight.bold : (isPrevMonth ? FontWeight.normal : FontWeight.w500),
-              color: isSelected ? Colors.white : (isPrevMonth ? textMuted.withOpacity(0.5) : titleColor),
+              color: isSelected ? Colors.white : (isPrevMonth ? textMuted.withValues(alpha: 0.5) : titleColor),
             ),
           ),
         ),

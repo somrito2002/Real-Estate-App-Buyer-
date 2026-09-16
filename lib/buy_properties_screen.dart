@@ -133,7 +133,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 child: Container(
                   height: 32,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -184,7 +184,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
             child: Container(
-              color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
               height: 1,
             ),
           ),
@@ -212,7 +212,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
             decoration: BoxDecoration(
               color: Theme.of(context).scaffoldBackgroundColor,
               border: Border(
-                bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+                bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
               ),
             ),
             child: Column(
@@ -224,11 +224,11 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.5)),
+                    border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.radio_button_unchecked, color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5), size: 20),
+                      Icon(Icons.radio_button_unchecked, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
@@ -236,7 +236,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                           onChanged: (val) => _filterProperties(),
                           decoration: InputDecoration(
                             hintText: 'Search location, project...',
-                            hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5), fontSize: 14),
+                            hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 14),
                             border: InputBorder.none,
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -274,7 +274,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+                              color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
                               border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -364,7 +364,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5))),
+            border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5))),
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -384,7 +384,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.08),
+                    color: Colors.red.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -447,7 +447,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: Theme.of(context).scaffoldBackgroundColor,
-            border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5))),
+            border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5))),
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -467,7 +467,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: accentBlue.withOpacity(0.08),
+                    color: accentBlue.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -558,7 +558,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         decoration: BoxDecoration(
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: accentBlue.withOpacity(0.5)),
+          border: Border.all(color: accentBlue.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -584,7 +584,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       statusBgColor = const Color(0xFFFFF9C4);
     } else if (property.status.contains('NEW')) {
       statusColor = accentBlue;
-      statusBgColor = accentBlue.withOpacity(0.1);
+      statusBgColor = accentBlue.withValues(alpha: 0.1);
     }
 
     return GestureDetector(
@@ -595,7 +595,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,7 +670,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 4),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4),
                       ],
                     ),
                     child: Icon(
@@ -725,7 +725,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Divider(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5), height: 1),
+                Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),
                 const SizedBox(height: 12),
                 Text(
                   property.specs,
@@ -791,7 +791,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           child: Text(
             'Swipe card above to browse ${_filteredProperties.length} properties in this area',
             textAlign: TextAlign.center,
@@ -813,7 +813,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         color: isActive ? Colors.black : accentBlue,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4)),
         ],
       ),
       child: Text(
@@ -833,7 +833,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5)),
         ],
       ),
       padding: const EdgeInsets.all(12),
@@ -868,7 +868,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -1028,7 +1028,7 @@ class _MapGridPainter extends CustomPainter {
     canvas.drawLine(Offset(size.width * 0.8, 0), Offset(size.width * 0.2, size.height), paint);
     canvas.drawLine(Offset(0, size.height * 0.5), Offset(size.width, size.height * 0.5), paint);
 
-    paint.color = Colors.white.withOpacity(0.5);
+    paint.color = Colors.white.withValues(alpha: 0.5);
     paint.strokeWidth = 2.0;
     canvas.drawLine(Offset(size.width * 0.4, 0), Offset(size.width * 0.4, size.height), paint);
     canvas.drawLine(Offset(size.width * 0.6, 0), Offset(size.width * 0.6, size.height), paint);

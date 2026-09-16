@@ -73,7 +73,7 @@ class FollowUpScreen extends StatelessWidget {
                       width: 60,
                       height: 60,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _, _) => Container(
                         width: 60,
                         height: 60,
                         color: Colors.grey.shade200,

@@ -11,7 +11,7 @@ class AppTheme {
       scaffoldBackgroundColor: Colors.white,
       colorScheme: ColorScheme.light(
         primary: accentBlue,
-        secondary: accentBlue.withOpacity(0.8),
+        secondary: accentBlue.withValues(alpha: 0.8),
         surface: Colors.white,
         onPrimary: Colors.white,
         onSurface: const Color(0xFF111111),
@@ -44,7 +44,7 @@ class AppTheme {
       scaffoldBackgroundColor: const Color(0xFF121212),
       colorScheme: ColorScheme.dark(
         primary: accentBlue,
-        secondary: accentBlue.withOpacity(0.8),
+        secondary: accentBlue.withValues(alpha: 0.8),
         surface: const Color(0xFF1E1E1E),
         onPrimary: Colors.white,
         onSurface: Colors.white,

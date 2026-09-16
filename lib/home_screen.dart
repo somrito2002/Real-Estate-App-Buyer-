@@ -606,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+          color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
         ),
@@ -1019,148 +1019,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Search Properties',
-            style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
-          ),
-          const SizedBox(height: 16),
-          // Search Input
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Theme.of(context).colorScheme.outline),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    onTap: () {
-                      // Navigate to search/filter screen
-                      Navigator.pushNamed(context, '/filter');
-                    },
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      hintText: 'Search by city, locality, project...',
-                      hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Popular Localities
-          Text(
-            'Popular Localities',
-            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 12,
-            children: [
-              _buildLocationChip('Durg'),
-              _buildLocationChip('Raipur'),
-              _buildLocationChip('Bhilai'),
-              _buildLocationChip('Mumbai'),
-              _buildLocationChip('Gurgaon'),
-              _buildLocationChip('Bangalore'),
-            ],
-          ),
-          const SizedBox(height: 24),
-          
-          // Trending Searches
-          Text(
-            'Trending Searches',
-            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
-          ),
-          const SizedBox(height: 16),
-          _buildTrendingSearchItem('DLF The Crest Gurgaon'),
-          _buildTrendingSearchItem('Gachibowli Hyderabad Flats'),
-          _buildTrendingSearchItem('Plots in Raipur'),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildSearchFilterChip(String label, bool isSelected) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 13,
-          fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
-          color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentSearchItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        children: [
-          Icon(Icons.access_time, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          const SizedBox(width: 12),
-          Text(
-            text,
-            style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLocationChip(String location) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
-      ),
-      child: Text(
-        location,
-        style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500),
-      ),
-    );
-  }
-
-  Widget _buildTrendingSearchItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        children: [
-          Icon(Icons.trending_up, size: 18, color: accentBlue),
-          const SizedBox(width: 12),
-          Text(
-            text,
-            style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 

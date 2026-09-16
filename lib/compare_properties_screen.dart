@@ -203,7 +203,7 @@ class ComparePropertiesScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: isStriped ? Theme.of(context).colorScheme.onSurface.withOpacity(0.05) : Colors.transparent,
+        color: isStriped ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05) : Colors.transparent,
       ),
       child: Row(
         children: [
@@ -258,7 +258,7 @@ class ComparePropertiesScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
-        color: isStriped ? Theme.of(context).colorScheme.onSurface.withOpacity(0.05) : Colors.transparent,
+        color: isStriped ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05) : Colors.transparent,
       ),
       child: Row(
         children: [
