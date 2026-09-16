@@ -32,10 +32,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   bool _isLoggedIn = false;
 
+  // Persisted Visit Booking State
+  String? _visitSelectedTime;
+  final TextEditingController _visitNameController = TextEditingController();
+  final TextEditingController _visitPhoneController = TextEditingController();
+  final TextEditingController _visitSpecialReqController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _checkLoginStatus();
+  }
+
+  @override
+  void dispose() {
+    _visitNameController.dispose();
+    _visitPhoneController.dispose();
+    _visitSpecialReqController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkLoginStatus() async {
@@ -1933,9 +1947,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (sheetCtx) {
-        String? selectedTime;
-        final phoneController = TextEditingController();
-        final nameController = TextEditingController();
+        // Use screen-level state so data persists across back navigations
         final timeSlots = [
           '10:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
         ];
@@ -2006,9 +2018,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       spacing: 12,
                       runSpacing: 12,
                       children: timeSlots.map((time) {
-                        final isSelected = selectedTime == time;
+                        final isSelected = _visitSelectedTime == time;
                         return GestureDetector(
-                          onTap: () => setSheetState(() => selectedTime = time),
+                          onTap: () => setSheetState(() => _visitSelectedTime = time),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
@@ -2052,7 +2064,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: nameController,
+                      controller: _visitNameController,
                       onChanged: (value) => setSheetState(() {}),
                       decoration: InputDecoration(
                         hintText: 'Arjun Malhotra',
@@ -2086,7 +2098,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: phoneController,
+                      controller: _visitPhoneController,
                       onChanged: (value) => setSheetState(() {}),
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
@@ -2121,6 +2133,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
+                      controller: _visitSpecialReqController,
                       maxLines: 3,
                       decoration: InputDecoration(
                         hintText: 'e.g. key location, gate pass security...',
@@ -2173,7 +2186,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           child: SizedBox(
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: (selectedTime == null || phoneController.text.trim().length != 10)
+                              onPressed: (_visitSelectedTime == null || _visitPhoneController.text.trim().length != 10)
                                   ? null
                                   : () async {
                                       final shouldEdit = await Navigator.of(screenContext).push(
@@ -2181,9 +2194,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                           builder: (_) => ConfirmVisitDetailsScreen(
                                             property: widget.property,
                                             visitDate: dateString,
-                                            visitTime: selectedTime!,
-                                            contactName: nameController.text.trim().isEmpty ? 'Arjun Malhotra' : nameController.text.trim(),
-                                            phoneNumber: phoneController.text.trim(),
+                                            visitTime: _visitSelectedTime!,
+                                            contactName: _visitNameController.text.trim().isEmpty ? 'Arjun Malhotra' : _visitNameController.text.trim(),
+                                            phoneNumber: _visitPhoneController.text.trim(),
                                           ),
                                         ),
                                       );
