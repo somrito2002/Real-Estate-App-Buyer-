@@ -5,6 +5,7 @@ import 'rent_properties_screen.dart';
 import 'lease_properties_screen.dart';
 import 'filter_screen.dart';
 import 'models/property_model.dart';
+import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final String initialCategory;
@@ -274,7 +275,11 @@ class _SearchScreenState extends State<SearchScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
+          ),
         ),
         title: Text(
           'Search Properties',
