@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/services.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'profile_screen.dart';
 import 'saved_screen.dart';
 import 'search_screen.dart' as import_search_screen;
@@ -12,10 +11,6 @@ import 'property_details_screen.dart';
 import 'view_all_properties_screen.dart';
 import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
-import 'buy_properties_screen.dart';
-import 'rent_properties_screen.dart';
-import 'lease_properties_screen.dart';
-import 'services/search_history_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -32,91 +27,18 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
 
   // Voice search
-  late stt.SpeechToText _speech;
-  bool _isListening = false;
-  String _voiceText = '';
-  final TextEditingController _homeSearchController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     _fetchLocation();
-    _speech = stt.SpeechToText();
   }
 
   @override
   void dispose() {
-    _speech.stop();
-    _homeSearchController.dispose();
     super.dispose();
   }
 
-  Future<void> _startListening() async {
-    bool available = await _speech.initialize(
-      onStatus: (status) {
-        if (status == 'done' || status == 'notListening') {
-          if (mounted) {
-            setState(() => _isListening = false);
-          }
-        }
-      },
-      onError: (error) {
-        if (mounted) setState(() => _isListening = false);
-      },
-    );
-    if (available) {
-      setState(() {
-        _isListening = true;
-        _voiceText = '';
-      });
-      _speech.listen(
-        onResult: (result) {
-          if (mounted) {
-            setState(() {
-              _voiceText = result.recognizedWords;
-              _homeSearchController.text = _voiceText;
-            });
-            if (result.finalResult && _voiceText.isNotEmpty) {
-              _speech.stop();
-              setState(() => _isListening = false);
-            }
-          }
-        },
-        listenOptions: stt.SpeechListenOptions(
-          listenFor: const Duration(seconds: 10),
-          pauseFor: const Duration(seconds: 3),
-          partialResults: true,
-          localeId: 'en_IN',
-        ),
-      );
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Microphone permission not granted.', style: GoogleFonts.inter()),
-            backgroundColor: Colors.red.shade700,
-          ),
-        );
-      }
-    }
-  }
 
-  void _stopListening() {
-    _speech.stop();
-    setState(() => _isListening = false);
-  }
-
-  void _navigateWithVoiceQuery(String query) {
-    if (!mounted) return;
-    SearchHistoryService.addSearch(query);
-    if (_selectedPrimaryCategory == 'Rent') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => RentPropertiesScreen(initialSearchQuery: query)));
-    } else if (_selectedPrimaryCategory == 'Lease') {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => LeasePropertiesScreen(initialSearchQuery: query)));
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: query)));
-    }
-  }
 
   Future<void> _fetchLocation() async {
     try {
@@ -311,10 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        final query = _homeSearchController.text.trim();
-                        if (query.isNotEmpty) {
-                          _navigateWithVoiceQuery(query);
-                        }
+                         Navigator.push(context, MaterialPageRoute(builder: (_) => import_search_screen.SearchScreen(initialCategory: _selectedPrimaryCategory)));
                       },
                       child: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
                     ),
@@ -326,7 +245,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                         child: AbsorbPointer(
                           child: TextField(
-                            controller: _homeSearchController,
                             decoration: InputDecoration(
                               hintText: 'Search properties, projects, localities...',
                               hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
@@ -339,17 +257,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: _isListening ? _stopListening : _startListening,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => import_search_screen.SearchScreen(initialCategory: _selectedPrimaryCategory, startVoiceSearchAutomatically: true)));
+                      },
+                      child: Padding(
                         padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: _isListening ? accentBlue.withOpacity(0.15) : Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
                         child: Icon(
-                          _isListening ? Icons.mic : Icons.mic_none_outlined,
-                          color: _isListening ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant,
+                          Icons.mic_off_outlined,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           size: 22,
                         ),
                       ),
