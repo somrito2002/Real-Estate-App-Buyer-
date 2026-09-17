@@ -24,12 +24,19 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
 
   bool _isConnected = true;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialSearchQuery);
     _checkInternetConnection();
+  }
+
+  void _simulateLoading() async {
+    setState(() { _isLoading = true; });
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (mounted) setState(() { _isLoading = false; });
   }
 
   Future<void> _checkInternetConnection() async {
@@ -79,6 +86,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       }
       // other logic can be added here
     });
+    _simulateLoading();
   }
 
   double _parsePrice(String price) {
@@ -323,33 +331,61 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${_filteredProperties.length} Properties Found',
-                      style: GoogleFonts.inter(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
+                _isLoading 
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Finding matching homes..',
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: accentBlue),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${_filteredProperties.length} Properties Found',
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
           
           // Property List
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              itemCount: _filteredProperties.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                return _buildPropertyCard(_filteredProperties[index]);
-              },
-            ),
+            child: _isLoading 
+            ? ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                itemCount: 3,
+                separatorBuilder: (context, index) => const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  return _buildSkeletonCard();
+                },
+              )
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                itemCount: _filteredProperties.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  return _buildPropertyCard(_filteredProperties[index]);
+                },
+              ),
           ),
         ],
       );
@@ -571,6 +607,47 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSkeletonCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 180,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(width: 150, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                    const SizedBox(height: 8),
+                    Container(width: 200, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                    const SizedBox(height: 16),
+                    Container(width: 100, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                  ],
+                ),
+                Container(width: 60, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
