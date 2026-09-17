@@ -136,28 +136,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCustomBottomNav() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      height: 72,
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(36),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20, left: 8, right: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
-          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
-          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'Wishlist', 2)),
-          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'Account', 3)),
+          Expanded(
+            child: Container(
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(36),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
+                  Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
+                  Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'Wishlist', 2)),
+                  Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'Account', 3)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           // AI Button
           GestureDetector(
             onTap: () {
