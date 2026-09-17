@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
@@ -143,20 +144,29 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Expanded(
             child: Container(
-              height: 72,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(36),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 5),
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 25,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
-              child: Row(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(36),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    height: 72,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(36),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                    ),
+                    child: Row(
                 children: [
                   Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
                   Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
@@ -166,6 +176,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+        ),
+      ),
+    ),
           const SizedBox(width: 12),
           // AI Button
           GestureDetector(
@@ -207,12 +220,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         color: Colors.transparent, // Ensures the whole area is clickable
         alignment: Alignment.center,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
           width: 54, // Fixed width that fits without overflowing
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: isSelected
               ? BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.1),
+                  color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(24),
                 )
               : const BoxDecoration(),
@@ -293,27 +308,22 @@ class _HomeScreenState extends State<HomeScreen> {
             // Search Bar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
-                ),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                         Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
-                      },
-                      child: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
-                        },
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
+                      const SizedBox(width: 8),
+                      Expanded(
                         child: AbsorbPointer(
                           child: TextField(
                             decoration: InputDecoration(
@@ -326,21 +336,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen(startVoiceSearchAutomatically: true)));
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(6),
-                        child: Icon(
-                          Icons.mic_off_outlined,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          size: 22,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen(startVoiceSearchAutomatically: true)));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(
+                            Icons.mic_off_outlined,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            size: 22,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
