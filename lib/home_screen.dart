@@ -22,7 +22,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _bottomNavIndex = 0;
   String _currentLocation = 'Locating...';
-  String _selectedPrimaryCategory = 'Buy';
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -83,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         if (_bottomNavIndex != 0) {
           setState(() {
@@ -116,53 +115,111 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       },
       child: Scaffold(
+        extendBody: true,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        appBar: _bottomNavIndex == 4
+        appBar: _bottomNavIndex == 3
             ? _buildProfileAppBar()
-            : (_bottomNavIndex == 1
-                ? null
-                : (_bottomNavIndex == 2
-                    ? AppBar(
-                        title: Text('Shortlisted Properties',
-                            style: GoogleFonts.inter(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSurface)),
-                        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                        elevation: 0,
-                        scrolledUnderElevation: 0,
-                      )
-                    : (_bottomNavIndex == 0
-                        ? _buildAppBar()
-                        : AppBar(
-                            title: const Text('Coming Soon'),
-                            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                            elevation: 0)))),
+            : (_bottomNavIndex == 0
+                ? _buildAppBar()
+                : AppBar(
+                    title: Text(
+                      _bottomNavIndex == 1 ? 'My Visits' : 'Wishlist',
+                      style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+                    ),
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    elevation: 0,
+                  )),
         body: _buildBody(),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _bottomNavIndex,
-          onTap: (i) => setState(() => _bottomNavIndex = i),
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: accentBlue,
-          unselectedItemColor: Colors.grey.shade500,
-          selectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500),
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.search_outlined), activeIcon: Icon(Icons.search), label: 'Search'),
-            BottomNavigationBarItem(icon: Icon(Icons.favorite_border), activeIcon: Icon(Icons.favorite), label: 'Shortlisted'),
-            BottomNavigationBarItem(
-              icon: Badge(
-                backgroundColor: Colors.red,
-                child: Icon(Icons.notifications_none),
+        bottomNavigationBar: _buildCustomBottomNav(),
+      ),
+    );
+  }
+
+  Widget _buildCustomBottomNav() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      height: 72,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(36),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
+          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
+          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'Wishlist', 2)),
+          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'Account', 3)),
+          // AI Button
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI Features Coming Soon!')));
+            },
+            child: Container(
+              height: 56,
+              width: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE8C1F5), Color(0xFFF7C2C9)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              activeIcon: Badge(
-                backgroundColor: Colors.red,
-                child: Icon(Icons.notifications),
+              child: const Center(
+                child: Icon(Icons.auto_awesome, color: Colors.white, size: 28),
               ),
-              label: 'Inbox',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData activeIcon, IconData icon, String label, int index) {
+    final isSelected = _bottomNavIndex == index;
+    return GestureDetector(
+      onTap: () => setState(() => _bottomNavIndex = index),
+      child: Container(
+        color: Colors.transparent, // Ensures the whole expanded area is clickable
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: isSelected ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : EdgeInsets.zero,
+              decoration: isSelected
+                  ? BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(24),
+                    )
+                  : const BoxDecoration(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(isSelected ? activeIcon : icon, color: isSelected ? accentBlue : Colors.grey.shade700, size: 26),
+                  if (isSelected) const SizedBox(height: 2),
+                  if (isSelected) Text(label, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: accentBlue)),
+                ],
+              ),
+            ),
+            if (!isSelected) const SizedBox(height: 2),
+            if (!isSelected) Text(label, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.grey.shade700)),
           ],
         ),
       ),
@@ -174,10 +231,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildHomeTab();
       case 1:
-        return const import_search_screen.SearchScreen();
       case 2:
         return const SavedScreen();
-      case 4:
+      case 3:
         return const ProfileScreen();
       default:
         return const Center(child: Text('Coming Soon'));
@@ -233,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                         Navigator.push(context, MaterialPageRoute(builder: (_) => import_search_screen.SearchScreen(initialCategory: _selectedPrimaryCategory)));
+                         Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
                       },
                       child: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
                     ),
@@ -241,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => import_search_screen.SearchScreen(initialCategory: _selectedPrimaryCategory)));
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen()));
                         },
                         child: AbsorbPointer(
                           child: TextField(
@@ -258,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => import_search_screen.SearchScreen(initialCategory: _selectedPrimaryCategory, startVoiceSearchAutomatically: true)));
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => const import_search_screen.SearchScreen(startVoiceSearchAutomatically: true)));
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(6),
@@ -275,22 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             
-            // Primary Filters (Buy, Rent, Lease)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(child: GestureDetector(onTap: () => setState(() => _selectedPrimaryCategory = 'Buy'), child: _buildPrimaryFilter('Buy', _selectedPrimaryCategory == 'Buy'))),
-                  const SizedBox(width: 8),
-                  Expanded(child: GestureDetector(onTap: () => setState(() => _selectedPrimaryCategory = 'Rent'), child: _buildPrimaryFilter('Rent', _selectedPrimaryCategory == 'Rent'))),
-                  const SizedBox(width: 8),
-                  Expanded(child: GestureDetector(onTap: () => setState(() => _selectedPrimaryCategory = 'Lease'), child: _buildPrimaryFilter('Lease', _selectedPrimaryCategory == 'Lease'))),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            // Secondary Filters (Residential, Commercial, Plots, etc.)
+            // Categories (Residential, Commercial, Plots, etc.)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -318,40 +359,25 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   _buildFeaturedPropertyCard(
-                    'DLF The Crest',
-                    'DLF Phase 5, Gurgaon',
-                    '₹2.45 Cr',
-                    '3 Beds',
-                    '3 Baths',
-                    '2,215 sqft',
-                    property: mockProperties[2],
+                    'Smart World One DXP',
+                    'By Smart World Developers',
+                    'Sector 113, Gurgaon',
+                    'Starting ₹1.15 Cr',
+                    property: mockProperties[4],
                   ),
                   _buildFeaturedPropertyCard(
-                    'M3M Golf',
-                    'Sector 79, Gurgaon',
-                    '₹1.80 Cr',
-                    '2 Beds',
-                    '2 Baths',
-                    '1,500 sqft',
-                    property: mockProperties[3],
+                    'Emaar Digi Homes',
+                    'By Emaar India',
+                    'Sector 62, Gurgaon',
+                    'Starting ₹1.90 Cr',
+                    property: mockProperties[5],
                   ),
                   _buildFeaturedPropertyCard(
-                    mockProperties[8].title,
-                    mockProperties[8].location,
-                    mockProperties[8].price,
-                    '3 Beds',
-                    '3 Baths',
-                    '1,800 sqft',
-                    property: mockProperties[8],
-                  ),
-                  _buildFeaturedPropertyCard(
-                    mockProperties[9].title,
-                    mockProperties[9].location,
-                    mockProperties[9].price,
-                    '4 Beds',
-                    '3 Baths',
-                    '2,400 sqft',
-                    property: mockProperties[9],
+                    mockProperties[10].title,
+                    'By Classic Builders',
+                    mockProperties[10].location,
+                    'Starting ${mockProperties[10].price}',
+                    property: mockProperties[10],
                   ),
                 ],
               ),
@@ -362,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildSectionHeader('New Projects', onViewAll: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
                 title: 'New Projects',
-                properties: [mockProperties[4], mockProperties[5], mockProperties[10]],
+                properties: [mockProperties[2], mockProperties[3], mockProperties[8]],
               )));
             }),
             SingleChildScrollView(
@@ -371,25 +397,19 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   _buildNewProjectCard(
-                    'Smart World One DXP',
-                    'Smart World Developers',
-                    'Sector 113, Gurgaon',
-                    'Starting ₹3.15 Cr',
-                    property: mockProperties[4],
+                    'DLF The Crest',
+                    '₹2.45 Cr',
+                    property: mockProperties[2],
                   ),
                   _buildNewProjectCard(
-                    'Emaar Digi H...',
-                    'Emaar India',
-                    'Sector 62, Gur...',
-                    'Starting ₹1.90 Cr',
-                    property: mockProperties[5],
+                    'M3M Golf',
+                    '₹1.80 Cr',
+                    property: mockProperties[3],
                   ),
                   _buildNewProjectCard(
-                    mockProperties[10].title,
-                    'Classic Builders',
-                    mockProperties[10].location,
-                    'Starting ${mockProperties[10].price}',
-                    property: mockProperties[10],
+                    mockProperties[8].title,
+                    mockProperties[8].price,
+                    property: mockProperties[8],
                   ),
                 ],
               ),
@@ -508,58 +528,53 @@ class _HomeScreenState extends State<HomeScreen> {
       elevation: 0,
       titleSpacing: 16,
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Image.asset(
-            'assets/images/MECO TECHNOLOGIES PR-Photoroom.png',
-            width: 32,
-            height: 32,
-            errorBuilder: (context, error, stackTrace) => const Icon(Icons.public, color: Colors.green, size: 32),
+          // Logo & Title
+          Row(
+            children: [
+              Image.asset(
+                'assets/images/MECO TECHNOLOGIES PR-Photoroom.png',
+                width: 32,
+                height: 32,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.public, color: Colors.green, size: 32),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MECO Real Estate',
+                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
+                  ),
+                  Text(
+                    'EXCELLENCE IN INNOVATION',
+                    style: GoogleFonts.inter(fontSize: 7, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: Theme.of(context).colorScheme.primary),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Location Pill
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F5FF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
+                Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.primary, size: 14),
+                const SizedBox(width: 4),
                 Text(
-                  'MECO Real Estate',
-                  style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w800, color: Theme.of(context).colorScheme.onSurface, height: 1.1),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'EXCELLENCE IN INNOVATION',
-                  style: GoogleFonts.inter(fontSize: 7, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: Theme.of(context).colorScheme.primary),
-                  overflow: TextOverflow.ellipsis,
+                  '$_currentLocation ⌄',
+                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 4),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 160),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0F5FF),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.primary, size: 14),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      _currentLocation,
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
+          // Notification Bell
           GestureDetector(
             onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
@@ -572,34 +587,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      actions: const [],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(color: Theme.of(context).colorScheme.surfaceContainerHighest, height: 1),
       ),
     );
   }
-
-  Widget _buildPrimaryFilter(String text, bool isSelected) {
-    return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? accentBlue : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
-      ),
-      child: Text(
-        text,
-        style: GoogleFonts.inter(
-          fontSize: 13,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-          color: isSelected ? Colors.white : Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-    );
-  }
-
   Widget _buildSecondaryFilter(String text, bool isSelected) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
@@ -660,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeaturedPropertyCard(String title, String location, String price, String beds, String baths, String sqft, {Property? property}) {
+  Widget _buildFeaturedPropertyCard(String title, String builder, String location, String price, {Property? property}) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: TiltPropertyCard(
@@ -670,42 +663,17 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             : null,
         child: Container(
-        width: 260,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-        boxShadow: Theme.of(context).brightness == Brightness.dark
-            ? [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
+          width: 260,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
@@ -715,85 +683,49 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          height: 140,
-                          color: Colors.grey.shade300,
-                          child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54)),
-                        ),
+                        errorBuilder: (context, error, stackTrace) => Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                       )
-                    : Container(
-                        height: 140,
-                        color: Colors.grey.shade300,
-                        child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54)),
+                    : Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.onSurface)),
+                    const SizedBox(height: 4),
+                    Text(builder, style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
+                        const SizedBox(width: 4),
+                        Text(location, style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F5FF),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: CircleAvatar(
-                  radius: 14,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade800),
+                      child: Text(
+                        price,
+                        style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              Positioned(
-                bottom: 8,
-                left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    price,
-                    style: GoogleFonts.inter(color: Theme.of(context).colorScheme.surface, fontWeight: FontWeight.w700, fontSize: 13),
-                  ),
-                ),
-              ),
+              )
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text('VERIFIED', style: GoogleFonts.inter(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 9)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Text(beds, style: GoogleFonts.inter(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
-                    _dot(),
-                    Text(baths, style: GoogleFonts.inter(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
-                    _dot(),
-                    Text(sqft, style: GoogleFonts.inter(fontSize: 11, color: Theme.of(context).colorScheme.onSurface)),
-                  ],
-                ),
-              ],
-            ),
-          )
-        ],
+        ),
       ),
-    ),
-    ),
     );
   }
 
-  Widget _buildNewProjectCard(String title, String builder, String location, String startingPrice, {Property? property}) {
+  Widget _buildNewProjectCard(String title, String price, {Property? property}) {
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: TiltPropertyCard(
@@ -803,96 +735,90 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             : null,
         child: Container(
-        width: 260,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-        boxShadow: Theme.of(context).brightness == Brightness.dark
-            ? [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-            child: (property != null && property.imageUrl.isNotEmpty)
-                ? Image.network(
-                    property.imageUrl,
-                    height: 120,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 120,
-                      color: Colors.grey.shade300,
-                      child: const Center(child: Icon(Icons.landscape, size: 50, color: Colors.white54)),
-                    ),
-                  )
-                : Container(
-                    height: 120,
-                    color: Colors.grey.shade300,
-                    child: const Center(child: Icon(Icons.landscape, size: 50, color: Colors.white54)),
-                  ),
+          width: 220,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 2),
-                Text('By $builder', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
-                const SizedBox(height: 4),
-                Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                    child: (property != null && property.imageUrl.isNotEmpty)
+                        ? Image.network(
+                            property.imageUrl,
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                          )
+                        : Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Colors.white.withAlpha(200),
+                      child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade800),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B), // Dark pill
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        price,
+                        style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.location_on_outlined, size: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     const SizedBox(width: 4),
-                    Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 11)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'VERIFIED',
+                        style: GoogleFonts.inter(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 9),
+                      ),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F5FF),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    startingPrice,
-                    style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600, fontSize: 11),
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
+              )
+            ],
+          ),
+        ),
       ),
-    ),
-    ),
     );
   }
 
@@ -1011,15 +937,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  Widget _dot() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Icon(Icons.circle, size: 3, color: Colors.grey.shade400),
-    );
-  }
-
-
 }
 
 
