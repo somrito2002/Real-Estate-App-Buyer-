@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'services/auth_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 import 'phone_number_screen.dart';
@@ -26,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   bool _isConnected = true;
   bool _showVerificationError = false;
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
@@ -113,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } else if (!isCachedMatch && !isHardcodedMatch) {
           setState(() => _showVerificationError = true);
         } else {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('invalid login credentials'),
@@ -124,8 +127,48 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleGoogleLogin() {
-    // TODO: hook up Google sign-in.
+  void _handleGoogleLogin() async {
+    if (_isGoogleLoading) return;
+    setState(() => _isGoogleLoading = true);
+    try {
+      final userCredential = await AuthService.signInWithGoogle();
+      if (userCredential == null) {
+        // User cancelled the Google sign-in picker
+        setState(() => _isGoogleLoading = false);
+        return;
+      }
+      // Save login state
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setBool('isHardcodedUser', false);
+      await prefs.setString(
+          'cached_email', userCredential.user?.email ?? '');
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isGoogleLoading = false);
+      String message = 'Google sign-in failed. Please try again.';
+      if (e.toString().contains('network')) {
+        message = 'No internet connection. Please check your network.';
+      } else if (e.toString().contains('DEVELOPER_ERROR') ||
+          e.toString().contains('10:')) {
+        message =
+            'Google sign-in is not configured yet.\nPlease add your SHA-1 fingerprint in Firebase Console.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message,
+              style: GoogleFonts.inter(fontSize: 13, color: Colors.white)),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
   }
 
   void _handleAppleLogin() {
@@ -662,15 +705,24 @@ class _LoginScreenState extends State<LoginScreen> {
         Expanded(
           child: _SocialButton(
             label: 'Google',
-            icon: Image.asset(
-              'assets/images/google_logo.png',
-              width: 22,
-              height: 22,
-              fit: BoxFit.contain,
-            ),
+            icon: _isGoogleLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFF4B85F0),
+                    ),
+                  )
+                : Image.asset(
+                    'assets/images/google_logo.png',
+                    width: 22,
+                    height: 22,
+                    fit: BoxFit.contain,
+                  ),
             border: border,
             textColor: textColor,
-            onTap: _handleGoogleLogin,
+            onTap: _isGoogleLoading ? () {} : _handleGoogleLogin,
           ),
         ),
         const SizedBox(width: 14),
