@@ -157,7 +157,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
                   Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
@@ -206,31 +205,37 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () => setState(() => _bottomNavIndex = index),
       child: Container(
-        color: Colors.transparent, // Ensures the whole expanded area is clickable
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: isSelected ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8) : EdgeInsets.zero,
-              decoration: isSelected
-                  ? BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(24),
-                    )
-                  : const BoxDecoration(),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(isSelected ? activeIcon : icon, color: isSelected ? accentBlue : Colors.grey.shade700, size: 26),
-                  if (isSelected) const SizedBox(height: 2),
-                  if (isSelected) Text(label, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: accentBlue)),
-                ],
+        color: Colors.transparent, // Ensures the whole area is clickable
+        alignment: Alignment.center,
+        child: Container(
+          width: 54, // Fixed width that fits without overflowing
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(24),
+                )
+              : const BoxDecoration(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(isSelected ? activeIcon : icon, color: isSelected ? accentBlue : Colors.grey.shade700, size: 24),
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    color: isSelected ? accentBlue : Colors.grey.shade700,
+                  ),
+                ),
               ),
-            ),
-            if (!isSelected) const SizedBox(height: 2),
-            if (!isSelected) Text(label, maxLines: 1, softWrap: false, overflow: TextOverflow.visible, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w500, color: Colors.grey.shade700)),
-          ],
+            ],
+          ),
         ),
       ),
     );
