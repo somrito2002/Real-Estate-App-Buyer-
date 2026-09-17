@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'preferences_screen.dart';
+import 'complete_profile_screen.dart';
 
 const Color accentBlue = Color(0xFF4285F4);
 const Color successGreen = Color(0xFF22C55E);
@@ -115,7 +115,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
       if (!mounted) return;
       Navigator.of(context).push(
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const PreferencesScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) => const CompleteProfileScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;

@@ -9,6 +9,7 @@ import 'register_screen.dart';
 import 'home_screen.dart';
 import 'phone_number_screen.dart';
 import 'forgot_password_screen.dart';
+import 'onboarding_screen.dart';
 
 /// Login screen for Meco Technologies app.
 /// Matches the "Welcome Back" design (something.png reference).
@@ -392,7 +393,11 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             // Back arrow
             GestureDetector(
-              onTap: () => Navigator.of(context).maybePop(),
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+                );
+              },
               child: Icon(Icons.arrow_back, size: 22, color: titleColor),
             ),
             const SizedBox(width: 14),

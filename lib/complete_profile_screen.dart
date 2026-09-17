@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'terms_consent_screen.dart';
+import 'preferences_screen.dart';
 
 /// Profile completion screen shown after OTP is successfully verified.
 class CompleteProfileScreen extends StatefulWidget {
@@ -102,7 +102,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         setState(() => _isLoading = false);
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => const TermsConsentScreen(showSuccessScreen: true),
+            builder: (_) => const PreferencesScreen(),
           ),
         );
       }
@@ -112,7 +112,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   void _onSkip() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const TermsConsentScreen(showSuccessScreen: false),
+        builder: (_) => const PreferencesScreen(),
       ),
     );
   }

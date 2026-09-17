@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'complete_profile_screen.dart';
+import 'create_password_screen.dart';
 import 'reset_password_screen.dart';
 
 /// OTP verification screen shown after the user taps "Send OTP".
@@ -107,7 +107,7 @@ class _OtpScreenState extends State<OtpScreen> {
         } else {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => const CompleteProfileScreen(),
+              builder: (_) => const CreatePasswordScreen(),
             ),
           );
         }
@@ -156,7 +156,7 @@ class _OtpScreenState extends State<OtpScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          widget.phoneNumber.contains('@') ? 'Verify Your Email' : 'Verify Your Number',
+          widget.phoneNumber.contains('@') ? 'Verify with Email' : 'Verify Your Number',
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.bold,

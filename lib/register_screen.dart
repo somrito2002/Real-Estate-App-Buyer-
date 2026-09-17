@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'create_password_screen.dart';
+import 'otp_screen.dart';
 
 /// Register screen for Meco Technologies app.
 /// Matches the "Create Your Account" design uploaded by the user.
@@ -70,24 +70,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleContinue() {
+  void _handleVerifyByEmail() {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(milliseconds: 600), () async {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
-        // Save profile photo path to cache immediately if selected
+      Future.delayed(const Duration(milliseconds: 400), () async {
         if (_profileImagePath != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('cached_profilePhotoPath', _profileImagePath!);
         }
         if (!mounted) return;
+        setState(() => _isLoading = false);
         Navigator.of(context).push(
           PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => CreatePasswordScreen(
-              fullName: _fullNameController.text.trim(),
-              mobile: _mobileController.text.trim(),
-              email: _emailController.text.trim(),
+            pageBuilder: (context, animation, secondaryAnimation) => OtpScreen(
+              phoneNumber: _emailController.text.trim(), // contains '@', triggers email mode
+            ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.fastOutSlowIn;
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              return SlideTransition(position: animation.drive(tween), child: child);
+            },
+            transitionDuration: const Duration(milliseconds: 220),
+          ),
+        );
+      });
+    }
+  }
+
+  void _handleVerifyByNumber() {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      Future.delayed(const Duration(milliseconds: 400), () async {
+        if (_profileImagePath != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cached_profilePhotoPath', _profileImagePath!);
+        }
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => OtpScreen(
+              phoneNumber: _mobileController.text.trim(),
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
@@ -225,8 +250,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildEmailField(),
                       const SizedBox(height: 32),
 
-                      // ── CONTINUE BUTTON ──
-                      _buildContinueButton(),
+                      // ── VERIFY BUTTONS ──
+                      _buildVerifyButtons(),
                       const SizedBox(height: 28),
 
                       // ── LOGIN LINK ──
@@ -440,39 +465,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleContinue,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: accentBlue,
-          disabledBackgroundColor: accentBlue.withAlpha(153),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+  Widget _buildVerifyButtons() {
+    return Column(
+      children: [
+        // Verify through Email
+        SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: ElevatedButton.icon(
+            onPressed: _isLoading ? null : _handleVerifyByEmail,
+            icon: const Icon(Icons.email_outlined, size: 20),
+            label: Text(
+              'Verify through Email',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentBlue,
+              disabledBackgroundColor: accentBlue.withAlpha(153),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
           ),
         ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.4,
-                ),
-              )
-            : Text(
-                'Continue',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+        const SizedBox(height: 14),
+        // Verify through Number
+        SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: OutlinedButton.icon(
+            onPressed: _isLoading ? null : _handleVerifyByNumber,
+            icon: Icon(Icons.phone_outlined, size: 20, color: accentBlue),
+            label: Text(
+              'Verify through Number',
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: accentBlue,
               ),
-      ),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: accentBlue, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+          ),
+        ),
+        if (_isLoading) ...[
+          const SizedBox(height: 16),
+          const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.4,
+              color: accentBlue,
+            ),
+          ),
+        ],
+      ],
     );
   }
 

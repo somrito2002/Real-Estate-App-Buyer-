@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'complete_profile_screen.dart';
+import 'terms_consent_screen.dart';
 
 /// Screen shown after completing the profile to capture user preferences.
 class PreferencesScreen extends StatefulWidget {
@@ -58,7 +58,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
         setState(() => _isLoading = false);
         // Navigate to SuccessScreen
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CompleteProfileScreen()),
+          MaterialPageRoute(builder: (_) => const TermsConsentScreen(showSuccessScreen: true)),
         );
       }
     });
