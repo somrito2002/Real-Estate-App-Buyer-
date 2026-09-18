@@ -12,6 +12,7 @@ import 'property_details_screen.dart';
 import 'view_all_properties_screen.dart';
 import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
+import 'location_bottom_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,8 +24,55 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _bottomNavIndex = 0;
   String _currentLocation = 'Locating...';
+  String _currentState = '';
 
   static const Color accentBlue = Color(0xFF4B85F0);
+
+  final Map<String, List<Map<String, dynamic>>> _statePopularLocations = {
+    'Maharashtra': [
+      {'name': 'Mumbai', 'count': '4.2k+', 'icon': Icons.location_city},
+      {'name': 'Pune', 'count': '3.1k+', 'icon': Icons.business},
+      {'name': 'Nagpur', 'count': '1.2k+', 'icon': Icons.home},
+      {'name': 'Nashik', 'count': '800+', 'icon': Icons.landscape},
+    ],
+    'Karnataka': [
+      {'name': 'Bangalore', 'count': '5.1k+', 'icon': Icons.business},
+      {'name': 'Mysore', 'count': '1.5k+', 'icon': Icons.account_balance},
+      {'name': 'Hubli', 'count': '600+', 'icon': Icons.home},
+      {'name': 'Mangalore', 'count': '900+', 'icon': Icons.beach_access},
+    ],
+    'Telangana': [
+      {'name': 'Hyderabad', 'count': '2.8k+', 'icon': Icons.castle},
+      {'name': 'Warangal', 'count': '500+', 'icon': Icons.account_balance},
+      {'name': 'Nizamabad', 'count': '300+', 'icon': Icons.home},
+      {'name': 'Karimnagar', 'count': '200+', 'icon': Icons.location_city},
+    ],
+    'Delhi': [
+      {'name': 'New Delhi', 'count': '3.8k+', 'icon': Icons.account_balance},
+      {'name': 'Dwarka', 'count': '1.2k+', 'icon': Icons.home},
+      {'name': 'Rohini', 'count': '900+', 'icon': Icons.location_city},
+      {'name': 'Vasant Kunj', 'count': '600+', 'icon': Icons.business},
+    ],
+    'Haryana': [
+      {'name': 'Gurgaon', 'count': '3.5k+', 'icon': Icons.business},
+      {'name': 'Faridabad', 'count': '1.1k+', 'icon': Icons.location_city},
+      {'name': 'Panipat', 'count': '400+', 'icon': Icons.home},
+      {'name': 'Karnal', 'count': '300+', 'icon': Icons.account_balance},
+    ],
+    'Chhattisgarh': [
+      {'name': 'Raipur', 'count': '1.2k+', 'icon': Icons.location_city},
+      {'name': 'Bhilai', 'count': '800+', 'icon': Icons.business},
+      {'name': 'Bilaspur', 'count': '500+', 'icon': Icons.home},
+      {'name': 'Korba', 'count': '300+', 'icon': Icons.account_balance},
+    ],
+  };
+
+  final List<Map<String, dynamic>> _defaultPopularLocations = [
+    {'name': 'Mumbai', 'count': '4.2k+', 'icon': Icons.location_city},
+    {'name': 'Delhi', 'count': '3.8k+', 'icon': Icons.account_balance},
+    {'name': 'Bangalore', 'count': '5.1k+', 'icon': Icons.business},
+    {'name': 'Hyderabad', 'count': '2.8k+', 'icon': Icons.castle},
+  ];
 
   // Voice search
   @override
@@ -59,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted) {
             setState(() {
               _currentLocation = placemarks[0].locality ?? placemarks[0].subAdministrativeArea ?? 'Unknown';
+              _currentState = placemarks[0].administrativeArea ?? '';
             });
           }
         }
@@ -448,12 +497,9 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildLocationAvatar('Mumbai', '4.2k+ Properties', Icons.location_city),
-                  _buildLocationAvatar('Delhi', '3.8k+ Properties', Icons.account_balance),
-                  _buildLocationAvatar('Bangalore', '5.1k+ Properties', Icons.business),
-                  _buildLocationAvatar('Hyderabad', '2.8k+ Properties', Icons.castle),
-                ],
+                children: (_statePopularLocations[_currentState] ?? _defaultPopularLocations).map((loc) {
+                  return _buildLocationAvatar(loc['name'], '${loc['count']} Properties', loc['icon']);
+                }).toList(),
               ),
             ),
             const SizedBox(height: 24),
@@ -581,22 +627,54 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           // Location Pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F5FF),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.primary, size: 14),
-                const SizedBox(width: 4),
-                Text(
-                  '$_currentLocation ⌄',
-                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
+          Flexible(
+            child: GestureDetector(
+              onTap: () async {
+                final result = await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (ctx) => Padding(
+                    padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+                    child: const LocationBottomSheet(),
+                  ),
+                );
+
+                if (result != null && result is Map<String, dynamic>) {
+                  setState(() {
+                    if (result['city'] != null && result['city'].toString().isNotEmpty) {
+                      _currentLocation = result['city'];
+                    }
+                    if (result['region'] != null && result['region'].toString().isNotEmpty) {
+                      final parts = result['region'].toString().split(', ');
+                      _currentState = parts.last;
+                    }
+                  });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0F5FF),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.location_on_outlined, color: Theme.of(context).colorScheme.primary, size: 14),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        _currentLocation,
+                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.primary, size: 14),
+                  ],
+                ),
+              ),
             ),
           ),
           // Notification Bell

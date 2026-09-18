@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
+import 'view_all_properties_screen.dart';
 import 'login_screen.dart';
 import 'create_account_screen.dart';
 import 'register_screen.dart';
@@ -842,7 +843,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         children: [
                           _buildSectionHeader('Similar Properties'),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ViewAllPropertiesScreen(
+                                    title: 'Similar Properties',
+                                    properties: mockProperties,
+                                  ),
+                                ),
+                              );
+                            },
                             child: Text(
                               'View All',
                               style: GoogleFonts.inter(
