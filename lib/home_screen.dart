@@ -215,13 +215,43 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(36),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
                     ),
-                    child: Row(
-                children: [
-                  Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
-                  Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
-                  Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'Wishlist', 2)),
-                  Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'Account', 3)),
-                ],
+                    child: LayoutBuilder(
+                builder: (context, constraints) {
+                  const int itemCount = 4;
+                  final double itemWidth = constraints.maxWidth / itemCount;
+                  const double pillWidth = 54;
+                  const double pillHeight = 46;
+                  final double pillLeft = _bottomNavIndex * itemWidth + (itemWidth - pillWidth) / 2;
+                  return Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Sliding pill
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        left: pillLeft,
+                        top: (72 - pillHeight) / 2,
+                        child: Container(
+                          width: pillWidth,
+                          height: pillHeight,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                      ),
+                      // Nav items row (no individual backgrounds)
+                      Row(
+                        children: [
+                          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
+                          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
+                          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'Wishlist', 2)),
+                          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'Account', 3)),
+                        ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -267,39 +297,36 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () => setState(() => _bottomNavIndex = index),
       child: Container(
-        color: Colors.transparent, // Ensures the whole area is clickable
+        color: Colors.transparent,
         alignment: Alignment.center,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          width: 54, // Fixed width that fits without overflowing
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: isSelected
-              ? BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(24),
-                )
-              : const BoxDecoration(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(isSelected ? activeIcon : icon, color: isSelected ? accentBlue : Colors.grey.shade700, size: 24),
-              const SizedBox(height: 2),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 10,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? accentBlue : Colors.grey.shade700,
-                  ),
+        // No background here — the pill is drawn in the Stack behind
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                key: ValueKey('${index}_$isSelected'),
+                color: isSelected ? accentBlue : Colors.grey.shade700,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? accentBlue : Colors.grey.shade700,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
