@@ -31,6 +31,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
 
   bool _isLoggedIn = false;
+  int _currentImageIndex = 0;
 
   // Persisted Visit Booking State
   String? _visitSelectedTime;
@@ -326,34 +327,48 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 // Image Header
                 Stack(
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => FullScreenImageGallery(
-                              imageUrls: [
-                                property.imageUrl,
-                                'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&auto=format&fit=crop',
-                                'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop',
-                                'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&auto=format&fit=crop',
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      child: property.imageUrl.startsWith('assets/')
-                          ? Image.asset(
-                              property.imageUrl,
-                              height: 250,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.network(
-                              property.imageUrl,
-                              height: 250,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                    SizedBox(
+                      height: 250,
+                      child: PageView.builder(
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentImageIndex = index;
+                          });
+                        },
+                        itemCount: 4,
+                        itemBuilder: (context, index) {
+                          final List<String> imageUrls = [
+                            property.imageUrl,
+                            'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&auto=format&fit=crop',
+                            'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop',
+                            'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&auto=format&fit=crop',
+                          ];
+                          final url = imageUrls[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => FullScreenImageGallery(
+                                    imageUrls: imageUrls,
+                                    initialIndex: index,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: url.startsWith('assets/')
+                                ? Image.asset(
+                                    url,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    url,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                  ),
+                          );
+                        },
+                      ),
                     ),
                     Positioned(
                       top: MediaQuery.of(context).padding.top + 8,
@@ -415,11 +430,33 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
-                          '1/12',
+                          '${_currentImageIndex + 1}/4',
                           style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          4,
+                          (index) => Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _currentImageIndex == index
+                                  ? Colors.white
+                                  : Colors.white.withValues(alpha: 0.5),
+                            ),
                           ),
                         ),
                       ),

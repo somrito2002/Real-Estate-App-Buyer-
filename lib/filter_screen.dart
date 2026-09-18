@@ -16,6 +16,27 @@ class FilterScreen extends StatefulWidget {
 
 class _FilterScreenState extends State<FilterScreen> {
   // State variables for filters
+  final Map<String, bool> _categorySelections = {
+    'Buy': true,
+    'Rent': false,
+    'Lease': false,
+  };
+
+  final Map<String, String> _categoryCounts = {
+    'Buy': '450',
+    'Rent': '190',
+    'Lease': '24',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _categorySelections.updateAll((key, value) => false);
+    if (_categorySelections.containsKey(widget.initialCategory)) {
+      _categorySelections[widget.initialCategory] = true;
+    }
+  }
+
   String _propertyCategory = 'Residential';
   final Map<String, bool> _residentialProperties = {
     'Apartment / Flat': true,
@@ -76,6 +97,10 @@ class _FilterScreenState extends State<FilterScreen> {
 
   void _clearAll() {
     setState(() {
+      _categorySelections.updateAll((key, value) => false);
+      if (_categorySelections.containsKey(widget.initialCategory)) {
+        _categorySelections[widget.initialCategory] = true;
+      }
       _propertyCategory = 'Residential';
       _residentialProperties.updateAll((key, value) => false);
       _commercialProperties.updateAll((key, value) => false);
@@ -153,6 +178,16 @@ class _FilterScreenState extends State<FilterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildSectionHeader('Category'),
+                  const SizedBox(height: 8),
+                  ..._categorySelections.keys.map((key) => _buildCheckboxListTile(
+                        key, 
+                        _categoryCounts[key] ?? '',
+                        _categorySelections[key]!, 
+                        (val) => setState(() => _categorySelections[key] = val ?? false),
+                      )),
+                  const SizedBox(height: 24),
+
                   _buildSectionHeader('Property Type'),
                   const SizedBox(height: 16),
                   
