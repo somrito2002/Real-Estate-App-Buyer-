@@ -102,7 +102,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: !_isMapView,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         
         if (_isMapView) {
@@ -127,7 +127,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
             },
           ),
           title: Text(
-            'Buy Properties',
+            'Bandra, Mumbai',
             style: GoogleFonts.inter(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
@@ -236,7 +236,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.radio_button_unchecked, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20),
+                      Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20),
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextField(
@@ -263,71 +263,69 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 ),
                 const SizedBox(height: 16),
                 
-                // Types List
+                // Types & Sort List
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: ['All Types', 'Residential', 'Commercial', 'Industrial'].map((type) {
-                      final isSelected = _selectedType == type;
-                      return Padding(
+                    children: [
+                      // Sort Chip
+                      Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedType = type;
-                              _filterProperties();
-                            });
-                          },
+                          onTap: _showSortBottomSheet,
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
-                              border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
+                              color: Theme.of(context).colorScheme.surface,
+                              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Text(
-                              type,
-                              style: GoogleFonts.inter(
-                                color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                fontSize: 13,
+                            child: Row(
+                              children: [
+                                Icon(Icons.swap_vert, size: 16, color: Theme.of(context).colorScheme.onSurface),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Sort',
+                                  style: GoogleFonts.inter(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Filter Chips
+                      ...['Residential', 'Budget: Any', 'BHK: Any'].map((type) {
+                        final isSelected = type == 'Residential'; // Mock selected state
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: InkWell(
+                            onTap: () {},
+                            borderRadius: BorderRadius.circular(20),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
+                                border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                type,
+                                style: GoogleFonts.inter(
+                                  color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Sort Button
-                GestureDetector(
-                  onTap: _showSortBottomSheet,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.swap_vert, size: 18, color: Theme.of(context).colorScheme.onSurface),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Sort',
-                          style: GoogleFonts.inter(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+                        );
+                      }),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -769,47 +767,36 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 Text(
                   property.price,
                   style: GoogleFonts.inter(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: accentBlue,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
                   property.title,
                   style: GoogleFonts.inter(
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        property.location,
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                Text(
+                  property.location,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
-                Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
                 Text(
                   property.specs,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],

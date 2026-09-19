@@ -14,6 +14,9 @@ class VisitMock {
   final String refId;
   final String agentName;
   final String agentRole;
+  final String otp;
+  final double lat;
+  final double lng;
 
   VisitMock({
     required this.imageUrl,
@@ -27,12 +30,15 @@ class VisitMock {
     required this.refId,
     required this.agentName,
     required this.agentRole,
+    required this.otp,
+    required this.lat,
+    required this.lng,
   });
 }
 
 List<VisitMock> get _mockVisits => [
   VisitMock(
-    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&auto=format&fit=crop', // Building
+    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&auto=format&fit=crop',
     title: 'DLF The Crest',
     visitType: 'In-Person Visit',
     status: 'Upcoming',
@@ -43,10 +49,13 @@ List<VisitMock> get _mockVisits => [
     refId: 'MECO-893011',
     agentName: 'Arjun Malhotra',
     agentRole: 'Assigned Property Agent',
+    otp: '487476',
+    lat: 28.4595,
+    lng: 77.0266,
   ),
   VisitMock(
-    imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&auto=format&fit=crop', // Modern interior
-    title: 'Vasant Vihar Premium...',
+    imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&auto=format&fit=crop',
+    title: 'Vasant Vihar Premium Flat',
     visitType: 'In-Person Visit',
     status: 'Completed',
     dateTime: 'Sunday, 14 Jan • 02:00 PM',
@@ -56,10 +65,13 @@ List<VisitMock> get _mockVisits => [
     refId: 'MECO-748392',
     agentName: 'Priya Sharma',
     agentRole: 'Senior Property Agent',
+    otp: '312859',
+    lat: 28.5726,
+    lng: 77.1659,
   ),
   VisitMock(
-    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&auto=format&fit=crop', // House
-    title: '3 BHK Premium Apartm...',
+    imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&auto=format&fit=crop',
+    title: '3 BHK Premium Apartment',
     visitType: 'Virtual Visit',
     status: 'Completed',
     dateTime: 'Wednesday, 10 Jan • 04:30 PM',
@@ -69,6 +81,9 @@ List<VisitMock> get _mockVisits => [
     refId: 'MECO-229103',
     agentName: 'Rahul Desai',
     agentRole: 'Virtual Tour Expert',
+    otp: '924167',
+    lat: 19.0596,
+    lng: 72.8295,
   ),
 ];
 

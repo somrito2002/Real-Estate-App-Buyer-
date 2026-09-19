@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'buy_properties_screen.dart';
@@ -95,6 +96,65 @@ class _FilterScreenState extends State<FilterScreen> {
   // Constants
   static const Color accentBlue = Color(0xFF4B85F0);
 
+  String _formatBudget(double value) {
+    if (value >= 10000000) {
+      double cr = value / 10000000;
+      return '₹${cr == cr.truncateToDouble() ? cr.toInt() : cr.toStringAsFixed(1)} Cr';
+    } else if (value >= 100000) {
+      double l = value / 100000;
+      return '₹${l == l.truncateToDouble() ? l.toInt() : l.toStringAsFixed(1)} L';
+    } else {
+      return '₹${value.toInt()}';
+    }
+  }
+
+  Widget _buildMinMaxBoxes(String minLabel, String minText, String maxLabel, String maxText) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              alignment: Alignment.center,
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(text: '$minLabel ', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
+                    TextSpan(text: minText, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              alignment: Alignment.center,
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(text: '$maxLabel ', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14)),
+                    TextSpan(text: maxText, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _clearAll() {
     setState(() {
       _categorySelections.updateAll((key, value) => false);
@@ -181,10 +241,13 @@ class _FilterScreenState extends State<FilterScreen> {
                   _buildSectionHeader('Category'),
                   const SizedBox(height: 8),
                   ..._categorySelections.keys.map((key) => _buildCheckboxListTile(
-                        key, 
+                        key,
                         _categoryCounts[key] ?? '',
-                        _categorySelections[key]!, 
-                        (val) => setState(() => _categorySelections[key] = val ?? false),
+                        _categorySelections[key]!,
+                        (val) => setState(() {
+                          _categorySelections.updateAll((k, v) => false);
+                          _categorySelections[key] = true;
+                        }),
                       )),
                   const SizedBox(height: 24),
 
@@ -228,33 +291,45 @@ class _FilterScreenState extends State<FilterScreen> {
                   _buildDivider(),
                   
                   // Budget
-                  _buildSectionHeader('SELECT BUDGET'),
-                  const SizedBox(height: 8),
-                  Text(
-                    '₹50 Lakhs - ₹1.5 Crores',
-                    style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: accentBlue),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader('Budget (INR)'),
+                      Text(
+                        '${_formatBudget(_budgetRange.start)} - ${_formatBudget(_budgetRange.end)}',
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: accentBlue),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
-                  RangeSlider(
-                    values: _budgetRange,
-                    min: 0,
-                    max: 100000000, // 10 Cr
-                    activeColor: accentBlue,
-                    inactiveColor: Theme.of(context).colorScheme.outlineVariant,
-                    onChanged: (values) {
-                      setState(() {
-                        _budgetRange = values;
-                        _selectedBudgetChip = '';
-                      });
-                    },
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 2.0,
+                      rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 8.0),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+                    ),
+                    child: RangeSlider(
+                      values: _budgetRange,
+                      min: 0,
+                      max: 100000000, // 10 Cr
+                      activeColor: accentBlue,
+                      inactiveColor: Theme.of(context).colorScheme.outlineVariant,
+                      onChanged: (values) {
+                        setState(() {
+                          _budgetRange = values;
+                          _selectedBudgetChip = '';
+                        });
+                      },
+                    ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('0 L', style: _hintStyle()),
-                      Text('10 Cr', style: _hintStyle()),
+                      Text('₹0', style: _hintStyle()),
+                      Text('₹10 Cr', style: _hintStyle()),
                     ],
                   ),
+                  _buildMinMaxBoxes('Min:', _formatBudget(_budgetRange.start), 'Max:', _formatBudget(_budgetRange.end)),
                   const SizedBox(height: 24),
                   Text('QUICK BUDGET RANGES', style: _subHeaderStyle(fontSize: 11)),
                   const SizedBox(height: 12),
@@ -322,21 +397,28 @@ class _FilterScreenState extends State<FilterScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       _buildSectionHeader('Area (sq.ft)'),
-                      Text('1,000 - 3,500 sq.ft', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: accentBlue)),
+                      Text('${_areaRange.start.toInt()} - ${_areaRange.end.toInt()} sq.ft', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13, color: accentBlue)),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  RangeSlider(
-                    values: _areaRange,
-                    min: 0,
-                    max: 5000,
-                    activeColor: accentBlue,
-                    inactiveColor: Theme.of(context).colorScheme.outlineVariant,
-                    onChanged: (values) {
-                      setState(() {
-                        _areaRange = values;
-                      });
-                    },
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 2.0,
+                      rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 8.0),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+                    ),
+                    child: RangeSlider(
+                      values: _areaRange,
+                      min: 0,
+                      max: 5000,
+                      activeColor: accentBlue,
+                      inactiveColor: Theme.of(context).colorScheme.outlineVariant,
+                      onChanged: (values) {
+                        setState(() {
+                          _areaRange = values;
+                        });
+                      },
+                    ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -345,6 +427,7 @@ class _FilterScreenState extends State<FilterScreen> {
                       Text('5,000 sq.ft', style: _hintStyle()),
                     ],
                   ),
+                  _buildMinMaxBoxes('Min:', '${_areaRange.start.toInt()} sq.ft', 'Max:', '${_areaRange.end.toInt()} sq.ft'),
                   
                   _buildDivider(),
                   
@@ -541,28 +624,38 @@ class _FilterScreenState extends State<FilterScreen> {
     return InkWell(
       onTap: () => setState(() => _propertyCategory = title),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              size: 20,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: CustomPaint(
+          painter: _LensBorderPainter(
+            color: isSelected
+                ? accentBlue.withValues(alpha: 0.15)
+                : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    count,
+                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface))),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                count,
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -572,28 +665,38 @@ class _FilterScreenState extends State<FilterScreen> {
     return InkWell(
       onTap: () => onChanged(!value),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(
-              value ? Icons.check_box : Icons.check_box_outline_blank,
-              color: value ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-              size: 20,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: CustomPaint(
+          painter: _LensBorderPainter(
+            color: value
+                ? accentBlue.withValues(alpha: 0.15)
+                : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.15),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Icon(
+                  value ? Icons.check_box : Icons.check_box_outline_blank,
+                  color: value ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    count,
+                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(child: Text(title, style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface))),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                count,
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -720,4 +823,50 @@ class _FilterScreenState extends State<FilterScreen> {
       default: return Icons.check_circle_outline;
     }
   }
+}
+
+/// Draws a rounded-rect border whose stroke tapers thin at the left/right
+/// extremities and peaks at maximum thickness at the horizontal midpoint —
+/// the "lens" or "eye" border style.
+class _LensBorderPainter extends CustomPainter {
+  final Color color;
+  final double minStroke;
+  final double maxStroke;
+
+  const _LensBorderPainter({
+    required this.color,
+    this.minStroke = 0.0,
+    this.maxStroke = 0.6,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double y = size.height;
+    
+    // Use a LinearGradient on a single line to fade it at the edges.
+    // This avoids overlapping transparent segments which caused the "dotted" effect.
+    final Rect rect = Rect.fromLTWH(0, y, size.width, maxStroke);
+    final Gradient gradient = LinearGradient(
+      colors: [
+        color.withValues(alpha: 0.0),
+        color,
+        color.withValues(alpha: 0.0),
+      ],
+      stops: const [0.0, 0.5, 1.0],
+    );
+
+    final Paint p = Paint()
+      ..shader = gradient.createShader(rect)
+      ..strokeWidth = maxStroke
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+  }
+
+  @override
+  bool shouldRepaint(_LensBorderPainter old) =>
+      old.color != color ||
+      old.minStroke != minStroke ||
+      old.maxStroke != maxStroke;
 }

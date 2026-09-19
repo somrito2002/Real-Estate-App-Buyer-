@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'buy_properties_screen.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'services/search_history_service.dart';
+import 'services/google_places_service.dart';
 
 class SearchScreen extends StatefulWidget {
   final String initialCategory;
@@ -25,13 +26,15 @@ class _SearchScreenState extends State<SearchScreen> {
   
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  
+  Timer? _debounce;
+  List<PlaceSuggestion> _suggestions = [];
 
   // Voice search
   late stt.SpeechToText _speech;
   bool _isListening = false;
   String _voiceText = '';
   String _existingVoiceText = '';
-  Timer? _silenceTimer;
 
   @override
   void initState() {
@@ -48,15 +51,58 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         _searchQuery = _searchController.text.trim();
       });
+      _onSearchChanged(_searchQuery);
     });
   }
 
+  void _onSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+      });
+      return;
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      final suggestions = await GooglePlacesService.getAutocompleteSuggestions(query);
+      if (mounted) {
+        setState(() {
+          _suggestions = suggestions;
+        });
+      }
+    });
+  }
+
+  bool _isBottomSheetOpen = false;
+
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
-    _silenceTimer?.cancel();
     _speech.stop();
     super.dispose();
+  }
+
+  void _showListeningBottomSheet() {
+    if (_isBottomSheetOpen) return;
+    _isBottomSheetOpen = true;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
+      builder: (context) => _ListeningBottomSheet(
+        onStop: () {
+          Navigator.pop(context); // Will trigger the .then() block to stop listening
+        },
+      ),
+    ).then((_) {
+      _isBottomSheetOpen = false;
+      if (_isListening) {
+        _stopListening();
+      }
+    });
   }
 
   Future<void> _onMicTapped() async {
@@ -93,11 +139,19 @@ class _SearchScreenState extends State<SearchScreen> {
         if (status == 'done' || status == 'notListening') {
           if (mounted) {
             setState(() => _isListening = false);
+            if (_isBottomSheetOpen) {
+              Navigator.pop(context);
+            }
           }
         }
       },
       onError: (error) {
-        if (mounted) setState(() => _isListening = false);
+        if (mounted) {
+          setState(() => _isListening = false);
+          if (_isBottomSheetOpen) {
+            Navigator.pop(context);
+          }
+        }
       },
     );
     if (available) {
@@ -106,40 +160,34 @@ class _SearchScreenState extends State<SearchScreen> {
         _existingVoiceText = appendToExisting ? '${_searchController.text.trim()} ' : '';
         _voiceText = _existingVoiceText;
       });
-      
-      _silenceTimer?.cancel();
-      _silenceTimer = Timer(const Duration(seconds: 2), () {
-        if (mounted && _isListening) {
-          _stopListening();
-        }
-      });
-      
+      _showListeningBottomSheet();
+
       _speech.listen(
         onResult: (result) {
-          _silenceTimer?.cancel();
           if (mounted) {
             setState(() {
               _voiceText = _existingVoiceText + result.recognizedWords;
               _searchController.text = _voiceText;
             });
-            if (result.finalResult && _voiceText.trim().isNotEmpty) {
-              _speech.stop();
-              setState(() => _isListening = false);
+
+            if (result.finalResult) {
+              _stopListening();
             }
           }
         },
         listenOptions: stt.SpeechListenOptions(
-          listenFor: const Duration(seconds: 10),
-          pauseFor: const Duration(seconds: 2),
+          listenMode: stt.ListenMode.dictation,
           partialResults: true,
           localeId: 'en_IN',
+          pauseFor: const Duration(seconds: 5),
+          listenFor: const Duration(minutes: 1),
         ),
       );
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Microphone permission not granted.', style: GoogleFonts.inter()),
+            content: Text('Microphone permission not granted or speech recognition unavailable.', style: GoogleFonts.inter()),
             backgroundColor: Colors.red.shade700,
           ),
         );
@@ -148,16 +196,20 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _stopListening() {
-    _silenceTimer?.cancel();
     _speech.stop();
-    setState(() => _isListening = false);
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
+    if (_isBottomSheetOpen) {
+      Navigator.pop(context);
+    }
   }
 
-  Widget _buildMockupLocationItem(String title, String subtitle) {
+  Widget _buildSuggestionItem(PlaceSuggestion suggestion) {
     return InkWell(
       onTap: () {
-        _searchController.text = title;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: title)));
+        _searchController.text = suggestion.description;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: suggestion.description)));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -170,22 +222,24 @@ class _SearchScreenState extends State<SearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    suggestion.mainText.isNotEmpty ? suggestion.mainText : suggestion.description,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: accentBlue,
-                      fontWeight: FontWeight.w500,
+                  if (suggestion.secondaryText.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      suggestion.secondaryText,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: accentBlue,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -311,35 +365,45 @@ class _SearchScreenState extends State<SearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  _buildMockupLocationItem('Bangalore', 'City'),
-                  _buildMockupLocationItem('Bandra, Mumbai', 'Area'),
-                  _buildMockupLocationItem('Bannerghatta Road, Bangalore', 'Locality'),
-                  _buildMockupLocationItem('Banjara Hills, Hyderabad', 'Locality'),
                   
-                  const SizedBox(height: 24),
-                  
-                  Text(
-                    'POPULAR CITIES',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  if (_searchQuery.isNotEmpty) ...[
+                    if (_suggestions.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24.0),
+                        child: Center(
+                          child: Text(
+                            'Loading...',
+                            style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                        ),
+                      )
+                    else
+                      ..._suggestions.map((suggestion) => _buildSuggestionItem(suggestion)),
+                  ] else ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      'POPULAR CITIES',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _buildPopularCityChip('Mumbai'),
-                      _buildPopularCityChip('Delhi'),
-                      _buildPopularCityChip('Bangalore'),
-                      _buildPopularCityChip('Hyderabad'),
-                      _buildPopularCityChip('Chennai'),
-                      _buildPopularCityChip('Pune'),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        _buildPopularCityChip('Mumbai'),
+                        _buildPopularCityChip('Delhi'),
+                        _buildPopularCityChip('Bangalore'),
+                        _buildPopularCityChip('Hyderabad'),
+                        _buildPopularCityChip('Chennai'),
+                        _buildPopularCityChip('Pune'),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ],
               ),
             ),
@@ -349,3 +413,166 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
+
+class _ListeningBottomSheet extends StatefulWidget {
+  final VoidCallback onStop;
+
+  const _ListeningBottomSheet({required this.onStop});
+
+  @override
+  State<_ListeningBottomSheet> createState() => _ListeningBottomSheetState();
+}
+
+class _ListeningBottomSheetState extends State<_ListeningBottomSheet>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  // Each dot gets its own curved animation with a staggered interval offset
+  late Animation<double> _dot0;
+  late Animation<double> _dot1;
+  late Animation<double> _dot2;
+  late Animation<double> _dot3;
+  // Glow animation for the mic button
+  late Animation<double> _glow;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat();
+
+    // Staggered intervals: each dot starts 0.15 later than the previous
+    _dot0 = _staggeredBounce(0.00, 0.60);
+    _dot1 = _staggeredBounce(0.15, 0.75);
+    _dot2 = _staggeredBounce(0.30, 0.90);
+    _dot3 = _staggeredBounce(0.45, 1.00);
+
+    // Glow uses the full cycle but slower feel via sine curve
+    _glow = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+  }
+
+  Animation<double> _staggeredBounce(double begin, double end) {
+    return TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.0, end: -8.0).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: -8.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 50,
+      ),
+    ]).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(begin, end, curve: Curves.linear),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 320,
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32), topRight: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Glowing Mic Button
+          AnimatedBuilder(
+            animation: _glow,
+            builder: (context, child) {
+              return GestureDetector(
+                onTap: widget.onStop,
+                child: Container(
+                  width: 130,
+                  height: 130,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withValues(alpha: 0.15 + 0.25 * _glow.value),
+                        blurRadius: 30 + 30 * _glow.value,
+                        spreadRadius: 5 + 15 * _glow.value,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(Icons.mic, color: Colors.blue.shade600, size: 55),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 40),
+          Text(
+            'Listening...',
+            style: GoogleFonts.inter(
+                fontSize: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 20),
+          // Floating dots — each one translated vertically by its own animation
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildFloatingDot(_dot0.value),
+                  const SizedBox(width: 8),
+                  _buildFloatingDot(_dot1.value),
+                  const SizedBox(width: 8),
+                  _buildFloatingDot(_dot2.value),
+                  const SizedBox(width: 8),
+                  _buildFloatingDot(_dot3.value),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingDot(double yOffset) {
+    return Transform.translate(
+      offset: Offset(0, yOffset),
+      child: Container(
+        width: 10,
+        height: 10,
+        decoration: const BoxDecoration(
+          color: Colors.black,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+}
+
+

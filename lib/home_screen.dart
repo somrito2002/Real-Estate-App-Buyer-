@@ -25,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _bottomNavIndex = 0;
   String _currentLocation = 'Locating...';
   String _currentState = '';
+  String _selectedCategory = 'Residential';
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -438,117 +439,18 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
-                  _buildSecondaryFilter('Residential', true),
-                  _buildSecondaryFilter('Commercial', false),
-                  _buildSecondaryFilter('Plots', false),
-                  _buildSecondaryFilter('PG/Co-living', false),
+                  _buildSecondaryFilter('Residential'),
+                  _buildSecondaryFilter('Commercial'),
+                  _buildSecondaryFilter('Plots'),
+                  _buildSecondaryFilter('PG/Co-living'),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            
-            // Featured Properties
-            _buildSectionHeader('Featured Properties', onViewAll: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-                title: 'Featured Properties',
-                properties: [mockProperties[2], mockProperties[3], mockProperties[8], mockProperties[9]],
-              )));
-            }),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _buildFeaturedPropertyCard(
-                    'Smart World One DXP',
-                    'By Smart World Developers',
-                    'Sector 113, Gurgaon',
-                    'Starting ₹1.15 Cr',
-                    property: mockProperties[4],
-                  ),
-                  _buildFeaturedPropertyCard(
-                    'Emaar Digi Homes',
-                    'By Emaar India',
-                    'Sector 62, Gurgaon',
-                    'Starting ₹1.90 Cr',
-                    property: mockProperties[5],
-                  ),
-                  _buildFeaturedPropertyCard(
-                    mockProperties[10].title,
-                    'By Classic Builders',
-                    mockProperties[10].location,
-                    'Starting ${mockProperties[10].price}',
-                    property: mockProperties[10],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // New Projects
-            _buildSectionHeader('New Projects', onViewAll: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-                title: 'New Projects',
-                properties: [mockProperties[2], mockProperties[3], mockProperties[8]],
-              )));
-            }),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _buildNewProjectCard(
-                    'DLF The Crest',
-                    '₹2.45 Cr',
-                    property: mockProperties[2],
-                  ),
-                  _buildNewProjectCard(
-                    'M3M Golf',
-                    '₹1.80 Cr',
-                    property: mockProperties[3],
-                  ),
-                  _buildNewProjectCard(
-                    mockProperties[8].title,
-                    mockProperties[8].price,
-                    property: mockProperties[8],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Popular Locations
-            _buildSectionHeader('Popular Locations'),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: (_statePopularLocations[_currentState] ?? _defaultPopularLocations).map((loc) {
-                  return _buildLocationAvatar(loc['name'], '${loc['count']} Properties', loc['icon']);
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            // Recently Viewed
-            _buildSectionHeader('Recently Viewed', onViewAll: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-                title: 'Recently Viewed',
-                properties: [mockProperties[0], mockProperties[1], mockProperties[11]],
-              )));
-            }),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹85 L', property: mockProperties[0]),
-                  _buildRecentlyViewedCard('SS The Leaf', 'Bhilai, Chhattisgarh', '₹1.20 Cr', property: mockProperties[1]),
-                  _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
-                ],
-              ),
-            ),
+
+            // ── Category-specific content ──────────────────────────────────
+            ..._buildCategoryContent(),
+
             const SizedBox(height: 24),
             
             // Explore by Category
@@ -563,6 +465,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: GridView.count(
+                padding: EdgeInsets.zero,
                 crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -577,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             
             // Promo Banner
             Padding(
@@ -614,7 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 110),
           ],
         ),
       );
@@ -723,22 +626,347 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  Widget _buildSecondaryFilter(String text, bool isSelected) {
+  // ── Category content builder ──────────────────────────────────────────────
+  List<Widget> _buildCategoryContent() {
+    switch (_selectedCategory) {
+      case 'Commercial':
+        return [
+          _buildSectionHeader('Featured Commercial', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Featured Commercial',
+              properties: [mockProperties[4], mockProperties[5], mockProperties[6]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildFeaturedPropertyCard('Cyber Hub Plaza', 'By DLF Commercial', 'DLF Cyber City, Gurgaon', 'Starting ₹3.20 Cr', property: mockProperties[4]),
+              _buildFeaturedPropertyCard('Unitech Signature', 'By Unitech Group', 'Sector 30, Gurgaon', 'Starting ₹5.50 Cr', property: mockProperties[5]),
+              _buildFeaturedPropertyCard('World Trade Tower', 'By WTC Developers', 'Noida Sector 16', 'Starting ₹2.80 Cr', property: mockProperties[6]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('New Office Spaces', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'New Office Spaces',
+              properties: [mockProperties[7], mockProperties[8], mockProperties[9]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildNewProjectCard('Prestige Tech Cloud', '₹1.80 Cr', property: mockProperties[7]),
+              _buildNewProjectCard('Embassy Business Hub', '₹2.40 Cr', property: mockProperties[8]),
+              _buildNewProjectCard('Salarpuria Softzone', '₹1.50 Cr', property: mockProperties[9]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Popular Locations'),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                _buildLocationAvatar('Gurgaon', '2.1k+ Offices', Icons.business),
+                _buildLocationAvatar('BKC Mumbai', '1.8k+ Offices', Icons.location_city),
+                _buildLocationAvatar('Whitefield', '1.5k+ Offices', Icons.business_center),
+                _buildLocationAvatar('HITEC City', '1.2k+ Offices', Icons.computer),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Recently Viewed', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Recently Viewed',
+              properties: [mockProperties[4], mockProperties[5], mockProperties[6]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildRecentlyViewedCard('Infinity IT Park', 'Andheri East, Mumbai', '₹2.10 Cr', property: mockProperties[4]),
+              _buildRecentlyViewedCard('Mantri Commercio', 'Outer Ring Road, Bangalore', '₹3.50 Cr', property: mockProperties[5]),
+              _buildRecentlyViewedCard('Adani Inspire', 'BKC, Mumbai', '₹4.80 Cr', property: mockProperties[6]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildPromoBanner(
+            'Expand your Business',
+            "Premium office spaces & commercial properties across India's top business hubs.",
+            const [Color(0xFF1565C0), Color(0xFF0D47A1)],
+          ),
+          const SizedBox(height: 110),
+        ];
+
+      case 'Plots':
+        return [
+          _buildSectionHeader('Featured Plots', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Featured Plots',
+              properties: [mockProperties[0], mockProperties[1], mockProperties[2]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildFeaturedPropertyCard('DLF Garden City', 'By DLF Ltd.', 'Shilaj, Ahmedabad', 'Starting ₹45 L', property: mockProperties[0]),
+              _buildFeaturedPropertyCard('Sobha International', 'By Sobha Ltd.', 'Devanahalli, Bangalore', 'Starting ₹60 L', property: mockProperties[1]),
+              _buildFeaturedPropertyCard('Godrej Reserve', 'By Godrej Properties', 'Sarjapur Road, Bangalore', 'Starting ₹55 L', property: mockProperties[2]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('New Plot Projects', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'New Plot Projects',
+              properties: [mockProperties[3], mockProperties[4], mockProperties[5]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildNewProjectCard('Prestige Elysian', '₹38 L', property: mockProperties[3]),
+              _buildNewProjectCard('Brigade Meadows', '₹42 L', property: mockProperties[4]),
+              _buildNewProjectCard('Mahindra Happinest', '₹29 L', property: mockProperties[5]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Popular Locations'),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                _buildLocationAvatar('Pune', '3.2k+ Plots', Icons.landscape),
+                _buildLocationAvatar('Hyderabad', '2.8k+ Plots', Icons.grass),
+                _buildLocationAvatar('Bangalore', '2.1k+ Plots', Icons.park),
+                _buildLocationAvatar('Chennai', '1.9k+ Plots', Icons.terrain),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Recently Viewed', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Recently Viewed',
+              properties: [mockProperties[0], mockProperties[1], mockProperties[2]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildRecentlyViewedCard('Adarsh Palm Retreat', 'Varthur Road, Bangalore', '₹62 L', property: mockProperties[0]),
+              _buildRecentlyViewedCard('TVS Emerald', 'Thirumazhisai, Chennai', '₹35 L', property: mockProperties[1]),
+              _buildRecentlyViewedCard('Casagrand Ferns', 'Kovur, Chennai', '₹28 L', property: mockProperties[2]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildPromoBanner(
+            'Build Your Dream Home',
+            'Explore verified plot listings in gated communities across prime locations.',
+            const [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+          ),
+          const SizedBox(height: 110),
+        ];
+
+      case 'PG/Co-living':
+        return [
+          _buildSectionHeader('Featured PG & Co-living', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Featured PG & Co-living',
+              properties: [mockProperties[6], mockProperties[7], mockProperties[8]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildFeaturedPropertyCard('Stanza Living', 'By Stanza Living', 'Koramangala, Bangalore', 'Starting ₹8,000/mo', property: mockProperties[6]),
+              _buildFeaturedPropertyCard('OYO Life', 'By OYO Rooms', 'Baner, Pune', 'Starting ₹9,500/mo', property: mockProperties[7]),
+              _buildFeaturedPropertyCard('Zolo Stays', 'By Zolo', 'Sector 62, Noida', 'Starting ₹7,500/mo', property: mockProperties[8]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('New Co-living Spaces', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'New Co-living Spaces',
+              properties: [mockProperties[9], mockProperties[10], mockProperties[11]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildNewProjectCard('CoHo Homes', '₹10,000/mo', property: mockProperties[9]),
+              _buildNewProjectCard('NestAway Plus', '₹12,000/mo', property: mockProperties[10]),
+              _buildNewProjectCard('Colive Studio', '₹14,500/mo', property: mockProperties[11]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Popular Locations'),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                _buildLocationAvatar('Bangalore', '5.5k+ PGs', Icons.business),
+                _buildLocationAvatar('Pune', '3.8k+ PGs', Icons.home),
+                _buildLocationAvatar('Hyderabad', '2.6k+ PGs', Icons.apartment),
+                _buildLocationAvatar('Delhi', '4.1k+ PGs', Icons.location_city),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Recently Viewed', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Recently Viewed',
+              properties: [mockProperties[6], mockProperties[7], mockProperties[8]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildRecentlyViewedCard('Hello World PG', 'HSR Layout, Bangalore', '₹9,000/mo', property: mockProperties[6]),
+              _buildRecentlyViewedCard('Liv-in PG', 'Wakad, Pune', '₹7,800/mo', property: mockProperties[7]),
+              _buildRecentlyViewedCard('Settl. Coliving', 'Whitefield, Bangalore', '₹11,000/mo', property: mockProperties[8]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildPromoBanner(
+            'Hassle-free Living',
+            'Fully furnished PG & co-living spaces with all amenities included.',
+            const [Color(0xFF6A1B9A), Color(0xFF4A148C)],
+          ),
+          const SizedBox(height: 110),
+        ];
+
+      // Residential (default)
+      default:
+        return [
+          _buildSectionHeader('Featured Properties', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Featured Properties',
+              properties: [mockProperties[2], mockProperties[3], mockProperties[8], mockProperties[9]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildFeaturedPropertyCard('Smart World One DXP', 'By Smart World Developers', 'Sector 113, Gurgaon', 'Starting ₹1.15 Cr', property: mockProperties[4]),
+              _buildFeaturedPropertyCard('Emaar Digi Homes', 'By Emaar India', 'Sector 62, Gurgaon', 'Starting ₹1.90 Cr', property: mockProperties[5]),
+              _buildFeaturedPropertyCard(mockProperties[10].title, 'By Classic Builders', mockProperties[10].location, 'Starting ${mockProperties[10].price}', property: mockProperties[10]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('New Projects', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'New Projects',
+              properties: [mockProperties[2], mockProperties[3], mockProperties[8]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildNewProjectCard('DLF The Crest', '₹2.45 Cr', property: mockProperties[2]),
+              _buildNewProjectCard('M3M Golf', '₹1.80 Cr', property: mockProperties[3]),
+              _buildNewProjectCard(mockProperties[8].title, mockProperties[8].price, property: mockProperties[8]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Popular Locations'),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: (_statePopularLocations[_currentState] ?? _defaultPopularLocations).map((loc) {
+                return _buildLocationAvatar(loc['name'], '${loc['count']} Properties', loc['icon']);
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Recently Viewed', onViewAll: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
+              title: 'Recently Viewed',
+              properties: [mockProperties[0], mockProperties[1], mockProperties[11]],
+            )));
+          }),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹85 L', property: mockProperties[0]),
+              _buildRecentlyViewedCard('SS The Leaf', 'Bhilai, Chhattisgarh', '₹1.20 Cr', property: mockProperties[1]),
+              _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          _buildPromoBanner(
+            'Find your dream property today',
+            'Over 15,000+ verified listings across top cities with expert consultancy.',
+            const [Color(0xFF4B85F0), Color(0xFF1E293B)],
+          ),
+          const SizedBox(height: 110),
+        ];
+    }
+  }
+
+  Widget _buildPromoBanner(String title, String subtitle, List<Color> gradientColors) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
         ),
-        child: Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 8),
+            Text(subtitle, style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withAlpha(200), height: 1.5)),
+            const SizedBox(height: 16),
+            Text('Start Searching', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF82B1FF))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryFilter(String text) {
+    final isSelected = _selectedCategory == text;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedCategory = text),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
+          ),
+          child: Text(
+            text,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ),
       ),
