@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'login_screen.dart';
 
 // ─────────────────────────────────────────────
@@ -21,21 +22,18 @@ class _OnboardPage {
 const _pages = [
   _OnboardPage(
     imagePath: 'assets/images/onboard_discover.png',
-    title: 'Discover Your Next Property',
-    description:
-        'Explore verified properties across locations, budgets and property types—all in one place.',
+    title: 'onboarding.page1_title',
+    description: 'onboarding.page1_desc',
   ),
   _OnboardPage(
     imagePath: 'assets/images/onboard_compare.png',
-    title: 'Compare Before You Decide',
-    description:
-        'Compare properties, prices, amenities and key details to make a confident decision.',
+    title: 'onboarding.page2_title',
+    description: 'onboarding.page2_desc',
   ),
   _OnboardPage(
     imagePath: 'assets/images/onboard_connect.jpg',
-    title: 'Connect. Visit. Decide.',
-    description:
-        'Contact sellers and agents, schedule property visits and move closer to your next property.',
+    title: 'onboarding.page3_title',
+    description: 'onboarding.page3_desc',
   ),
 ];
 
@@ -144,7 +142,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         // Title
                         Text(
-                          currentPageData.title,
+                          currentPageData.title.tr(),
                           style: GoogleFonts.inter(
                             fontSize: screenW * 0.062,
                             fontWeight: FontWeight.bold,
@@ -157,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         // Description
                         Text(
-                          currentPageData.description,
+                          currentPageData.description.tr(),
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: colorScheme.onSurfaceVariant,
@@ -208,10 +206,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                             ),
                             child: Text(
-                              isLastPage ? 'Get Started' : 'Next',
+                              isLastPage ? 'onboarding.get_started'.tr() : 'onboarding.next'.tr(),
                               style: GoogleFonts.inter(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
@@ -224,11 +222,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             child: TextButton(
                               onPressed: _goToMain,
                               child: Text(
-                                'Skip',
+                                'onboarding.skip'.tr(),
                                 style: GoogleFonts.inter(
-                                  fontSize: 14,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                   color: colorScheme.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),

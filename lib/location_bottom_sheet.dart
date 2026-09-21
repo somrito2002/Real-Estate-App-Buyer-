@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'location_picker_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class LocationBottomSheet extends StatefulWidget {
   const LocationBottomSheet({super.key});
@@ -149,7 +150,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Select Location',
+                  'location.select_location'.tr(),
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -181,7 +182,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                   // Search Bar
                   TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search city, locality...',
+                      hintText: 'location.search_hint'.tr(),
                       hintStyle: GoogleFonts.inter(
                         color: colorScheme.onSurfaceVariant,
                         fontSize: 14,
@@ -232,11 +233,11 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Choose a location',
+                                  'location.choose_location'.tr(),
                                   style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.primary),
                                 ),
                                 Text(
-                                  'Using your device location',
+                                  'location.using_device_location'.tr(),
                                   style: GoogleFonts.inter(fontSize: 12, color: colorScheme.onSurfaceVariant),
                                 ),
                               ],
@@ -258,7 +259,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                   if (_detectedCity.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Text(
-                      'CURRENT LOCATION',
+                      'location.current_location'.tr(),
                       style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8, color: colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 10),
@@ -307,7 +308,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                   
                   // Popular Cities
                   Text(
-                    'POPULAR CITIES',
+                    'search.popular_cities'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -383,7 +384,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                   
                   // Recent Locations
                   Text(
-                    'RECENT LOCATIONS',
+                    'location.recent_locations'.tr(),
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,

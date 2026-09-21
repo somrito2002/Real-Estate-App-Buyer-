@@ -6,6 +6,7 @@ import 'buy_properties_screen.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'services/search_history_service.dart';
 import 'services/google_places_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SearchScreen extends StatefulWidget {
   final String initialCategory;
@@ -111,16 +112,16 @@ class _SearchScreenState extends State<SearchScreen> {
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: Theme.of(context).colorScheme.surface,
-          title: Text('Voice Search', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-          content: Text('What would you like to do?', style: GoogleFonts.inter()),
+          title: Text('search.voice_search_title'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+          content: Text('search.voice_search_desc'.tr(), style: GoogleFonts.inter()),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text('Search new', style: GoogleFonts.inter(color: accentBlue)),
+              child: Text('search.voice_search_new'.tr(), style: GoogleFonts.inter(color: accentBlue)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text('Want to continue', style: GoogleFonts.inter(color: accentBlue)),
+              child: Text('search.voice_search_continue'.tr(), style: GoogleFonts.inter(color: accentBlue)),
             ),
           ],
         ),
@@ -187,7 +188,7 @@ class _SearchScreenState extends State<SearchScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Microphone permission not granted or speech recognition unavailable.', style: GoogleFonts.inter()),
+            content: Text('search.mic_permission_error'.tr(), style: GoogleFonts.inter()),
             backgroundColor: Colors.red.shade700,
           ),
         );
@@ -287,7 +288,7 @@ class _SearchScreenState extends State<SearchScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Search Properties',
+          'search.search_properties'.tr(),
           style: GoogleFonts.inter(
             color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w600,
@@ -317,7 +318,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       controller: _searchController,
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: 'Search location, project, or pr...',
+                        hintText: 'search.search_hint'.tr(),
                         hintStyle: GoogleFonts.inter(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 14,
@@ -372,7 +373,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 24.0),
                         child: Center(
                           child: Text(
-                            'Loading...',
+                            'search.loading'.tr(),
                             style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
@@ -382,7 +383,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ] else ...[
                     const SizedBox(height: 24),
                     Text(
-                      'POPULAR CITIES',
+                      'search.popular_cities'.tr(),
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -530,7 +531,7 @@ class _ListeningBottomSheetState extends State<_ListeningBottomSheet>
           ),
           const SizedBox(height: 40),
           Text(
-            'Listening...',
+            'search.listening'.tr(),
             style: GoogleFonts.inter(
                 fontSize: 20,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'home_screen.dart';
 
 class NotificationItem {
@@ -98,7 +99,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Notifications',
+          'notifications.title'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -115,7 +116,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 });
               },
               child: Text(
-                'Mark all read',
+                'notifications.mark_all_read'.tr(),
                 style: GoogleFonts.inter(
                   color: const Color(0xFF4B85F0),
                   fontSize: 14,
@@ -153,7 +154,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                       ),
                       child: Text(
-                        filter,
+                        filter == 'All' ? 'notifications.all'.tr() :
+                        (filter == 'Enquiries' ? 'notifications.enquiries'.tr() :
+                        (filter == 'Visits' ? 'notifications.visits'.tr() : 'notifications.properties'.tr())),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,

@@ -1817,13 +1817,67 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
                         ),
-                        Text(
-                          '${monthNames[focusedMonth.month]} ${focusedMonth.year}',
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
-                          ),
+                        Row(
+                          children: [
+                            DropdownButton<int>(
+                              value: focusedMonth.month,
+                              menuMaxHeight: 192,
+                              icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurface, size: 20),
+                              underline: const SizedBox(),
+                              isDense: true,
+                              onChanged: (int? newMonth) {
+                                if (newMonth != null) {
+                                  setSheetState(() {
+                                    focusedMonth = DateTime(focusedMonth.year, newMonth);
+                                    selectedDay = null;
+                                  });
+                                }
+                              },
+                              items: List.generate(12, (index) {
+                                return DropdownMenuItem<int>(
+                                  value: index + 1,
+                                  child: Text(
+                                    monthNames[index + 1],
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<int>(
+                              value: focusedMonth.year,
+                              menuMaxHeight: 192,
+                              icon: Icon(Icons.arrow_drop_down, color: colorScheme.onSurface, size: 20),
+                              underline: const SizedBox(),
+                              isDense: true,
+                              onChanged: (int? newYear) {
+                                if (newYear != null) {
+                                  setSheetState(() {
+                                    focusedMonth = DateTime(newYear, focusedMonth.month);
+                                    selectedDay = null;
+                                  });
+                                }
+                              },
+                              items: List.generate(100, (index) {
+                                final year = DateTime.now().year + index;
+                                return DropdownMenuItem<int>(
+                                  value: year,
+                                  child: Text(
+                                    year.toString(),
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ],
                         ),
                         IconButton(
                           onPressed: () {

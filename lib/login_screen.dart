@@ -9,7 +9,9 @@ import 'register_screen.dart';
 import 'home_screen.dart';
 import 'phone_number_screen.dart';
 import 'forgot_password_screen.dart';
+import 'forgot_password_screen.dart';
 import 'onboarding_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// Login screen for Meco Technologies app.
 /// Matches the "Welcome Back" design (something.png reference).
@@ -118,8 +120,8 @@ class _LoginScreenState extends State<LoginScreen> {
         } else {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('invalid login credentials'),
+            SnackBar(
+              content: Text('login.login_error'.tr()),
               backgroundColor: Colors.red,
             ),
           );
@@ -151,13 +153,12 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isGoogleLoading = false);
-      String message = 'Google sign-in failed. Please try again.';
+      String message = 'login.google_failed'.tr();
       if (e.toString().contains('network')) {
-        message = 'No internet connection. Please check your network.';
+        message = 'login.no_internet'.tr();
       } else if (e.toString().contains('DEVELOPER_ERROR') ||
           e.toString().contains('10:')) {
-        message =
-            'Google sign-in is not configured yet.\nPlease add your SHA-1 fingerprint in Firebase Console.';
+        message = 'login.google_not_configured'.tr();
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -316,33 +317,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
                       // ── WELCOME TEXT ──
                       Text(
-                        'Welcome Back',
+                        'login.welcome_back'.tr(),
                         style: GoogleFonts.inter(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: titleColor,
-                          height: 1.2,
+                          letterSpacing: -0.5,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Login to access premium listings and personalised property updates.',
+                        'login.log_in_account'.tr(),
                         style: GoogleFonts.inter(
-                          fontSize: 14,
+                          fontSize: 15,
                           color: descColor,
-                          height: 1.55,
                         ),
                       ),
                       const SizedBox(height: 20),
 
                       // ── EMAIL ──
-                      _buildLabel('Email / Phone Number', labelColor),
+                      _buildLabel('login.email_label'.tr(), labelColor),
                       const SizedBox(height: 6),
                       _buildEmailField(fieldFill, borderColor, hintColor, labelColor),
                       const SizedBox(height: 16),
 
                       // ── PASSWORD ──
-                      _buildLabel('Password', labelColor),
+                      _buildLabel('login.password_label'.tr(), labelColor),
                       const SizedBox(height: 6),
                       _buildPasswordField(fieldFill, borderColor, labelColor, descColor),
                       const SizedBox(height: 12),
@@ -502,7 +502,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
-          return 'Please enter your email or phone number.';
+          return 'login.email_validation'.tr();
         }
         final trimmed = value.trim();
 
@@ -510,7 +510,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (RegExp(r'^[0-9]').hasMatch(trimmed)) {
           final digits = trimmed.replaceAll(' ', '').replaceAll('-', '');
           if (digits.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(digits)) {
-            return 'Please enter a valid mobile number.';
+            return 'login.mobile_validation'.tr();
           }
           return null;
         }
@@ -519,13 +519,13 @@ class _LoginScreenState extends State<LoginScreen> {
         if (RegExp(r'^[a-zA-Z]').hasMatch(trimmed)) {
           final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
           if (!emailRegex.hasMatch(trimmed)) {
-            return 'Please enter a valid email address.';
+            return 'login.valid_email'.tr();
           }
           return null;
         }
 
         // If any special characters are typed at the start
-        return 'Please enter your email or phone number.';
+        return 'login.email_validation'.tr();
       },
     );
   }
@@ -568,7 +568,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       validator: (value) {
         if (value == null || value.isEmpty || value.length < 6) {
-          return 'Incorrect password. Please try again.';
+          return 'login.incorrect_password'.tr();
         }
         return null;
       },
@@ -596,7 +596,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Remember me',
+              'login.remember_me'.tr(),
               style: GoogleFonts.inter(fontSize: 14, color: textColor),
             ),
           ],
@@ -610,7 +610,7 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           },
           child: Text(
-            'Forgot Password?',
+            'login.forgot_password'.tr(),
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -647,7 +647,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               )
             : Text(
-                'Login',
+                'login.login_btn'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -677,7 +677,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: Text(
-          'Do it Later',
+          'login.do_it_later'.tr(),
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -695,7 +695,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'or continue with',
+            'login.or_continue_with'.tr(),
             style: GoogleFonts.inter(color: textColor, fontSize: 13),
           ),
         ),
@@ -709,7 +709,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Expanded(
           child: _SocialButton(
-            label: 'Google',
+            label: 'login.google_btn'.tr(),
             icon: _isGoogleLoading
                 ? const SizedBox(
                     width: 20,
@@ -733,7 +733,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(width: 14),
         Expanded(
           child: _SocialButton(
-            label: 'Apple ID',
+            label: 'login.apple_id'.tr(),
             icon: Icon(Icons.apple, size: 24, color: textColor),
             border: border,
             textColor: textColor,

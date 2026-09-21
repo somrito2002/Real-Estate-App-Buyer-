@@ -8,6 +8,7 @@ import 'property_details_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 import 'widgets/remove_shortlist_dialog.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class SavedScreen extends StatefulWidget {
   const SavedScreen({super.key});
@@ -97,12 +98,12 @@ class _SavedScreenState extends State<SavedScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Remove All?',
+          'saved.remove_all_title'.tr(),
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         content: Text(
-          'This will remove all ${saved.length} shortlisted properties from your shortlist.',
+          'saved.remove_all_desc'.tr(namedArgs: {'count': saved.length.toString()}),
           style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
@@ -110,11 +111,11 @@ class _SavedScreenState extends State<SavedScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: GoogleFonts.inter(color: accentBlue)),
+            child: Text('saved.cancel'.tr(), style: GoogleFonts.inter(color: accentBlue)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Remove All', style: GoogleFonts.inter(color: accentRed, fontWeight: FontWeight.w600)),
+            child: Text('saved.remove_all'.tr(), style: GoogleFonts.inter(color: accentRed, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -139,7 +140,7 @@ class _SavedScreenState extends State<SavedScreen> {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            'Shortlisted Properties',
+            'saved.shortlisted_properties'.tr(),
             style: GoogleFonts.inter(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
@@ -173,12 +174,12 @@ class _SavedScreenState extends State<SavedScreen> {
               child: Icon(Icons.favorite, color: Colors.red.shade400, size: 40),
             ),
             const SizedBox(height: 24),
-            Text('Save to Shortlist',
+            Text('saved.save_to_shortlist'.tr(),
                 style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 12),
             Text(
-              'Please sign in or create an account to save properties to your shortlist and monitor price drops.',
+              'saved.sign_in_desc'.tr(),
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(fontSize: 14,
                   color: Theme.of(context).colorScheme.onSurfaceVariant, height: 1.5),
@@ -194,7 +195,7 @@ class _SavedScreenState extends State<SavedScreen> {
                   backgroundColor: accentBlue, foregroundColor: Colors.white, elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('Sign In',
+                child: Text('saved.sign_in'.tr(),
                     style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
@@ -210,7 +211,7 @@ class _SavedScreenState extends State<SavedScreen> {
                   side: BorderSide(color: Theme.of(context).colorScheme.outline),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text('Create Account',
+                child: Text('saved.create_account'.tr(),
                     style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
@@ -232,11 +233,11 @@ class _SavedScreenState extends State<SavedScreen> {
             Icon(Icons.bookmark_border_rounded, size: 72,
                 color: Theme.of(context).colorScheme.outlineVariant),
             const SizedBox(height: 16),
-            Text('No Shortlisted Properties',
+            Text('saved.no_shortlisted'.tr(),
                 style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 8),
-            Text('Tap the heart icon on any property to save it here.',
+            Text('saved.tap_heart_desc'.tr(),
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(fontSize: 14,
                     color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -287,7 +288,7 @@ class _SavedScreenState extends State<SavedScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            '${_selectedIndices.length} Selected',
+            'saved.selected_count'.tr(namedArgs: {'count': _selectedIndices.length.toString()}),
             style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.onSurface),
           ),
@@ -304,7 +305,7 @@ class _SavedScreenState extends State<SavedScreen> {
               });
             },
             child: Text(
-              _selectedIndices.length == saved.length ? 'Deselect All' : 'Select All',
+              _selectedIndices.length == saved.length ? 'saved.deselect_all'.tr() : 'saved.select_all'.tr(),
               style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
                   color: accentBlue),
             ),
@@ -467,7 +468,7 @@ class _SavedScreenState extends State<SavedScreen> {
                                   }
                                 },
                           child: Text(
-                            'Remove',
+                            'saved.remove'.tr(),
                             style: GoogleFonts.inter(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -525,7 +526,7 @@ class _SavedScreenState extends State<SavedScreen> {
                           borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(
-                      'Remove (${_selectedIndices.length})',
+                      'saved.remove_count'.tr(namedArgs: {'count': _selectedIndices.length.toString()}),
                       style: GoogleFonts.inter(
                           fontSize: 15, fontWeight: FontWeight.w600),
                     ),
@@ -553,7 +554,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text('Compare Properties',
+                    child: Text('saved.compare_properties'.tr(),
                         style: GoogleFonts.inter(
                             fontSize: 15, fontWeight: FontWeight.w600)),
                   ),
@@ -572,7 +573,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text('Remove All',
+                    child: Text('saved.remove_all'.tr(),
                         style: GoogleFonts.inter(
                             fontSize: 15, fontWeight: FontWeight.w600)),
                   ),
@@ -599,7 +600,7 @@ class _SavedScreenState extends State<SavedScreen> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text('Compare Properties',
+                    child: Text('saved.compare_properties'.tr(),
                         style: GoogleFonts.inter(
                             fontSize: 15, fontWeight: FontWeight.w600)),
                   ),

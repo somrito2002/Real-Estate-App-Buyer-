@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'create_password_screen.dart';
 import 'reset_password_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 /// OTP verification screen shown after the user taps "Send OTP".
 class OtpScreen extends StatefulWidget {
@@ -82,7 +83,7 @@ class _OtpScreenState extends State<OtpScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Please enter all 6 digits.',
+            'otp.please_enter_6_digits'.tr(),
             style: GoogleFonts.inter(fontSize: 14),
           ),
           backgroundColor: Colors.redAccent,
@@ -156,7 +157,7 @@ class _OtpScreenState extends State<OtpScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          widget.phoneNumber.contains('@') ? 'Verify with Email' : 'Verify Your Number',
+          widget.phoneNumber.contains('@') ? 'otp.verify_email'.tr() : 'otp.verify_number'.tr(),
           style: GoogleFonts.inter(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -195,7 +196,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
               // Heading
               Text(
-                'Enter OTP Code',
+                'otp.enter_otp'.tr(),
                 style: GoogleFonts.inter(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -206,7 +207,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
               // Subtitle with phone number
               Text(
-                widget.phoneNumber.contains('@') ? 'OTP sent to mail' : 'We sent a 6-digit code to +91 ${widget.phoneNumber}',
+                widget.phoneNumber.contains('@') ? 'otp.otp_sent_mail'.tr() : '${'otp.we_sent_code_to'.tr()} +91 ${widget.phoneNumber}',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 14,
@@ -228,7 +229,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 text: TextSpan(
                   style: GoogleFonts.inter(fontSize: 14, color: colorScheme.onSurfaceVariant),
                   children: [
-                    const TextSpan(text: 'Resend code in '),
+                    TextSpan(text: 'otp.resend_code_in'.tr()),
                     TextSpan(
                       text: _formattedCountdown,
                       style: GoogleFonts.inter(
@@ -266,7 +267,7 @@ class _OtpScreenState extends State<OtpScreen> {
                           ),
                         )
                       : Text(
-                          'Verify & Proceed',
+                          'otp.verify_btn'.tr(),
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -283,9 +284,9 @@ class _OtpScreenState extends State<OtpScreen> {
                   text: TextSpan(
                     style: GoogleFonts.inter(fontSize: 14, color: colorScheme.onSurfaceVariant),
                     children: [
-                      const TextSpan(text: "Didn't receive code? "),
+                      TextSpan(text: "${'otp.didnt_receive'.tr()} "),
                       TextSpan(
-                        text: 'Resend',
+                        text: 'otp.resend'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'visit_details_screen.dart';
+import 'home_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class VisitMock {
   final String imageUrl;
   final String title;
-  final String visitType;
-  final String status; // 'Upcoming', 'Completed', 'Cancelled'
-  final String dateTime;
-  final String location;
-  final String price;
-  final String timeSlot;
+  String visitType;
+  String status; // 'Upcoming', 'Completed', 'Cancelled'
+  String dateTime;
+  String location;
+  String price;
+  String timeSlot;
   final String refId;
   final String agentName;
   final String agentRole;
@@ -36,7 +38,8 @@ class VisitMock {
   });
 }
 
-List<VisitMock> get _mockVisits => [
+// Make _mockVisits mutable
+final List<VisitMock> mockVisits = [
   VisitMock(
     imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&auto=format&fit=crop',
     title: 'DLF The Crest',
@@ -88,7 +91,9 @@ List<VisitMock> get _mockVisits => [
 ];
 
 class MyVisitsScreen extends StatefulWidget {
-  const MyVisitsScreen({super.key});
+  final bool isEmbedded;
+  
+  const MyVisitsScreen({super.key, this.isEmbedded = false});
 
   @override
   State<MyVisitsScreen> createState() => _MyVisitsScreenState();
@@ -111,53 +116,28 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     final textMuted = isDark ? Colors.white54 : const Color(0xFF666666);
     final dividerColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
 
-    List<VisitMock> filteredVisits = _mockVisits.where((v) {
+    List<VisitMock> filteredVisits = mockVisits.where((v) {
       if (_selectedFilter == 'Upcoming') return v.status == 'Upcoming';
       if (_selectedFilter == 'Completed') return v.status == 'Completed';
       if (_selectedFilter == 'Cancelled') return v.status == 'Cancelled';
       return true;
     }).toList();
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        backgroundColor: bgColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: titleColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'My Visits',
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: titleColor,
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.more_vert, color: titleColor),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    Widget content = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+
           // Filter Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                _buildFilterChip('Upcoming', isDark, chipBgUnselected, chipBorderUnselected),
+                _buildFilterChip('visits.upcoming'.tr(), isDark, chipBgUnselected, chipBorderUnselected),
                 const SizedBox(width: 8),
-                _buildFilterChip('Completed', isDark, chipBgUnselected, chipBorderUnselected),
+                _buildFilterChip('visits.completed'.tr(), isDark, chipBgUnselected, chipBorderUnselected),
                 const SizedBox(width: 8),
-                _buildFilterChip('Cancelled', isDark, chipBgUnselected, chipBorderUnselected),
+                _buildFilterChip('visits.cancelled'.tr(), isDark, chipBgUnselected, chipBorderUnselected),
               ],
             ),
           ),
@@ -166,7 +146,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           Expanded(
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
-              itemCount: _selectedFilter == 'Upcoming' ? _mockVisits.length : filteredVisits.length, // Showing all just for demo to match screenshot if needed, but let's stick to real filtering
+              itemCount: _selectedFilter == 'Upcoming' ? mockVisits.length : filteredVisits.length, // Showing all just for demo to match screenshot if needed, but let's stick to real filtering
               separatorBuilder: (context, index) => const SizedBox(height: 16),
               itemBuilder: (context, index) {
                 // To perfectly match the screenshot where we see multiple statuses on one screen,
@@ -174,20 +154,66 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                 // was just a mockup showing different card types. Wait, the screenshot shows "Upcoming" selected,
                 // but lists "Upcoming" and "Completed" underneath! That's a classic UI mockup inconsistency.
                 // We will just show all mock visits to match the visual exactly.
-                final visit = _mockVisits[index];
+                final visit = mockVisits[index];
                 return _buildVisitCard(visit, cardBgColor, cardBorderColor, titleColor, textMuted, dividerColor, isDark);
               },
             ),
           ),
         ],
-      ),
-    );
+      );
+    if (!widget.isEmbedded) {
+      return Scaffold(
+        backgroundColor: bgColor,
+        appBar: AppBar(
+          backgroundColor: bgColor,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: titleColor),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (route) => false,
+                );
+              }
+            },
+          ),
+          title: Text(
+            'visits.my_visits'.tr(),
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: titleColor,
+            ),
+          ),
+          centerTitle: false,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.more_vert, color: titleColor),
+              onPressed: () {},
+            ),
+          ],
+        ),
+        body: content,
+      );
+    }
+
+    return content;
   }
 
   Widget _buildFilterChip(String label, bool isDark, Color bgUnselected, Color borderUnselected) {
-    final isSelected = _selectedFilter == label;
+    // We compare with the translated label but store the original or compare with tr
+    final isSelected = _selectedFilter.tr() == label || _selectedFilter == label || 'visits.${_selectedFilter.toLowerCase()}'.tr() == label;
     return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = label),
+      onTap: () {
+        // Find the original key based on label if needed, or just set selectedFilter to the english enum
+        if (label == 'visits.upcoming'.tr()) setState(() => _selectedFilter = 'Upcoming');
+        else if (label == 'visits.completed'.tr()) setState(() => _selectedFilter = 'Completed');
+        else if (label == 'visits.cancelled'.tr()) setState(() => _selectedFilter = 'Cancelled');
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
@@ -280,7 +306,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        visit.visitType,
+                        visit.visitType == 'In-Person Visit' ? 'visits.in_person_visit'.tr() : 'visits.virtual_visit'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           color: accentBlue,
@@ -297,7 +323,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    visit.status,
+                    visit.status == 'Upcoming' ? 'visits.upcoming'.tr() : (visit.status == 'Completed' ? 'visits.completed'.tr() : 'visits.cancelled'.tr()),
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -348,7 +374,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'View Details ',
+                        'visits.view_details'.tr(),
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

@@ -13,6 +13,8 @@ import 'view_all_properties_screen.dart';
 import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
 import 'location_bottom_sheet.dart';
+import 'my_visits_screen.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -144,16 +146,16 @@ class _HomeScreenState extends State<HomeScreen> {
             context: context,
             builder: (context) => AlertDialog(
               backgroundColor: Theme.of(context).colorScheme.surface,
-              title: Text('Leave App?', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-              content: Text('Do you want to leave the app?', style: GoogleFonts.inter()),
+              title: Text('home.leave_app_title'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              content: Text('home.leave_app_desc'.tr(), style: GoogleFonts.inter()),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('No', style: GoogleFonts.inter(color: accentBlue)),
+                  child: Text('home.no'.tr(), style: GoogleFonts.inter(color: accentBlue)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: Text('Yes', style: GoogleFonts.inter(color: Colors.red)),
+                  child: Text('home.yes'.tr(), style: GoogleFonts.inter(color: Colors.red)),
                 ),
               ],
             ),
@@ -173,12 +175,28 @@ class _HomeScreenState extends State<HomeScreen> {
             : (_bottomNavIndex == 0
                 ? _buildAppBar()
                 : AppBar(
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
+                      onPressed: () {
+                        setState(() {
+                          _bottomNavIndex = 0;
+                        });
+                      },
+                    ),
                     title: Text(
-                      _bottomNavIndex == 1 ? 'My Visits' : 'Wishlist',
+                      _bottomNavIndex == 1 ? 'home.nav_visits'.tr() : 'home.nav_wishlist'.tr(),
                       style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
                     ),
+                    centerTitle: false,
                     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     elevation: 0,
+                    actions: [
+                      if (_bottomNavIndex == 1)
+                        IconButton(
+                          icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
+                          onPressed: () {},
+                        ),
+                    ],
                   )),
         body: _buildBody(),
         bottomNavigationBar: _buildCustomBottomNav(),
@@ -244,10 +262,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Nav items row (no individual backgrounds)
                       Row(
                         children: [
-                          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'Home', 0)),
-                          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'My Visits', 1)),
-                          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'Wishlist', 2)),
-                          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'Account', 3)),
+                          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'home.nav_home'.tr(), 0)),
+                          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'home.nav_visits'.tr(), 1)),
+                          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'home.nav_wishlist'.tr(), 2)),
+                          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'home.nav_account'.tr(), 3)),
                         ],
                       ),
                     ],
@@ -338,6 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         return _buildHomeTab();
       case 1:
+        return const MyVisitsScreen(isEmbedded: true);
       case 2:
         return const SavedScreen();
       case 3:
@@ -360,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       title: Text(
-        'My Profile',
+        'profile.title'.tr(),
         style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
       actions: [
@@ -404,7 +423,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: AbsorbPointer(
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'Search properties, projects, localities...',
+                              hintText: 'home.search_hint'.tr(),
                               hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
                               border: InputBorder.none,
                               isDense: true,
@@ -457,7 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'Explore by Category',
+                'home.explore_category'.tr(),
                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
@@ -500,17 +519,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Find your dream property today',
+                      'home.promo_title'.tr(),
                       style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Over 15,000+ verified listings across top cities with expert consultancy.',
+                      'home.promo_desc'.tr(),
                       style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withAlpha(200), height: 1.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Start Searching',
+                      'home.start_searching'.tr(),
                       style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF82B1FF)),
                     ),
                   ],
@@ -631,9 +650,9 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (_selectedCategory) {
       case 'Commercial':
         return [
-          _buildSectionHeader('Featured Commercial', onViewAll: () {
+          _buildSectionHeader('home.feat_comm'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Featured Commercial',
+              title: 'home.feat_comm'.tr(),
               properties: [mockProperties[4], mockProperties[5], mockProperties[6]],
             )));
           }),
@@ -647,9 +666,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ]),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('New Office Spaces', onViewAll: () {
+          _buildSectionHeader('home.new_office'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'New Office Spaces',
+              title: 'home.new_office'.tr(),
               properties: [mockProperties[7], mockProperties[8], mockProperties[9]],
             )));
           }),
@@ -677,9 +696,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Recently Viewed', onViewAll: () {
+          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Recently Viewed',
+              title: 'home.recent_view'.tr(),
               properties: [mockProperties[4], mockProperties[5], mockProperties[6]],
             )));
           }),
@@ -692,20 +711,13 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildRecentlyViewedCard('Adani Inspire', 'BKC, Mumbai', '₹4.80 Cr', property: mockProperties[6]),
             ]),
           ),
-          const SizedBox(height: 24),
-          _buildPromoBanner(
-            'Expand your Business',
-            "Premium office spaces & commercial properties across India's top business hubs.",
-            const [Color(0xFF1565C0), Color(0xFF0D47A1)],
-          ),
-          const SizedBox(height: 110),
         ];
 
       case 'Plots':
         return [
-          _buildSectionHeader('Featured Plots', onViewAll: () {
+          _buildSectionHeader('home.feat_plots'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Featured Plots',
+              title: 'home.feat_plots'.tr(),
               properties: [mockProperties[0], mockProperties[1], mockProperties[2]],
             )));
           }),
@@ -719,9 +731,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ]),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('New Plot Projects', onViewAll: () {
+          _buildSectionHeader('home.new_plots'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'New Plot Projects',
+              title: 'home.new_plots'.tr(),
               properties: [mockProperties[3], mockProperties[4], mockProperties[5]],
             )));
           }),
@@ -749,9 +761,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Recently Viewed', onViewAll: () {
+          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Recently Viewed',
+              title: 'home.recent_view'.tr(),
               properties: [mockProperties[0], mockProperties[1], mockProperties[2]],
             )));
           }),
@@ -764,20 +776,13 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildRecentlyViewedCard('Casagrand Ferns', 'Kovur, Chennai', '₹28 L', property: mockProperties[2]),
             ]),
           ),
-          const SizedBox(height: 24),
-          _buildPromoBanner(
-            'Build Your Dream Home',
-            'Explore verified plot listings in gated communities across prime locations.',
-            const [Color(0xFF2E7D32), Color(0xFF1B5E20)],
-          ),
-          const SizedBox(height: 110),
         ];
 
       case 'PG/Co-living':
         return [
-          _buildSectionHeader('Featured PG & Co-living', onViewAll: () {
+          _buildSectionHeader('home.feat_pg'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Featured PG & Co-living',
+              title: 'home.feat_pg'.tr(),
               properties: [mockProperties[6], mockProperties[7], mockProperties[8]],
             )));
           }),
@@ -791,9 +796,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ]),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('New Co-living Spaces', onViewAll: () {
+          _buildSectionHeader('home.new_pg'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'New Co-living Spaces',
+              title: 'home.new_pg'.tr(),
               properties: [mockProperties[9], mockProperties[10], mockProperties[11]],
             )));
           }),
@@ -821,9 +826,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Recently Viewed', onViewAll: () {
+          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Recently Viewed',
+              title: 'home.recent_view'.tr(),
               properties: [mockProperties[6], mockProperties[7], mockProperties[8]],
             )));
           }),
@@ -836,21 +841,14 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildRecentlyViewedCard('Settl. Coliving', 'Whitefield, Bangalore', '₹11,000/mo', property: mockProperties[8]),
             ]),
           ),
-          const SizedBox(height: 24),
-          _buildPromoBanner(
-            'Hassle-free Living',
-            'Fully furnished PG & co-living spaces with all amenities included.',
-            const [Color(0xFF6A1B9A), Color(0xFF4A148C)],
-          ),
-          const SizedBox(height: 110),
         ];
 
       // Residential (default)
       default:
         return [
-          _buildSectionHeader('Featured Properties', onViewAll: () {
+          _buildSectionHeader('home.feat_prop'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Featured Properties',
+              title: 'home.feat_prop'.tr(),
               properties: [mockProperties[2], mockProperties[3], mockProperties[8], mockProperties[9]],
             )));
           }),
@@ -864,9 +862,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ]),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('New Projects', onViewAll: () {
+          _buildSectionHeader('home.new_prop'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'New Projects',
+              title: 'home.new_prop'.tr(),
               properties: [mockProperties[2], mockProperties[3], mockProperties[8]],
             )));
           }),
@@ -892,9 +890,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Recently Viewed', onViewAll: () {
+          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'Recently Viewed',
+              title: 'home.recent_view'.tr(),
               properties: [mockProperties[0], mockProperties[1], mockProperties[11]],
             )));
           }),
@@ -907,13 +905,6 @@ class _HomeScreenState extends State<HomeScreen> {
               _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
             ]),
           ),
-          const SizedBox(height: 24),
-          _buildPromoBanner(
-            'Find your dream property today',
-            'Over 15,000+ verified listings across top cities with expert consultancy.',
-            const [Color(0xFF4B85F0), Color(0xFF1E293B)],
-          ),
-          const SizedBox(height: 110),
         ];
     }
   }
@@ -989,7 +980,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 children: [
                   Text(
-                    'View All',
+                    'home.view_all'.tr(),
                     style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
                   ),
                   Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
@@ -1000,7 +991,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               children: [
                 Text(
-                  'View All',
+                  'home.view_all'.tr(),
                   style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
                 ),
                 Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),

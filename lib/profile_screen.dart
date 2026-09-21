@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'my_enquiries_screen.dart';
 import 'my_visits_screen.dart';
-import 'notifications_screen.dart';
-import 'saved_screen.dart';
+import 'notification_settings_screen.dart';
+import 'reviews_screen.dart';
+import 'manage_devices_screen.dart';
+import 'select_language_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -35,8 +38,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
         _isHardcodedUser = prefs.getBool('isHardcodedUser') ?? false;
-        _cachedFullName = prefs.getString('cached_fullName') ?? 'User1';
-        _cachedEmail = prefs.getString('cached_email') ?? 'user1@gmail.com';
+        _cachedFullName = prefs.getString('cached_fullName') ?? 'Arjun Malhotra';
+        _cachedEmail = prefs.getString('cached_email') ?? 'arjun.malhotra@gmail.com';
         _cachedProfilePhotoPath = prefs.getString('cached_profilePhotoPath');
         _isLoading = false;
       });
@@ -49,225 +52,166 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // For hardcoded demo login, always show static data
-    // For registered users, show their real data
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFFAFAFA);
+    final cardBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
+    final titleColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
+    final subtitleColor = isDark ? Colors.white70 : const Color(0xFF666666);
+    final sectionTitleColor = isDark ? Colors.white54 : const Color(0xFF8898AA);
+    final iconBgColor = isDark ? const Color(0xFF1A2A4A) : const Color(0xFFF0F5FF);
+    final accentBlue = const Color(0xFF4B85F0);
+
+    // Profile photo handling
     final bool showRealData = _isLoggedIn && !_isHardcodedUser;
+    String displayName = _isLoggedIn ? (showRealData ? _cachedFullName : 'Arjun Malhotra') : 'profile.guest'.tr();
+    String displayEmail = _isLoggedIn ? (showRealData ? _cachedEmail : 'arjun.malhotra@gmail.com') : 'profile.no_email'.tr();
+    String initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
+    final bool showPhoto = showRealData && _cachedProfilePhotoPath != null && File(_cachedProfilePhotoPath!).existsSync();
 
-    String displayName = _isLoggedIn
-        ? (showRealData ? _cachedFullName.toUpperCase() : 'USER1')
-        : 'Guest';
-    String displayEmail = _isLoggedIn
-        ? (showRealData ? _cachedEmail : 'user1@gmail.com')
-        : 'No email';
-
-    // Parse initials from real name, or use 'U1' for hardcoded, 'G' for guest
-    String initial;
-    if (!_isLoggedIn) {
-      initial = 'G';
-    } else if (_isHardcodedUser) {
-      initial = 'U1';
-    } else {
-      final names = _cachedFullName.trim().split(' ');
-      final firstLetter = names.first.isNotEmpty ? names.first[0].toUpperCase() : '';
-      final lastLetter = names.length > 1 && names.last.isNotEmpty ? names.last[0].toUpperCase() : '';
-      initial = '$firstLetter$lastLetter';
-      if (initial.isEmpty) initial = 'U';
-    }
-
-    // Profile photo: only show for registered users who set one
-    final bool showPhoto = showRealData &&
-        _cachedProfilePhotoPath != null &&
-        File(_cachedProfilePhotoPath!).existsSync();
-
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          // Profile Card
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).colorScheme.outline),
-              ),
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: const Color(0xFF4B85F0),
-                    backgroundImage: showPhoto
-                        ? FileImage(File(_cachedProfilePhotoPath!))
-                        : null,
-                    child: showPhoto
-                        ? null
-                        : Text(
-                            initial,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.surface,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    displayName,
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+    return Container(
+      color: bgColor,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Profile Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                decoration: BoxDecoration(
+                  color: cardBgColor,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: accentBlue,
+                      backgroundImage: showPhoto
+                          ? FileImage(File(_cachedProfilePhotoPath!))
+                          : const NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop') as ImageProvider, // Default mock avatar
+                      child: (showPhoto || true) // True for mockup
+                          ? null
+                          : Text(initial, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    displayEmail,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    const SizedBox(height: 16),
+                    Text(
+                      displayName,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: titleColor,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_isLoggedIn)
+                    const SizedBox(height: 4),
+                    Text(
+                      displayEmail,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: subtitleColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).colorScheme.outline),
+                        border: Border.all(color: borderColor),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        'Edit Profile',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                        'profile.edit_profile'.tr(),
+                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: accentBlue),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Menu List
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Theme.of(context).colorScheme.outline),
+
+              _buildSectionTitle('profile.account_settings'.tr(), sectionTitleColor),
+              _buildCardGroup(cardBgColor, borderColor, [
+                _buildMenuItem(Icons.phone_android, 'profile.manage_devices'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ManageDevicesScreen()));
+                }),
+                _buildDivider(borderColor),
+                _buildMenuItem(Icons.language, 'profile.select_language'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SelectLanguageScreen()));
+                }),
+                _buildDivider(borderColor),
+                _buildMenuItem(Icons.notifications_none, 'profile.notification_settings'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
+                }),
+                _buildDivider(borderColor),
+                _buildMenuItem(Icons.privacy_tip_outlined, 'profile.privacy_center'.tr(), iconBgColor, accentBlue, titleColor),
+              ]),
+
+              _buildSectionTitle('profile.my_activity'.tr(), sectionTitleColor),
+              _buildCardGroup(cardBgColor, borderColor, [
+                _buildMenuItem(Icons.star_border, 'profile.reviews'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ReviewsScreen()));
+                }),
+                _buildDivider(borderColor),
+                _buildMenuItem(Icons.chat_bubble_outline, 'profile.my_enquiries'.tr(), iconBgColor, accentBlue, titleColor, badge: '2', onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const MyEnquiriesScreen()));
+                }),
+              ]),
+
+              _buildSectionTitle('profile.sell_properties'.tr(), sectionTitleColor),
+              _buildCardGroup(cardBgColor, borderColor, [
+                _buildMenuItem(Icons.home_outlined, 'profile.become_seller'.tr(), iconBgColor, accentBlue, titleColor),
+              ]),
+
+              _buildSectionTitle('profile.support_info'.tr(), sectionTitleColor),
+              _buildCardGroup(cardBgColor, borderColor, [
+                _buildMenuItem(Icons.help_outline, 'profile.help_support'.tr(), iconBgColor, accentBlue, titleColor),
+                _buildDivider(borderColor),
+                _buildMenuItem(Icons.description_outlined, 'profile.terms_conditions'.tr(), iconBgColor, accentBlue, titleColor),
+              ]),
+
+              _buildSectionTitle('profile.recently_viewed'.tr(), sectionTitleColor),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  'profile.viewed_today'.tr(),
+                  style: GoogleFonts.inter(fontSize: 13, color: subtitleColor),
+                ),
               ),
-              child: Column(
-                children: [
-                  _buildMenuItem(context, Icons.home_outlined, 'Overview'),
-                  _buildDivider(context),
-                  _buildMenuItem(
-                    context,
-                    Icons.favorite_border,
-                    'Shortlisted Properties',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SavedScreen(),
-                      ),
-                    ),
+              _buildRecentlyViewedList(cardBgColor, borderColor, titleColor, subtitleColor),
+
+              _buildSectionTitle('profile.follow_us'.tr(), sectionTitleColor),
+              _buildCardGroup(cardBgColor, borderColor, [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildSocialIcon(Icons.facebook, 'Facebook', iconBgColor, accentBlue, titleColor),
+                      _buildSocialIcon(Icons.camera_alt_outlined, 'Instagram', iconBgColor, accentBlue, titleColor),
+                      _buildSocialIcon(Icons.play_circle_outline, 'YouTube', iconBgColor, accentBlue, titleColor),
+                      _buildSocialIcon(Icons.work_outline, 'LinkedIn', iconBgColor, accentBlue, titleColor),
+                    ],
                   ),
-                  _buildDivider(context),
-                  _buildMenuItem(context, Icons.search_outlined, 'Saved Searches'),
-                  _buildDivider(context),
-                  _buildMenuItem(
-                    context,
-                    Icons.chat_bubble_outline,
-                    'My Enquiries',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MyEnquiriesScreen(),
-                      ),
-                    ),
-                  ),
-                  _buildDivider(context),
-                  _buildMenuItem(
-                    context,
-                    Icons.calendar_today_outlined,
-                    'My Visits',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MyVisitsScreen(),
-                      ),
-                    ),
-                  ),
-                  _buildDivider(context),
-                  _buildMenuItem(
-                    context,
-                    Icons.notifications_none_outlined,
-                    'Notifications',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const NotificationsScreen(),
-                      ),
-                    ),
-                  ),
-                  _buildDivider(context),
-                  _buildMenuItem(context, Icons.settings_outlined, 'Settings'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Logout / Login Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: TextButton(
-                onPressed: () async {
-                  if (_isLoggedIn) {
+                ),
+              ]),
+
+              const SizedBox(height: 24),
+              // Logout Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: TextButton(
+                  onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                        title: Text(
-                          'Log Out',
-                          style: GoogleFonts.inter(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        content: Text(
-                          'Do you want to log out?',
-                          style: GoogleFonts.inter(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+                        backgroundColor: cardBgColor,
+                        title: Text('profile.logout_confirm_title'.tr(), style: GoogleFonts.inter(color: titleColor, fontWeight: FontWeight.bold)),
+                        content: Text('profile.logout_confirm_desc'.tr(), style: GoogleFonts.inter(color: subtitleColor)),
                         actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text(
-                              'No',
-                              style: GoogleFonts.inter(
-                                color: Theme.of(context).colorScheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            child: Text(
-                              'Yes',
-                              style: GoogleFonts.inter(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text('profile.no'.tr(), style: GoogleFonts.inter(color: accentBlue, fontWeight: FontWeight.w600))),
+                          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text('profile.yes'.tr(), style: GoogleFonts.inter(color: Colors.red, fontWeight: FontWeight.w600))),
                         ],
                       ),
                     );
@@ -281,80 +225,244 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         (Route<dynamic> route) => false,
                       );
                     }
-                  } else {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      (Route<dynamic> route) => false,
-                    );
-                  }
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: _isLoggedIn ? Colors.red.withValues(alpha: 0.1) : const Color(0xFF4B85F0).withValues(alpha: 0.1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red.withValues(alpha: 0.08),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                ),
-                child: Text(
-                  _isLoggedIn ? 'Logout' : 'Login',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: _isLoggedIn ? Colors.red : const Color(0xFF4B85F0),
+                  child: Text(
+                    'profile.logout'.tr(),
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
                   ),
                 ),
               ),
-            ),
+
+              const SizedBox(height: 32),
+              // Footer Text
+              Center(
+                child: Text(
+                  'Meco Real Estate v2.4.0\n© 2026 Meco Technologies Pvt. Ltd.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: subtitleColor.withValues(alpha: 0.6),
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
           ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
+        ),
+      );
   }
 
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, {String? badge, VoidCallback? onTap}) {
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
-      title: Text(
+  Widget _buildSectionTitle(String title, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      child: Text(
         title,
         style: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Theme.of(context).colorScheme.onSurface,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+          color: color,
         ),
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (badge != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4B85F0),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                badge,
-                style: GoogleFonts.inter(
-                  color: Theme.of(context).colorScheme.surface,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          if (badge != null) const SizedBox(width: 8),
-          Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 20),
-        ],
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      dense: true,
     );
   }
 
-  Widget _buildDivider(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Divider(color: Theme.of(context).colorScheme.outline, height: 1, thickness: 1),
+  Widget _buildCardGroup(Color bgColor, Color borderColor, List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildDivider(Color color) {
+    return Divider(height: 1, thickness: 1, color: color, indent: 64);
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, Color iconBgColor, Color iconColor, Color titleColor, {String? badge, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap ?? () {},
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: iconBgColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, size: 20, color: iconColor),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: titleColor,
+                ),
+              ),
+            ),
+            if (badge != null)
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: iconColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  badge,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            Icon(Icons.chevron_right, size: 20, color: titleColor.withValues(alpha: 0.3)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentlyViewedList(Color cardBgColor, Color borderColor, Color titleColor, Color subtitleColor) {
+    final properties = [
+      {
+        'title': 'Green Valley Re...',
+        'location': 'Raipur, Chhattisgarh',
+        'image': 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300&auto=format&fit=crop',
+        'tag': null,
+      },
+      {
+        'title': 'Skyline Heights',
+        'location': 'Bilaspur, Chhattisga...',
+        'image': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=300&auto=format&fit=crop',
+        'tag': null,
+      },
+      {
+        'title': 'DLF The Crest',
+        'location': 'Sector 54, Gurgaon',
+        'image': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=300&auto=format&fit=crop',
+        'tag': 'Ready to Move',
+      },
+    ];
+
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: properties.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final prop = properties[index];
+          return Container(
+            width: 140,
+            decoration: BoxDecoration(
+              color: cardBgColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+                      child: Image.network(
+                        prop['image'] as String,
+                        height: 110,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    if (prop['tag'] != null)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF22C55E),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            prop['tag'] as String,
+                            style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        prop['title'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: titleColor),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        prop['location'] as String,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(fontSize: 10, color: subtitleColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSocialIcon(IconData icon, String label, Color iconBgColor, Color iconColor, Color titleColor) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: iconBgColor,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: iconColor, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: titleColor,
+          ),
+        ),
+      ],
     );
   }
 }

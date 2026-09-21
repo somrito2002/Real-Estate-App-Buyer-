@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'my_visits_screen.dart';
-
+import 'visit_rescheduled_success_screen.dart';
 class RescheduleVisitScreen extends StatefulWidget {
   final VisitMock visit;
 
@@ -13,7 +13,18 @@ class RescheduleVisitScreen extends StatefulWidget {
 
 class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
-  int selectedDate = 15;
+  
+  late DateTime _currentMonth;
+  late DateTime _selectedDate;
+  late DateTime _today;
+
+  final List<String> _months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  final List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
   String selectedTime = "11:00 AM";
 
   final List<String> timeSlots = [
@@ -22,6 +33,14 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
     "12:00 PM",
     "3:00 PM"
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _today = DateTime.now();
+    _currentMonth = DateTime(_today.year, _today.month);
+    _selectedDate = _today;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,19 +189,91 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'October 2026',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: titleColor,
-                                ),
+                              Row(
+                                children: [
+                                  DropdownButton<int>(
+                                    value: _currentMonth.month,
+                                    menuMaxHeight: 192,
+                                    icon: Icon(Icons.arrow_drop_down, color: titleColor, size: 20),
+                                    underline: const SizedBox(),
+                                    isDense: true,
+                                    onChanged: (int? newMonth) {
+                                      if (newMonth != null) {
+                                        setState(() {
+                                          _currentMonth = DateTime(_currentMonth.year, newMonth);
+                                        });
+                                      }
+                                    },
+                                    items: List.generate(12, (index) {
+                                      return DropdownMenuItem<int>(
+                                        value: index + 1,
+                                        child: Text(
+                                          _months[index],
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: titleColor,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  DropdownButton<int>(
+                                    value: _currentMonth.year,
+                                    menuMaxHeight: 192,
+                                    icon: Icon(Icons.arrow_drop_down, color: titleColor, size: 20),
+                                    underline: const SizedBox(),
+                                    isDense: true,
+                                    onChanged: (int? newYear) {
+                                      if (newYear != null) {
+                                        setState(() {
+                                          _currentMonth = DateTime(newYear, _currentMonth.month);
+                                        });
+                                      }
+                                    },
+                                    items: List.generate(100, (index) {
+                                      final year = DateTime.now().year + index;
+                                      return DropdownMenuItem<int>(
+                                        value: year,
+                                        child: Text(
+                                          year.toString(),
+                                          style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: titleColor,
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                ],
                               ),
                               Row(
                                 children: [
-                                  Icon(Icons.chevron_left, color: textMuted, size: 20),
-                                  const SizedBox(width: 8),
-                                  Icon(Icons.chevron_right, color: titleColor, size: 20),
+                                  IconButton(
+                                    icon: Icon(Icons.chevron_left, color: _isSameMonth(_currentMonth, _today) ? textMuted.withValues(alpha: 0.5) : titleColor, size: 20),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      if (!_isSameMonth(_currentMonth, _today)) {
+                                        setState(() {
+                                          _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+                                        });
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(width: 16),
+                                  IconButton(
+                                    icon: Icon(Icons.chevron_right, color: titleColor, size: 20),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      setState(() {
+                                        _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
+                                      });
+                                    },
+                                  ),
                                 ],
                               ),
                             ],
@@ -278,18 +369,27 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Show a success message or navigate
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Visit rescheduled to Oct $selectedDate at $selectedTime'),
-                        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.black87,
-                      ),
-                    );
-                    Navigator.of(context).pushAndRemoveUntil(
+                    // Calculate end time (assuming 30 min duration for demo)
+                    String endTime = selectedTime.contains("AM") 
+                        ? selectedTime.replaceAll("11:00", "11:30").replaceAll("10:00", "10:30")
+                        : selectedTime.replaceAll("12:00", "12:30").replaceAll("3:00", "3:30");
+                    
+                    String weekdayName = _weekdays[_selectedDate.weekday - 1];
+                    String monthName = _months[_selectedDate.month - 1].substring(0, 3);
+                    String fullMonthName = _months[_selectedDate.month - 1];
+                    
+                    // Update the visit model so it reflects in the My Visits screen
+                    widget.visit.dateTime = '$weekdayName, ${_selectedDate.day} $monthName • $selectedTime';
+                    widget.visit.timeSlot = '$selectedTime - $endTime';
+                    
+                    Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
-                        builder: (context) => const MyVisitsScreen(),
+                        builder: (context) => VisitRescheduledSuccessScreen(
+                          visit: widget.visit,
+                          newDate: '${_selectedDate.day} $fullMonthName ${_selectedDate.year}',
+                          newTime: '$selectedTime - $endTime',
+                        ),
                       ),
-                      (route) => false,
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -316,50 +416,80 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
     );
   }
 
+  bool _isSameMonth(DateTime a, DateTime b) => a.year == b.year && a.month == b.month;
+  bool _isSameDay(DateTime a, DateTime b) => a.year == b.year && a.month == b.month && a.day == b.day;
+
   Widget _buildCalendarGrid(bool isDark, Color titleColor, Color textMuted) {
-    // Generate dates for October 2026 (starts on Thursday)
-    // Days in Sep: 30 (so 27, 28, 29, 30 are before 1st)
-    // Days in Oct: 31
+    int daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+    int firstWeekday = DateTime(_currentMonth.year, _currentMonth.month, 1).weekday; // 1 = Monday, 7 = Sunday
+    int offset = firstWeekday == 7 ? 0 : firstWeekday; // If Sunday is first day of week
+
     List<Widget> rows = [];
     List<Widget> currentRow = [];
-    
-    // First row
-    List<int> firstRowDates = [27, 28, 29, 30, 1, 2, 3];
-    for (int i = 0; i < 7; i++) {
-      int date = firstRowDates[i];
-      bool isPrevMonth = i < 4;
-      currentRow.add(_buildDateCell(date, isPrevMonth, false, isDark, titleColor, textMuted));
+
+    // Previous month's trailing days
+    int daysInPrevMonth = DateTime(_currentMonth.year, _currentMonth.month, 0).day;
+    for (int i = 0; i < offset; i++) {
+      int prevDate = daysInPrevMonth - offset + 1 + i;
+      currentRow.add(_buildDateCell(
+        DateTime(_currentMonth.year, _currentMonth.month - 1, prevDate),
+        isOtherMonth: true,
+        isDark: isDark,
+        titleColor: titleColor,
+        textMuted: textMuted,
+      ));
     }
-    rows.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: currentRow));
-    
-    // Second row
-    currentRow = [];
-    for (int i = 4; i <= 10; i++) {
-      currentRow.add(_buildDateCell(i, false, false, isDark, titleColor, textMuted));
+
+    // Current month's days
+    for (int i = 1; i <= daysInMonth; i++) {
+      if (currentRow.length == 7) {
+        rows.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: currentRow));
+        rows.add(const SizedBox(height: 12));
+        currentRow = [];
+      }
+      currentRow.add(_buildDateCell(
+        DateTime(_currentMonth.year, _currentMonth.month, i),
+        isOtherMonth: false,
+        isDark: isDark,
+        titleColor: titleColor,
+        textMuted: textMuted,
+      ));
     }
-    rows.add(const SizedBox(height: 12));
-    rows.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: currentRow));
-    
-    // Third row
-    currentRow = [];
-    for (int i = 11; i <= 17; i++) {
-      currentRow.add(_buildDateCell(i, false, i == selectedDate, isDark, titleColor, textMuted));
+
+    // Next month's leading days
+    int nextDate = 1;
+    while (currentRow.length < 7) {
+      currentRow.add(_buildDateCell(
+        DateTime(_currentMonth.year, _currentMonth.month + 1, nextDate),
+        isOtherMonth: true,
+        isDark: isDark,
+        titleColor: titleColor,
+        textMuted: textMuted,
+      ));
+      nextDate++;
     }
-    rows.add(const SizedBox(height: 12));
-    rows.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: currentRow));
-    
-    // In a full implementation, we'd add the remaining rows. 
-    // Just keeping it simple here for the visual match.
-    
+    if (currentRow.isNotEmpty) {
+      rows.add(Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: currentRow));
+    }
+
     return Column(children: rows);
   }
   
-  Widget _buildDateCell(int date, bool isPrevMonth, bool isSelected, bool isDark, Color titleColor, Color textMuted) {
+  Widget _buildDateCell(DateTime date, {required bool isOtherMonth, required bool isDark, required Color titleColor, required Color textMuted}) {
+    bool isSelected = _isSameDay(date, _selectedDate);
+    // Ignore time for comparison
+    DateTime dateOnly = DateTime(date.year, date.month, date.day);
+    DateTime todayOnly = DateTime(_today.year, _today.month, _today.day);
+    bool isPast = dateOnly.isBefore(todayOnly);
+    
     return GestureDetector(
       onTap: () {
-        if (!isPrevMonth) {
+        if (!isPast) {
           setState(() {
-            selectedDate = date;
+            _selectedDate = date;
+            if (isOtherMonth) {
+              _currentMonth = DateTime(date.year, date.month);
+            }
           });
         }
       },
@@ -372,11 +502,13 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
         ),
         child: Center(
           child: Text(
-            date.toString(),
+            date.day.toString(),
             style: GoogleFonts.inter(
               fontSize: 13,
-              fontWeight: isSelected ? FontWeight.bold : (isPrevMonth ? FontWeight.normal : FontWeight.w500),
-              color: isSelected ? Colors.white : (isPrevMonth ? textMuted.withValues(alpha: 0.5) : titleColor),
+              fontWeight: isSelected ? FontWeight.bold : (isOtherMonth ? FontWeight.normal : FontWeight.w500),
+              color: isSelected 
+                  ? Colors.white 
+                  : (isPast || isOtherMonth ? textMuted.withValues(alpha: 0.5) : titleColor),
             ),
           ),
         ),
