@@ -46,8 +46,13 @@ dependencies:
   google_sign_in: ^6.3.0
   google_maps_flutter: ^2.18.1
   easy_localization: ^3.0.8
+  file_picker: ^13.1.0
+  cached_network_image: ^4.0.0
 
 
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

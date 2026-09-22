@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'edit_review_screen.dart';
 
 class ReviewItem {
   final String propertyName;
@@ -297,7 +298,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => EditReviewScreen(review: review)),
+                ),
                 child: Text(
                   'reviews.edit'.tr(),
                   style: GoogleFonts.inter(

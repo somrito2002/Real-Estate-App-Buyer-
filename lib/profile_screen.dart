@@ -5,11 +5,14 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
 import 'my_enquiries_screen.dart';
-import 'my_visits_screen.dart';
 import 'notification_settings_screen.dart';
 import 'reviews_screen.dart';
 import 'manage_devices_screen.dart';
 import 'select_language_screen.dart';
+import 'edit_profile_screen.dart';
+import 'help_and_support_screen.dart';
+import 'privacy_center_screen.dart';
+import 'terms_and_conditions_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -93,9 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundImage: showPhoto
                           ? FileImage(File(_cachedProfilePhotoPath!))
                           : const NetworkImage('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop') as ImageProvider, // Default mock avatar
-                      child: (showPhoto || true) // True for mockup
-                          ? null
-                          : Text(initial, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                      child: null,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -115,15 +116,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: borderColor),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'profile.edit_profile'.tr(),
-                        style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: accentBlue),
+                    GestureDetector(
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: borderColor),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          'profile.edit_profile'.tr(),
+                          style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: accentBlue),
+                        ),
                       ),
                     ),
                   ],
@@ -144,7 +148,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()));
                 }),
                 _buildDivider(borderColor),
-                _buildMenuItem(Icons.privacy_tip_outlined, 'profile.privacy_center'.tr(), iconBgColor, accentBlue, titleColor),
+                _buildMenuItem(Icons.privacy_tip_outlined, 'profile.privacy_center'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyCenterScreen()));
+                }),
               ]),
 
               _buildSectionTitle('profile.my_activity'.tr(), sectionTitleColor),
@@ -165,9 +171,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               _buildSectionTitle('profile.support_info'.tr(), sectionTitleColor),
               _buildCardGroup(cardBgColor, borderColor, [
-                _buildMenuItem(Icons.help_outline, 'profile.help_support'.tr(), iconBgColor, accentBlue, titleColor),
+                _buildMenuItem(Icons.help_outline, 'profile.help_support'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpAndSupportScreen()));
+                }),
                 _buildDivider(borderColor),
-                _buildMenuItem(Icons.description_outlined, 'profile.terms_conditions'.tr(), iconBgColor, accentBlue, titleColor),
+                _buildMenuItem(Icons.description_outlined, 'profile.terms_conditions'.tr(), iconBgColor, accentBlue, titleColor, onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsAndConditionsScreen()));
+                }),
               ]),
 
               _buildSectionTitle('profile.recently_viewed'.tr(), sectionTitleColor),

@@ -9,7 +9,6 @@ import 'register_screen.dart';
 import 'home_screen.dart';
 import 'phone_number_screen.dart';
 import 'forgot_password_screen.dart';
-import 'forgot_password_screen.dart';
 import 'onboarding_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
 import 'widgets/remove_shortlist_dialog.dart';
@@ -109,12 +110,12 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: Image.network(
-                    property.imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: property.imageUrl,
                     height: 180,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
+                    errorWidget: (context, url, error) {
                       return Container(
                         height: 180,
                         color: Theme.of(context).colorScheme.surfaceContainerHighest,

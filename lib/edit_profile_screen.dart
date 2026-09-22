@@ -1,0 +1,387 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'change_password_screen.dart';
+
+class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
+
+  @override
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
+}
+
+class _EditProfileScreenState extends State<EditProfileScreen> {
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  bool _isResidentialSelected = true;
+  bool _isVillasSelected = true;
+  bool _isCommercialSelected = false;
+  bool _receiveWhatsapp = true;
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF4A85F6)),
+                title: Text('Camera', style: GoogleFonts.inter()),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Color(0xFF4A85F6)),
+                title: Text('Media/Gallery', style: GoogleFonts.inter()),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Edit Profile',
+          style: GoogleFonts.inter(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Save logic here
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Save',
+              style: GoogleFonts.inter(
+                color: const Color(0xFF4A85F6),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey.shade200,
+                    backgroundImage: _imageFile != null
+                        ? FileImage(_imageFile!) as ImageProvider
+                        : const NetworkImage('https://i.pravatar.cc/150?img=11'), // placeholder matching design
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _showImagePickerOptions,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4A85F6),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            _buildLabel('Full Name'),
+            _buildTextField(initialValue: 'Arjun Malhotra'),
+            const SizedBox(height: 16),
+            _buildLabel('Email Address (Verified)'),
+            _buildTextField(
+              initialValue: 'arjun.malhotra@gmail.com',
+              readOnly: true,
+              suffixIcon: const Icon(Icons.verified, color: Color(0xFF0F9D58), size: 18),
+            ),
+            const SizedBox(height: 16),
+            _buildLabel('Phone Number'),
+            _buildTextField(initialValue: '+91 90390 06890'),
+            const SizedBox(height: 16),
+            _buildLabel('Current City'),
+            _buildDropdownField(initialValue: 'Gurgaon, Haryana'),
+            const SizedBox(height: 16),
+            _buildLabel('Short Bio'),
+            _buildTextField(
+              initialValue: 'Looking for premium residential flats and independent builder floors in Gurgaon or South Delhi. Prefer ready to move.',
+              maxLines: 4,
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'Search & Property Preferences',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1A1D1E),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildLabel('Preferred Locations'),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  _buildChip('Gurgaon'),
+                  const SizedBox(width: 8),
+                  _buildChip('Bangalore'),
+                  const SizedBox(width: 8),
+                  Text(
+                    '+ Add more...',
+                    style: GoogleFonts.inter(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildLabel('Budget Range (INR)'),
+            _buildTextField(initialValue: '₹2.00 Cr - ₹5.00 Cr'),
+            const SizedBox(height: 16),
+            _buildLabel('Interested Property Types'),
+            _buildCheckbox(
+              title: 'Residential Apartments',
+              value: _isResidentialSelected,
+              onChanged: (val) => setState(() => _isResidentialSelected = val!),
+            ),
+            _buildCheckbox(
+              title: 'Villas & Independent Houses',
+              value: _isVillasSelected,
+              onChanged: (val) => setState(() => _isVillasSelected = val!),
+            ),
+            _buildCheckbox(
+              title: 'Commercial Office Spaces',
+              value: _isCommercialSelected,
+              onChanged: (val) => setState(() => _isCommercialSelected = val!),
+            ),
+            const SizedBox(height: 24),
+            _buildLabel('Communication Channels'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Receive Whatsapp updates from support',
+                  style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF1A1D1E)),
+                ),
+                Switch(
+                  value: _receiveWhatsapp,
+                  activeThumbColor: const Color(0xFF4A85F6),
+                  onChanged: (val) => setState(() => _receiveWhatsapp = val),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey.shade200),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePasswordScreen()));
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Change Security Password',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: const Color(0xFF4A85F6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward, color: Color(0xFF4A85F6), size: 16),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF1A1D1E),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String initialValue,
+    int maxLines = 1,
+    bool readOnly = false,
+    Widget? suffixIcon,
+  }) {
+    return TextFormField(
+      initialValue: initialValue,
+      maxLines: maxLines,
+      readOnly: readOnly,
+      style: GoogleFonts.inter(
+        fontSize: 14,
+        color: readOnly ? Colors.grey.shade600 : const Color(0xFF1A1D1E),
+      ),
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        filled: readOnly,
+        fillColor: readOnly ? Colors.grey.shade50 : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF4A85F6)),
+        ),
+        suffixIcon: suffixIcon,
+      ),
+    );
+  }
+
+  Widget _buildDropdownField({required String initialValue}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: initialValue,
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: const Color(0xFF1A1D1E),
+          ),
+          items: [initialValue].map((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+          onChanged: (_) {},
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEDF3FF),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          color: const Color(0xFF4A85F6),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCheckbox({
+    required String title,
+    required bool value,
+    required ValueChanged<bool?> onChanged,
+  }) {
+    return Row(
+      children: [
+        SizedBox(
+          height: 32,
+          width: 24,
+          child: Checkbox(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF4A85F6),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            side: BorderSide(color: Colors.grey.shade400),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: const Color(0xFF5F6368),
+          ),
+        ),
+      ],
+    );
+  }
+}

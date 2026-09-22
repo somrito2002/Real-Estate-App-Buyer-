@@ -1,20 +1,20 @@
+import 'package:realty_app/l10n/app_localizations.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'profile_screen.dart';
 import 'saved_screen.dart';
 import 'search_screen.dart' as import_search_screen;
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
-import 'view_all_properties_screen.dart';
 import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
 import 'location_bottom_sheet.dart';
 import 'my_visits_screen.dart';
-import 'package:easy_localization/easy_localization.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentLocation = 'Locating...';
   String _currentState = '';
   String _selectedCategory = 'Residential';
+  final Map<String, int> _visibleItemCounts = {};
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -146,16 +147,16 @@ class _HomeScreenState extends State<HomeScreen> {
             context: context,
             builder: (context) => AlertDialog(
               backgroundColor: Theme.of(context).colorScheme.surface,
-              title: Text('home.leave_app_title'.tr(), style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-              content: Text('home.leave_app_desc'.tr(), style: GoogleFonts.inter()),
+              title: Text(AppLocalizations.of(context)!.homeLeaveAppTitle, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              content: Text(AppLocalizations.of(context)!.homeLeaveAppDesc, style: GoogleFonts.inter()),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('home.no'.tr(), style: GoogleFonts.inter(color: accentBlue)),
+                  child: Text(AppLocalizations.of(context)!.homeNo, style: GoogleFonts.inter(color: accentBlue)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: Text('home.yes'.tr(), style: GoogleFonts.inter(color: Colors.red)),
+                  child: Text(AppLocalizations.of(context)!.homeYes, style: GoogleFonts.inter(color: Colors.red)),
                 ),
               ],
             ),
@@ -184,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     title: Text(
-                      _bottomNavIndex == 1 ? 'home.nav_visits'.tr() : 'home.nav_wishlist'.tr(),
+                      _bottomNavIndex == 1 ? AppLocalizations.of(context)!.homeNavVisits : AppLocalizations.of(context)!.homeNavWishlist,
                       style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
                     ),
                     centerTitle: false,
@@ -238,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context, constraints) {
                   const int itemCount = 4;
                   final double itemWidth = constraints.maxWidth / itemCount;
-                  const double pillWidth = 54;
+                  final double pillWidth = itemWidth - 12;
                   const double pillHeight = 46;
                   final double pillLeft = _bottomNavIndex * itemWidth + (itemWidth - pillWidth) / 2;
                   return Stack(
@@ -262,10 +263,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Nav items row (no individual backgrounds)
                       Row(
                         children: [
-                          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, 'home.nav_home'.tr(), 0)),
-                          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, 'home.nav_visits'.tr(), 1)),
-                          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, 'home.nav_wishlist'.tr(), 2)),
-                          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, 'home.nav_account'.tr(), 3)),
+                          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, AppLocalizations.of(context)!.homeNavHome, 0)),
+                          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, AppLocalizations.of(context)!.homeNavVisits, 1)),
+                          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, AppLocalizations.of(context)!.homeNavWishlist, 2)),
+                          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, AppLocalizations.of(context)!.homeNavAccount, 3)),
                         ],
                       ),
                     ],
@@ -277,34 +278,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     ),
-          const SizedBox(width: 12),
-          // AI Button
-          GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI Features Coming Soon!')));
-            },
-            child: Container(
-              height: 56,
-              width: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFE8C1F5), Color(0xFFF7C2C9)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Icon(Icons.auto_awesome, color: Colors.white, size: 28),
-              ),
-            ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            child: _bottomNavIndex == 0
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(width: 12),
+                      // AI Button
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('AI Features Coming Soon!')));
+                        },
+                        child: Container(
+                          height: 56,
+                          width: 56,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFE8C1F5), Color(0xFFF7C2C9)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
@@ -352,18 +364,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBody() {
-    switch (_bottomNavIndex) {
-      case 0:
-        return _buildHomeTab();
-      case 1:
-        return const MyVisitsScreen(isEmbedded: true);
-      case 2:
-        return const SavedScreen();
-      case 3:
-        return const ProfileScreen();
-      default:
-        return const Center(child: Text('Coming Soon'));
-    }
+    return IndexedStack(
+      index: _bottomNavIndex,
+      children: [
+        _buildHomeTab(),
+        const MyVisitsScreen(isEmbedded: true),
+        const SavedScreen(),
+        const ProfileScreen(),
+      ],
+    );
   }
 
   PreferredSizeWidget _buildProfileAppBar() {
@@ -379,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       title: Text(
-        'profile.title'.tr(),
+        AppLocalizations.of(context)!.profileTitle,
         style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
       actions: [
@@ -423,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: AbsorbPointer(
                           child: TextField(
                             decoration: InputDecoration(
-                              hintText: 'home.search_hint'.tr(),
+                              hintText: AppLocalizations.of(context)!.homeSearchHint,
                               hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 14),
                               border: InputBorder.none,
                               isDense: true,
@@ -476,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
-                'home.explore_category'.tr(),
+                AppLocalizations.of(context)!.homeExploreCategory,
                 style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
               ),
             ),
@@ -519,17 +528,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'home.promo_title'.tr(),
+                      AppLocalizations.of(context)!.homePromoTitle,
                       style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'home.promo_desc'.tr(),
+                      AppLocalizations.of(context)!.homePromoDesc,
                       style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withAlpha(200), height: 1.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'home.start_searching'.tr(),
+                      AppLocalizations.of(context)!.homeStartSearching,
                       style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF82B1FF)),
                     ),
                   ],
@@ -650,37 +659,19 @@ class _HomeScreenState extends State<HomeScreen> {
     switch (_selectedCategory) {
       case 'Commercial':
         return [
-          _buildSectionHeader('home.feat_comm'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.feat_comm'.tr(),
-              properties: [mockProperties[4], mockProperties[5], mockProperties[6]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildFeaturedPropertyCard('Cyber Hub Plaza', 'By DLF Commercial', 'DLF Cyber City, Gurgaon', 'Starting ₹3.20 Cr', property: mockProperties[4]),
-              _buildFeaturedPropertyCard('Unitech Signature', 'By Unitech Group', 'Sector 30, Gurgaon', 'Starting ₹5.50 Cr', property: mockProperties[5]),
-              _buildFeaturedPropertyCard('World Trade Tower', 'By WTC Developers', 'Noida Sector 16', 'Starting ₹2.80 Cr', property: mockProperties[6]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatComm, onLoadMore: () => setState(() => _visibleItemCounts['comm_feat'] = (_visibleItemCounts['comm_feat'] ?? 3) + 2)),
+          _buildHorizontalQueue('comm_feat', [
+            _buildFeaturedPropertyCard('Cyber Hub Plaza', 'By DLF Commercial', 'DLF Cyber City, Gurgaon', 'Starting ₹3.20 Cr', property: mockProperties[4]),
+            _buildFeaturedPropertyCard('Unitech Signature', 'By Unitech Group', 'Sector 30, Gurgaon', 'Starting ₹5.50 Cr', property: mockProperties[5]),
+            _buildFeaturedPropertyCard('World Trade Tower', 'By WTC Developers', 'Noida Sector 16', 'Starting ₹2.80 Cr', property: mockProperties[6]),
+          ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.new_office'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.new_office'.tr(),
-              properties: [mockProperties[7], mockProperties[8], mockProperties[9]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildNewProjectCard('Prestige Tech Cloud', '₹1.80 Cr', property: mockProperties[7]),
-              _buildNewProjectCard('Embassy Business Hub', '₹2.40 Cr', property: mockProperties[8]),
-              _buildNewProjectCard('Salarpuria Softzone', '₹1.50 Cr', property: mockProperties[9]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeNewOffice, onLoadMore: () => setState(() => _visibleItemCounts['comm_new'] = (_visibleItemCounts['comm_new'] ?? 3) + 2)),
+          _buildHorizontalQueue('comm_new', [
+            _buildNewProjectCard('Prestige Tech Cloud', '₹1.80 Cr', property: mockProperties[7]),
+            _buildNewProjectCard('Embassy Business Hub', '₹2.40 Cr', property: mockProperties[8]),
+            _buildNewProjectCard('Salarpuria Softzone', '₹1.50 Cr', property: mockProperties[9]),
+          ]),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -696,56 +687,29 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.recent_view'.tr(),
-              properties: [mockProperties[4], mockProperties[5], mockProperties[6]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildRecentlyViewedCard('Infinity IT Park', 'Andheri East, Mumbai', '₹2.10 Cr', property: mockProperties[4]),
-              _buildRecentlyViewedCard('Mantri Commercio', 'Outer Ring Road, Bangalore', '₹3.50 Cr', property: mockProperties[5]),
-              _buildRecentlyViewedCard('Adani Inspire', 'BKC, Mumbai', '₹4.80 Cr', property: mockProperties[6]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['comm_recent'] = (_visibleItemCounts['comm_recent'] ?? 3) + 2)),
+          _buildHorizontalQueue('comm_recent', [
+            _buildRecentlyViewedCard('Infinity IT Park', 'Andheri East, Mumbai', '₹2.10 Cr', property: mockProperties[4]),
+            _buildRecentlyViewedCard('Mantri Commercio', 'Outer Ring Road, Bangalore', '₹3.50 Cr', property: mockProperties[5]),
+            _buildRecentlyViewedCard('Adani Inspire', 'BKC, Mumbai', '₹4.80 Cr', property: mockProperties[6]),
+          ]),
         ];
 
       case 'Plots':
         return [
-          _buildSectionHeader('home.feat_plots'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.feat_plots'.tr(),
-              properties: [mockProperties[0], mockProperties[1], mockProperties[2]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildFeaturedPropertyCard('DLF Garden City', 'By DLF Ltd.', 'Shilaj, Ahmedabad', 'Starting ₹45 L', property: mockProperties[0]),
-              _buildFeaturedPropertyCard('Sobha International', 'By Sobha Ltd.', 'Devanahalli, Bangalore', 'Starting ₹60 L', property: mockProperties[1]),
-              _buildFeaturedPropertyCard('Godrej Reserve', 'By Godrej Properties', 'Sarjapur Road, Bangalore', 'Starting ₹55 L', property: mockProperties[2]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_feat'] = (_visibleItemCounts['plots_feat'] ?? 3) + 2)),
+          _buildHorizontalQueue('plots_feat', [
+            _buildFeaturedPropertyCard('DLF Garden City', 'By DLF Ltd.', 'Shilaj, Ahmedabad', 'Starting ₹45 L', property: mockProperties[0]),
+            _buildFeaturedPropertyCard('Sobha International', 'By Sobha Ltd.', 'Devanahalli, Bangalore', 'Starting ₹60 L', property: mockProperties[1]),
+            _buildFeaturedPropertyCard('Godrej Reserve', 'By Godrej Properties', 'Sarjapur Road, Bangalore', 'Starting ₹55 L', property: mockProperties[2]),
+          ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.new_plots'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.new_plots'.tr(),
-              properties: [mockProperties[3], mockProperties[4], mockProperties[5]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildNewProjectCard('Prestige Elysian', '₹38 L', property: mockProperties[3]),
-              _buildNewProjectCard('Brigade Meadows', '₹42 L', property: mockProperties[4]),
-              _buildNewProjectCard('Mahindra Happinest', '₹29 L', property: mockProperties[5]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeNewPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_new'] = (_visibleItemCounts['plots_new'] ?? 3) + 2)),
+          _buildHorizontalQueue('plots_new', [
+            _buildNewProjectCard('Prestige Elysian', '₹38 L', property: mockProperties[3]),
+            _buildNewProjectCard('Brigade Meadows', '₹42 L', property: mockProperties[4]),
+            _buildNewProjectCard('Mahindra Happinest', '₹29 L', property: mockProperties[5]),
+          ]),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -761,56 +725,29 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.recent_view'.tr(),
-              properties: [mockProperties[0], mockProperties[1], mockProperties[2]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildRecentlyViewedCard('Adarsh Palm Retreat', 'Varthur Road, Bangalore', '₹62 L', property: mockProperties[0]),
-              _buildRecentlyViewedCard('TVS Emerald', 'Thirumazhisai, Chennai', '₹35 L', property: mockProperties[1]),
-              _buildRecentlyViewedCard('Casagrand Ferns', 'Kovur, Chennai', '₹28 L', property: mockProperties[2]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['plots_recent'] = (_visibleItemCounts['plots_recent'] ?? 3) + 2)),
+          _buildHorizontalQueue('plots_recent', [
+            _buildRecentlyViewedCard('Adarsh Palm Retreat', 'Varthur Road, Bangalore', '₹62 L', property: mockProperties[0]),
+            _buildRecentlyViewedCard('TVS Emerald', 'Thirumazhisai, Chennai', '₹35 L', property: mockProperties[1]),
+            _buildRecentlyViewedCard('Casagrand Ferns', 'Kovur, Chennai', '₹28 L', property: mockProperties[2]),
+          ]),
         ];
 
       case 'PG/Co-living':
         return [
-          _buildSectionHeader('home.feat_pg'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.feat_pg'.tr(),
-              properties: [mockProperties[6], mockProperties[7], mockProperties[8]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildFeaturedPropertyCard('Stanza Living', 'By Stanza Living', 'Koramangala, Bangalore', 'Starting ₹8,000/mo', property: mockProperties[6]),
-              _buildFeaturedPropertyCard('OYO Life', 'By OYO Rooms', 'Baner, Pune', 'Starting ₹9,500/mo', property: mockProperties[7]),
-              _buildFeaturedPropertyCard('Zolo Stays', 'By Zolo', 'Sector 62, Noida', 'Starting ₹7,500/mo', property: mockProperties[8]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_feat'] = (_visibleItemCounts['pg_feat'] ?? 3) + 2)),
+          _buildHorizontalQueue('pg_feat', [
+            _buildFeaturedPropertyCard('Stanza Living', 'By Stanza Living', 'Koramangala, Bangalore', 'Starting ₹8,000/mo', property: mockProperties[6]),
+            _buildFeaturedPropertyCard('OYO Life', 'By OYO Rooms', 'Baner, Pune', 'Starting ₹9,500/mo', property: mockProperties[7]),
+            _buildFeaturedPropertyCard('Zolo Stays', 'By Zolo', 'Sector 62, Noida', 'Starting ₹7,500/mo', property: mockProperties[8]),
+          ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.new_pg'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.new_pg'.tr(),
-              properties: [mockProperties[9], mockProperties[10], mockProperties[11]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildNewProjectCard('CoHo Homes', '₹10,000/mo', property: mockProperties[9]),
-              _buildNewProjectCard('NestAway Plus', '₹12,000/mo', property: mockProperties[10]),
-              _buildNewProjectCard('Colive Studio', '₹14,500/mo', property: mockProperties[11]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeNewPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_new'] = (_visibleItemCounts['pg_new'] ?? 3) + 2)),
+          _buildHorizontalQueue('pg_new', [
+            _buildNewProjectCard('CoHo Homes', '₹10,000/mo', property: mockProperties[9]),
+            _buildNewProjectCard('NestAway Plus', '₹12,000/mo', property: mockProperties[10]),
+            _buildNewProjectCard('Colive Studio', '₹14,500/mo', property: mockProperties[11]),
+          ]),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -826,57 +763,30 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.recent_view'.tr(),
-              properties: [mockProperties[6], mockProperties[7], mockProperties[8]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildRecentlyViewedCard('Hello World PG', 'HSR Layout, Bangalore', '₹9,000/mo', property: mockProperties[6]),
-              _buildRecentlyViewedCard('Liv-in PG', 'Wakad, Pune', '₹7,800/mo', property: mockProperties[7]),
-              _buildRecentlyViewedCard('Settl. Coliving', 'Whitefield, Bangalore', '₹11,000/mo', property: mockProperties[8]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['pg_recent'] = (_visibleItemCounts['pg_recent'] ?? 3) + 2)),
+          _buildHorizontalQueue('pg_recent', [
+            _buildRecentlyViewedCard('Hello World PG', 'HSR Layout, Bangalore', '₹9,000/mo', property: mockProperties[6]),
+            _buildRecentlyViewedCard('Liv-in PG', 'Wakad, Pune', '₹7,800/mo', property: mockProperties[7]),
+            _buildRecentlyViewedCard('Settl. Coliving', 'Whitefield, Bangalore', '₹11,000/mo', property: mockProperties[8]),
+          ]),
         ];
 
       // Residential (default)
       default:
         return [
-          _buildSectionHeader('home.feat_prop'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.feat_prop'.tr(),
-              properties: [mockProperties[2], mockProperties[3], mockProperties[8], mockProperties[9]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildFeaturedPropertyCard('Smart World One DXP', 'By Smart World Developers', 'Sector 113, Gurgaon', 'Starting ₹1.15 Cr', property: mockProperties[4]),
-              _buildFeaturedPropertyCard('Emaar Digi Homes', 'By Emaar India', 'Sector 62, Gurgaon', 'Starting ₹1.90 Cr', property: mockProperties[5]),
-              _buildFeaturedPropertyCard(mockProperties[10].title, 'By Classic Builders', mockProperties[10].location, 'Starting ${mockProperties[10].price}', property: mockProperties[10]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatProp, onLoadMore: () => setState(() => _visibleItemCounts['res_feat'] = (_visibleItemCounts['res_feat'] ?? 3) + 2)),
+          _buildHorizontalQueue('res_feat', [
+            _buildFeaturedPropertyCard('Smart World One DXP', 'By Smart World Developers', 'Sector 113, Gurgaon', 'Starting ₹1.15 Cr', property: mockProperties[4]),
+            _buildFeaturedPropertyCard('Emaar Digi Homes', 'By Emaar India', 'Sector 62, Gurgaon', 'Starting ₹1.90 Cr', property: mockProperties[5]),
+            _buildFeaturedPropertyCard(mockProperties[10].title, 'By Classic Builders', mockProperties[10].location, 'Starting ${mockProperties[10].price}', property: mockProperties[10]),
+          ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.new_prop'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.new_prop'.tr(),
-              properties: [mockProperties[2], mockProperties[3], mockProperties[8]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildNewProjectCard('DLF The Crest', '₹2.45 Cr', property: mockProperties[2]),
-              _buildNewProjectCard('M3M Golf', '₹1.80 Cr', property: mockProperties[3]),
-              _buildNewProjectCard(mockProperties[8].title, mockProperties[8].price, property: mockProperties[8]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeNewProp, onLoadMore: () => setState(() => _visibleItemCounts['res_new'] = (_visibleItemCounts['res_new'] ?? 3) + 2)),
+          _buildHorizontalQueue('res_new', [
+            _buildNewProjectCard('DLF The Crest', '₹2.45 Cr', property: mockProperties[2]),
+            _buildNewProjectCard('M3M Golf', '₹1.80 Cr', property: mockProperties[3]),
+            _buildNewProjectCard(mockProperties[8].title, mockProperties[8].price, property: mockProperties[8]),
+          ]),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -890,21 +800,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('home.recent_view'.tr(), onViewAll: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ViewAllPropertiesScreen(
-              title: 'home.recent_view'.tr(),
-              properties: [mockProperties[0], mockProperties[1], mockProperties[11]],
-            )));
-          }),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹85 L', property: mockProperties[0]),
-              _buildRecentlyViewedCard('SS The Leaf', 'Bhilai, Chhattisgarh', '₹1.20 Cr', property: mockProperties[1]),
-              _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
-            ]),
-          ),
+          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['res_recent'] = (_visibleItemCounts['res_recent'] ?? 3) + 2)),
+          _buildHorizontalQueue('res_recent', [
+            _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹85 L', property: mockProperties[0]),
+            _buildRecentlyViewedCard('SS The Leaf', 'Bhilai, Chhattisgarh', '₹1.20 Cr', property: mockProperties[1]),
+            _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
+          ]),
         ];
     }
   }
@@ -964,9 +865,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, {VoidCallback? onViewAll}) {
+  Widget _buildHorizontalQueue(String key, List<Widget> children) {
+    final count = _visibleItemCounts[key] ?? 3;
+    
+    List<Widget> queueItems = [];
+    for (int i = 0; i < count; i++) {
+      queueItems.add(children[i % children.length]);
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: queueItems,
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, {VoidCallback? onLoadMore}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -974,28 +892,16 @@ class _HomeScreenState extends State<HomeScreen> {
             title,
             style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
           ),
-          if (onViewAll != null)
-            GestureDetector(
-              onTap: onViewAll,
-              child: Row(
-                children: [
-                  Text(
-                    'home.view_all'.tr(),
-                    style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
-                  ),
-                  Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
-                ],
+          if (onLoadMore != null)
+            TextButton(
+              onPressed: onLoadMore,
+              style: TextButton.styleFrom(
+                foregroundColor: accentBlue,
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 0),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-            )
-          else
-            Row(
-              children: [
-                Text(
-                  'home.view_all'.tr(),
-                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary),
-                ),
-                Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.primary, size: 16),
-              ],
+              child: Text('Load More', style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14)),
             ),
         ],
       ),
@@ -1027,12 +933,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ClipRRect(
                 borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
                 child: (property != null && property.imageUrl.isNotEmpty)
-                    ? Image.network(
-                        property.imageUrl,
+                    ? CachedNetworkImage(
+                        imageUrl: property.imageUrl,
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                        errorWidget: (context, url, error) => Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                       )
                     : Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
               ),
@@ -1101,12 +1007,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ClipRRect(
                     borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
                     child: (property != null && property.imageUrl.isNotEmpty)
-                        ? Image.network(
-                            property.imageUrl,
+                        ? CachedNetworkImage(
+                            imageUrl: property.imageUrl,
                             height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                            errorWidget: (context, url, error) => Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                           )
                         : Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                   ),
@@ -1238,12 +1144,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ClipRRect(
             borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
             child: (property != null && property.imageUrl.isNotEmpty)
-                ? Image.network(
-                    property.imageUrl,
+                ? CachedNetworkImage(
+                    imageUrl: property.imageUrl,
                     height: 100,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                    errorWidget: (context, url, error) => Container(
                       height: 100,
                       color: Colors.grey.shade300,
                       child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),

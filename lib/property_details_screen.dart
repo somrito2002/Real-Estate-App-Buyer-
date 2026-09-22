@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
 import 'seller_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -361,8 +362,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                   )
-                                : Image.network(
-                                    url,
+                                : CachedNetworkImage(
+                                    imageUrl: url,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                   ),
@@ -931,8 +932,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     borderRadius: const BorderRadius.vertical(
                                       top: Radius.circular(12),
                                     ),
-                                    child: Image.network(
-                                      similar.imageUrl,
+                                    child: CachedNetworkImage(
+                                      imageUrl: similar.imageUrl,
                                       height: 100,
                                       width: double.infinity,
                                       fit: BoxFit.cover,
@@ -1149,12 +1150,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 height: 60,
                                 fit: BoxFit.cover,
                               )
-                            : Image.network(
-                                widget.property.imageUrl,
+                            : CachedNetworkImage(
+                                imageUrl: widget.property.imageUrl,
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, _, _) => Container(
+                                errorWidget: (context, url, error) => Container(
                                   width: 60,
                                   height: 60,
                                   color: Colors.grey.shade200,
@@ -1732,12 +1733,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              property.imageUrl,
+                            child: CachedNetworkImage(
+                              imageUrl: property.imageUrl,
                               width: 64,
                               height: 64,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, _, _) => Container(
+                              errorWidget: (context, url, error) => Container(
                                 width: 64,
                                 height: 64,
                                 color: Colors.grey.shade300,
@@ -2680,12 +2681,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        widget.property.imageUrl,
+                      child: CachedNetworkImage(
+                        imageUrl: widget.property.imageUrl,
                         width: 56,
                         height: 56,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Container(
+                        errorWidget: (context, url, error) => Container(
                           width: 56,
                           height: 56,
                           color: Colors.grey.shade200,
