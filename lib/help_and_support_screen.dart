@@ -7,6 +7,10 @@ import 'property_enquiries_help_screen.dart';
 import 'renting_property_help_screen.dart';
 import 'schedule_visit_help_screen.dart';
 import 'shortlist_help_screen.dart';
+import 'account_login_help_screen.dart';
+import 'payments_subscriptions_help_screen.dart';
+import 'notifications_help_screen.dart';
+import 'ticket_details_screen.dart';
 
 class HelpAndSupportScreen extends StatelessWidget {
   const HelpAndSupportScreen({super.key});
@@ -71,7 +75,7 @@ class HelpAndSupportScreen extends StatelessWidget {
               const SizedBox(height: 32),
               _buildSectionTitle('My Support Requests'),
               const SizedBox(height: 16),
-              _buildSupportRequestCard(),
+              _buildSupportRequestCard(context),
             ],
           ),
         ),
@@ -175,6 +179,12 @@ class HelpAndSupportScreen extends StatelessWidget {
             iconBgColor: const Color(0xFFEDF3FF),
             title: 'Account & Login',
             subtitle: 'Sign-in, profile and account help.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AccountLoginHelpScreen()),
+              );
+            },
           ),
           _buildDivider(),
           _buildHelpTopicItem(
@@ -183,6 +193,12 @@ class HelpAndSupportScreen extends StatelessWidget {
             iconBgColor: const Color(0xFFEDF3FF),
             title: 'Notifications',
             subtitle: 'Manage property and activity notifications.',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsHelpScreen()),
+              );
+            },
           ),
           _buildDivider(),
           _buildHelpTopicItem(
@@ -192,6 +208,12 @@ class HelpAndSupportScreen extends StatelessWidget {
             title: 'Payments & Subscriptions',
             subtitle: 'Help with payments and seller subscriptions.',
             isLast: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PaymentsSubscriptionsHelpScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -335,8 +357,15 @@ class HelpAndSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSupportRequestCard() {
-    return Container(
+  Widget _buildSupportRequestCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TicketDetailsScreen()),
+        );
+      },
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -390,6 +419,6 @@ class HelpAndSupportScreen extends StatelessWidget {
           Icon(Icons.chevron_right, color: Colors.grey[400]),
         ],
       ),
-    );
+    ));
   }
 }

@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   )),
         body: _buildBody(),
-        bottomNavigationBar: _buildCustomBottomNav(),
+        bottomNavigationBar: _bottomNavIndex == 2 ? const SizedBox.shrink() : _buildCustomBottomNav(),
       ),
     );
   }
@@ -369,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         _buildHomeTab(),
         const MyVisitsScreen(isEmbedded: true),
-        const SavedScreen(),
+        _bottomNavIndex == 2 ? SavedScreen(key: UniqueKey()) : const SavedScreen(),
         const ProfileScreen(),
       ],
     );

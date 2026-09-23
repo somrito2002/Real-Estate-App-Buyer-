@@ -268,11 +268,13 @@ class ManageDevicesScreen extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'devices.registered_on'.tr(namedArgs: {'time': registered}),
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: subtitleColor,
+                Expanded(
+                  child: Text(
+                    'devices.registered_on'.tr(namedArgs: {'time': registered}),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: subtitleColor,
+                    ),
                   ),
                 ),
                 if (isCurrentDevice)

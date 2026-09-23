@@ -134,13 +134,17 @@ class _SavedScreenState extends State<SavedScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     
-    Widget content = !_isLoggedIn ? _buildGuestView() : _buildSavedList();
+    Widget content = _savedProperties.isNotEmpty || _isLoggedIn 
+        ? _buildSavedList() 
+        : _buildGuestView();
 
     if (Navigator.canPop(context)) {
       return Scaffold(
         appBar: AppBar(
           title: Text(
-            'saved.shortlisted_properties'.tr(),
+            _savedProperties.isEmpty
+                ? 'Shortlisted Properties'
+                : 'Shortlisted Properties (${_savedProperties.length})',
             style: GoogleFonts.inter(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,
@@ -151,6 +155,19 @@ class _SavedScreenState extends State<SavedScreen> {
           elevation: 0,
           scrolledUnderElevation: 0,
           iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+          actions: [
+            if (_savedProperties.isNotEmpty)
+              TextButton(
+                onPressed: () => _removeAll(_savedProperties),
+                child: Text(
+                  'Clear All',
+                  style: GoogleFonts.inter(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,
         body: content,
@@ -227,29 +244,88 @@ class _SavedScreenState extends State<SavedScreen> {
 
     if (saved.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.bookmark_border_rounded, size: 72,
-                color: Theme.of(context).colorScheme.outlineVariant),
-            const SizedBox(height: 16),
-            Text('saved.no_shortlisted'.tr(),
-                style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface)),
-            const SizedBox(height: 8),
-            Text('saved.tap_heart_desc'.tr(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF0F4FF),
+                  shape: BoxShape.circle,
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Icon(Icons.favorite_border, size: 48, color: Color(0xFF4B85F0)),
+                    Transform.rotate(
+                      angle: -0.785398, // -45 degrees in radians
+                      child: Container(
+                        width: 56,
+                        height: 2.5,
+                        color: const Color(0xFF4B85F0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'No Properties',
+                style: GoogleFonts.inter(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Properties you shortlist will appear here.\nStart exploring to find your perfect property.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 14,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
-          ],
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  height: 1.5,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4B85F0),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Explore Properties',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return Column(
       children: [
-        // ── HEADER ──
-        _buildHeader(saved),
+        // ── PROPERTY LIST ──
 
         // ── PROPERTY LIST ──
         Expanded(
@@ -316,173 +392,150 @@ class _SavedScreenState extends State<SavedScreen> {
   }
 
   Widget _buildPropertyCard(Property property, int index, bool isSelected, List<Property> saved) {
-    return GestureDetector(
-      onTap: () {
-        if (_isSelecting) {
-          _toggleSelection(index);
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)),
-          ).then((_) => setState(() {}));
-        }
-      },
-      onLongPress: () {
-        if (!_isSelecting) {
-          _enterSelectMode(index);
-        }
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? accentBlue.withAlpha(12)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant,
-            width: isSelected ? 1.5 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(10),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── IMAGE with selection indicator ──
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: _buildPropertyImage(context, property),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── IMAGE with checkbox ──
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: _buildPropertyImage(context, property),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: GestureDetector(
+                    onTap: () => _toggleSelection(index),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected ? accentBlue : Colors.white,
+                        border: Border.all(
+                          color: isSelected ? accentBlue : Colors.grey.shade400,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: isSelected
+                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          : null,
                     ),
                   ),
-                  // Selection circle / check
-                  Positioned(
-                    top: 6, left: 6,
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: _isSelecting
-                          ? Container(
-                              key: const ValueKey('check'),
-                              width: 24, height: 24,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isSelected ? accentBlue : Theme.of(context).colorScheme.surface.withAlpha(220),
-                                border: Border.all(
-                                  color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: isSelected
-                                  ? const Icon(Icons.check, size: 14, color: Colors.white)
-                                  : null,
-                            )
-                          : const SizedBox.shrink(key: ValueKey('empty')),
+                ),
+              ],
+            ),
+            const SizedBox(width: 12),
+
+            // ── DETAILS ──
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        property.price,
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: accentBlue,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => RemoveShortlistDialog(
+                                propertyTitle: property.title),
+                          );
+                          if (confirm == true) {
+                            setState(() {
+                              property.isFavorite = false;
+                              if (isSelected) _selectedIndices.remove(index);
+                            });
+                          }
+                        },
+                        child: const Icon(Icons.favorite_border,
+                            color: accentRed, size: 22),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    property.title,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    property.specs,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          property.location,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => RemoveShortlistDialog(
+                                propertyTitle: property.title),
+                          );
+                          if (confirm == true) {
+                            setState(() {
+                              property.isFavorite = false;
+                              if (isSelected) _selectedIndices.remove(index);
+                            });
+                          }
+                        },
+                        child: Text(
+                          'Remove',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: accentRed,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(width: 12),
-
-              // ── DETAILS ──
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            property.price,
-                            style: GoogleFonts.inter(
-                              fontSize: 16, fontWeight: FontWeight.bold, color: accentBlue),
-                          ),
-                        ),
-                        // Heart icon
-                        GestureDetector(
-                          onTap: _isSelecting
-                              ? null
-                              : () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (_) => RemoveShortlistDialog(
-                                        propertyTitle: property.title),
-                                  );
-                                  if (confirm == true) {
-                                    setState(() => property.isFavorite = false);
-                                  }
-                                },
-                          child: Icon(Icons.favorite,
-                              color: _isSelecting ? Theme.of(context).colorScheme.outline : accentRed,
-                              size: 20),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      property.title,
-                      style: GoogleFonts.inter(
-                        fontSize: 14, fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.onSurface),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      property.specs,
-                      style: GoogleFonts.inter(fontSize: 12,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            property.location,
-                            style: GoogleFonts.inter(fontSize: 12,
-                                color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: _isSelecting
-                              ? null
-                              : () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (_) => RemoveShortlistDialog(
-                                        propertyTitle: property.title),
-                                  );
-                                  if (confirm == true) {
-                                    setState(() => property.isFavorite = false);
-                                  }
-                                },
-                          child: Text(
-                            'saved.remove'.tr(),
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: _isSelecting ? Theme.of(context).colorScheme.outline : accentRed,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -506,107 +559,73 @@ class _SavedScreenState extends State<SavedScreen> {
 
   // ── BOTTOM ACTION BAR ────────────────────────────────────────────────────────
   Widget _buildBottomBar(List<Property> saved) {
+    final bool canCompare = _selectedIndices.length == 2;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
       ),
-      child: _isSelecting && _selectedIndices.isNotEmpty
-          ? Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _removeSelected(saved),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: accentRed,
-                      side: const BorderSide(color: accentRed),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                      'saved.remove_count'.tr(namedArgs: {'count': _selectedIndices.length.toString()}),
-                      style: GoogleFonts.inter(
-                          fontSize: 15, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () => _removeAll(saved),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: accentRed,
+                side: const BorderSide(color: accentRed),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _selectedIndices.length == 2
-                        ? () {
-                            final p1 = saved[_selectedIndices.elementAt(0)];
-                            final p2 = saved[_selectedIndices.elementAt(1)];
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (_) => ComparePropertiesScreen(prop1: p1, prop2: p2),
-                            ));
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: accentBlue,
-                      disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      foregroundColor: Colors.white,
-                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('saved.compare_properties'.tr(),
-                        style: GoogleFonts.inter(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
-                  ),
+              ),
+              child: Text(
+                'Remove All',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            )
-          : Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _removeAll(saved),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: accentRed,
-                      side: const BorderSide(color: accentRed),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('saved.remove_all'.tr(),
-                        style: GoogleFonts.inter(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _selectedIndices.length == 2
-                        ? () {
-                            final p1 = saved[_selectedIndices.elementAt(0)];
-                            final p2 = saved[_selectedIndices.elementAt(1)];
-                            Navigator.of(context).push(MaterialPageRoute(
-                              builder: (_) => ComparePropertiesScreen(prop1: p1, prop2: p2),
-                            ));
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: accentBlue,
-                      disabledBackgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      foregroundColor: Colors.white,
-                      disabledForegroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('saved.compare_properties'.tr(),
-                        style: GoogleFonts.inter(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
-                  ),
-                ),
-              ],
+              ),
             ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              onPressed: canCompare
+                  ? () {
+                      final List<int> sortedIndices = _selectedIndices.toList()..sort();
+                      final p1 = saved[sortedIndices[0]];
+                      final p2 = saved[sortedIndices[1]];
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) => ComparePropertiesScreen(prop1: p1, prop2: p2),
+                      ));
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentBlue,
+                disabledBackgroundColor: accentBlue.withAlpha(128),
+                foregroundColor: Colors.white,
+                disabledForegroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Compare Properties',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

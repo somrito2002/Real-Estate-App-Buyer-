@@ -112,31 +112,6 @@ class ComparePropertiesScreen extends StatelessWidget {
               _buildBoolTableRow(context, 'Pool', _generateBool(prop1, 1), _generateBool(prop2, 1), isStriped: false),
               _buildBoolTableRow(context, 'Power', _generateBool(prop1, 2), _generateBool(prop2, 2), isStriped: true),
               
-              const SizedBox(height: 32),
-              
-              // Add Property to Compare Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {},
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onSurface,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Theme.of(context).colorScheme.outline),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Add Property to Compare',
-                    style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),

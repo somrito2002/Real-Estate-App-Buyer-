@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
@@ -33,6 +34,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   bool _isLoggedIn = false;
   int _currentImageIndex = 0;
+  bool _isAboutExpanded = false;
+  bool _isFeaturesExpanded = false;
+  bool _isDetailsExpanded = false;
 
   // Persisted Visit Booking State
   String? _visitSelectedTime;
@@ -64,28 +68,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   void _onHeartTapped(Property property) async {
-    if (!_isLoggedIn) {
-      _showSaveToShortlistSheet();
-    } else {
-      if (property.isFavorite) {
-        // Show confirm dialog before removing
-        final bool? confirm = await showDialog<bool>(
-          context: context,
-          builder: (context) => RemoveShortlistDialog(
-            propertyTitle: property.title,
-          ),
-        );
-        
-        if (confirm == true) {
-          setState(() {
-            property.isFavorite = false;
-          });
-        }
-      } else {
+    if (property.isFavorite) {
+      // Show confirm dialog before removing
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => RemoveShortlistDialog(
+          propertyTitle: property.title,
+        ),
+      );
+      
+      if (confirm == true) {
         setState(() {
-          property.isFavorite = true;
+          property.isFavorite = false;
         });
       }
+    } else {
+      setState(() {
+        property.isFavorite = true;
+      });
     }
   }
 
@@ -582,7 +582,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       _buildSectionHeader('About This Property'),
                       const SizedBox(height: 8),
                       Text(
-                        'Experience the perfect blend of luxury and comfort in this premium apartment. Features high ventilation, modern vitrified flooring, and direct access to transit hubs...',
+                        _isAboutExpanded
+                            ? 'Experience the perfect blend of luxury and comfort in this premium apartment. Features high ventilation, modern vitrified flooring, and direct access to transit hubs. Built with premium materials, this property offers unmatched security, state-of-the-art facilities, and a serene environment perfect for your family.'
+                            : 'Experience the perfect blend of luxury and comfort in this premium apartment. Features high ventilation, modern vitrified flooring, and direct access to transit hubs...',
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -591,11 +593,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                       const SizedBox(height: 8),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          setState(() {
+                            _isAboutExpanded = !_isAboutExpanded;
+                          });
+                        },
                         child: Row(
                           children: [
                             Text(
-                              'Read More',
+                              _isAboutExpanded ? 'Read Less' : 'Read More',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -603,12 +609,34 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward,
+                            Icon(
+                              _isAboutExpanded ? Icons.keyboard_arrow_up : Icons.arrow_forward,
                               size: 14,
                               color: accentBlue,
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: TextButton(
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            backgroundColor: accentBlue.withValues(alpha: 0.1),
+                            foregroundColor: accentBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Calculate this Property',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
 
@@ -648,15 +676,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             Icons.pool_outlined,
                             'Swimming Pool',
                           ),
+                          if (_isFeaturesExpanded) ...[
+                            _buildAmenityItem(Icons.fitness_center_outlined, 'Gym'),
+                            _buildAmenityItem(Icons.park_outlined, 'Park/Garden'),
+                            _buildAmenityItem(Icons.wifi_outlined, 'Internet/Wi-Fi'),
+                            _buildAmenityItem(Icons.local_fire_department_outlined, 'Fire Safety'),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          setState(() {
+                            _isFeaturesExpanded = !_isFeaturesExpanded;
+                          });
+                        },
                         child: Row(
                           children: [
                             Text(
-                              'View All Features',
+                              _isFeaturesExpanded ? 'View Less' : 'View All Features',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -664,8 +702,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_forward,
+                            Icon(
+                              _isFeaturesExpanded ? Icons.keyboard_arrow_up : Icons.arrow_forward,
                               size: 14,
                               color: accentBlue,
                             ),
@@ -715,7 +753,19 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                       const SizedBox(height: 8),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () async {
+                          final query = Uri.encodeComponent(property.location);
+                          final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri);
+                          } else {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Could not open map.')),
+                              );
+                            }
+                          }
+                        },
                         child: Row(
                           children: [
                             Text(
@@ -817,13 +867,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       _buildDetailRow('Property Type', 'Apartment'),
                       _buildDetailRow('Listing Type', 'For Sale'),
                       _buildDetailRow('Area', area),
+                      if (_isDetailsExpanded) ...[
+                        _buildDetailRow('Furnishing', 'Semi-Furnished'),
+                        _buildDetailRow('Facing', 'North-East'),
+                        _buildDetailRow('Age of Construction', 'New Construction'),
+                        _buildDetailRow('Floor Number', '5 of 12'),
+                        _buildDetailRow('Water Supply', '24 Hours Available'),
+                      ],
                       const SizedBox(height: 12),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          setState(() {
+                            _isDetailsExpanded = !_isDetailsExpanded;
+                          });
+                        },
                         child: Row(
                           children: [
                             Text(
-                              'View More Details',
+                              _isDetailsExpanded ? 'View Less Details' : 'View More Details',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -831,8 +892,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            const Icon(
-                              Icons.arrow_downward,
+                            Icon(
+                              _isDetailsExpanded ? Icons.arrow_upward : Icons.arrow_downward,
                               size: 14,
                               color: accentBlue,
                             ),
