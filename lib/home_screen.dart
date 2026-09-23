@@ -194,13 +194,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     actions: [
                       if (_bottomNavIndex == 1)
                         IconButton(
-                          icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
+                          icon: const SizedBox.shrink(),
                           onPressed: () {},
                         ),
                     ],
                   )),
         body: _buildBody(),
-        bottomNavigationBar: _bottomNavIndex == 2 ? const SizedBox.shrink() : _buildCustomBottomNav(),
+        bottomNavigationBar: (_bottomNavIndex == 2 && mockProperties.any((p) => p.isFavorite)) ? const SizedBox.shrink() : _buildCustomBottomNav(),
       ),
     );
   }
@@ -369,7 +369,16 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         _buildHomeTab(),
         const MyVisitsScreen(isEmbedded: true),
-        _bottomNavIndex == 2 ? SavedScreen(key: UniqueKey()) : const SavedScreen(),
+        _bottomNavIndex == 2 
+            ? SavedScreen(
+                key: UniqueKey(),
+                onExplore: () => setState(() => _bottomNavIndex = 0),
+                onChange: () => setState(() {}),
+              ) 
+            : SavedScreen(
+                onExplore: () => setState(() => _bottomNavIndex = 0),
+                onChange: () => setState(() {}),
+              ),
         const ProfileScreen(),
       ],
     );
@@ -393,7 +402,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.more_vert, color: Theme.of(context).colorScheme.onSurface),
+          icon: const SizedBox.shrink(),
           onPressed: () {},
         ),
       ],

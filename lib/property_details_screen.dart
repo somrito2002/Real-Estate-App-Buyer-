@@ -18,6 +18,7 @@ import 'widgets/remove_shortlist_dialog.dart';
 import 'full_screen_image_gallery.dart';
 import 'enquiry_success_screen.dart';
 import 'confirm_visit_details_screen.dart';
+import 'financial_tools_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -622,7 +623,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         width: double.infinity,
                         height: 48,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FinancialToolsScreen(property: property),
+                              ),
+                            );
+                          },
                           style: TextButton.styleFrom(
                             backgroundColor: accentBlue.withValues(alpha: 0.1),
                             foregroundColor: accentBlue,

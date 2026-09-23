@@ -11,7 +11,9 @@ import 'widgets/remove_shortlist_dialog.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class SavedScreen extends StatefulWidget {
-  const SavedScreen({super.key});
+  final VoidCallback? onExplore;
+  final VoidCallback? onChange;
+  const SavedScreen({super.key, this.onExplore, this.onChange});
 
   @override
   State<SavedScreen> createState() => _SavedScreenState();
@@ -88,6 +90,7 @@ class _SavedScreenState extends State<SavedScreen> {
         p.isFavorite = false;
       }
       _exitSelectMode();
+      widget.onChange?.call();
     });
   }
 
@@ -124,6 +127,7 @@ class _SavedScreenState extends State<SavedScreen> {
       setState(() {
         for (final p in saved) { p.isFavorite = false; }
         _exitSelectMode();
+        widget.onChange?.call();
       });
     }
   }
@@ -296,7 +300,9 @@ class _SavedScreenState extends State<SavedScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (Navigator.canPop(context)) {
+                    if (widget.onExplore != null) {
+                      widget.onExplore!();
+                    } else if (Navigator.canPop(context)) {
                       Navigator.pop(context);
                     }
                   },
@@ -468,6 +474,7 @@ class _SavedScreenState extends State<SavedScreen> {
                             setState(() {
                               property.isFavorite = false;
                               if (isSelected) _selectedIndices.remove(index);
+                              widget.onChange?.call();
                             });
                           }
                         },
@@ -518,6 +525,7 @@ class _SavedScreenState extends State<SavedScreen> {
                             setState(() {
                               property.isFavorite = false;
                               if (isSelected) _selectedIndices.remove(index);
+                              widget.onChange?.call();
                             });
                           }
                         },
