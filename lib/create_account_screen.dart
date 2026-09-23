@@ -94,7 +94,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       height: 4,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

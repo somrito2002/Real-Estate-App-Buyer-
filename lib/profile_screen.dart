@@ -343,7 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                 ),
               ),
@@ -417,7 +417,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           child: Text(
                             prop['tag'] as String,
-                            style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white),
+                            style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.surface),
                           ),
                         ),
                       ),

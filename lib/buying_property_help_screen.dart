@@ -7,18 +7,18 @@ class BuyingPropertyHelpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Buying a Property',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -28,29 +28,29 @@ class BuyingPropertyHelpScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildFaqItem(
+            _buildFaqItem(context, 
               question: 'How do I search for properties?',
               answer:
                   'Use the search bar on the home screen. You can filter by location, price range, property type, BHK configuration, and amenities. Save your searches for quick access later.',
               initiallyExpanded: true,
             ),
-            _buildFaqItem(
+            _buildFaqItem(context, 
               question: 'What does \'Under Construction\' vs \'Ready to Move\' mean?',
               answer: '...', // Add placeholder text or leave empty as per design
             ),
-            _buildFaqItem(
+            _buildFaqItem(context, 
               question: 'How do I schedule a site visit?',
               answer: '...',
             ),
-            _buildFaqItem(
+            _buildFaqItem(context, 
               question: 'What documents do I need to buy a property?',
               answer: '...',
             ),
-            _buildFaqItem(
+            _buildFaqItem(context, 
               question: 'How do I make an enquiry about a property?',
               answer: '...',
             ),
-            _buildFaqItem(
+            _buildFaqItem(context, 
               question: 'What is RERA registration?',
               answer: '...',
             ),
@@ -60,7 +60,7 @@ class BuyingPropertyHelpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFaqItem({
+  Widget _buildFaqItem(BuildContext context, {
     required String question,
     required String answer,
     bool initiallyExpanded = false,
@@ -72,7 +72,7 @@ class BuyingPropertyHelpScreen extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border(
-            bottom: BorderSide(color: Colors.grey.shade200),
+            bottom: BorderSide(color: Theme.of(context).colorScheme.surfaceContainerHighest),
           ),
         ),
         child: ExpansionTile(

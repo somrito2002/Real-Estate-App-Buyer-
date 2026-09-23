@@ -11,18 +11,18 @@ class PrivacyCenterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Privacy Center',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -36,9 +36,9 @@ class PrivacyCenterScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +48,7 @@ class PrivacyCenterScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A1D1E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -56,7 +56,7 @@ class PrivacyCenterScreen extends StatelessWidget {
                     'Control your data, manage consents, and configure how Meco protects your real estate search journey.',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       height: 1.5,
                     ),
                   ),
@@ -66,39 +66,43 @@ class PrivacyCenterScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
               ),
               child: Column(
                 children: [
                   _buildListItem(
+                    context,
                     title: 'Privacy Policy',
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()));
                     },
                   ),
-                  _buildDivider(),
+                  _buildDivider(context),
                   _buildListItem(
+                    context,
                     title: 'Request My Data',
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const RequestDataScreen()));
                     },
                   ),
-                  _buildDivider(),
+                  _buildDivider(context),
                   _buildListItem(
+                    context,
                     title: 'De-activate my Account',
-                    titleColor: const Color(0xFF4A85F6),
-                    iconColor: const Color(0xFF4A85F6),
+                    titleColor: Theme.of(context).colorScheme.primary,
+                    iconColor: Theme.of(context).colorScheme.primary,
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const DeactivateAccountScreen()));
                     },
                   ),
-                  _buildDivider(),
+                  _buildDivider(context),
                   _buildListItem(
+                    context,
                     title: 'Delete my Account',
-                    titleColor: const Color(0xFF4A85F6),
-                    iconColor: const Color(0xFF4A85F6),
+                    titleColor: Theme.of(context).colorScheme.primary,
+                    iconColor: Theme.of(context).colorScheme.primary,
                     isLast: true,
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => const DeleteAccountScreen()));
@@ -113,13 +117,16 @@ class PrivacyCenterScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildListItem({
+  Widget _buildListItem(
+    BuildContext context, {
     required String title,
-    Color titleColor = const Color(0xFF1A1D1E),
-    Color iconColor = const Color(0xFF5F6368),
+    Color? titleColor,
+    Color? iconColor,
     bool isLast = false,
     required VoidCallback onTap,
   }) {
+    final tColor = titleColor ?? Theme.of(context).colorScheme.onSurface;
+    final iColor = iconColor ?? Theme.of(context).colorScheme.onSurfaceVariant;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -132,21 +139,21 @@ class PrivacyCenterScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: titleColor,
+                color: tColor,
               ),
             ),
-            Icon(Icons.chevron_right, color: iconColor),
+            Icon(Icons.chevron_right, color: iColor),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(BuildContext context) {
     return Divider(
       height: 1,
       thickness: 1,
-      color: Colors.grey.shade100,
+      color: Theme.of(context).colorScheme.outlineVariant,
     );
   }
 }

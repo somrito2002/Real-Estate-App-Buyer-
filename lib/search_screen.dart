@@ -488,7 +488,7 @@ class _ListeningBottomSheetState extends State<_ListeningBottomSheet>
             topLeft: Radius.circular(32), topRight: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -516,7 +516,7 @@ class _ListeningBottomSheetState extends State<_ListeningBottomSheet>
                         spreadRadius: 5 + 15 * _glow.value,
                       ),
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -567,8 +567,8 @@ class _ListeningBottomSheetState extends State<_ListeningBottomSheet>
       child: Container(
         width: 10,
         height: 10,
-        decoration: const BoxDecoration(
-          color: Colors.black,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.onSurface,
           shape: BoxShape.circle,
         ),
       ),

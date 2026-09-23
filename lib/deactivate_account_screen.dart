@@ -7,18 +7,18 @@ class DeactivateAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'De-activate Account',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -69,9 +69,9 @@ class DeactivateAccountScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,15 +85,15 @@ class DeactivateAccountScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildListItem('Your profile won\'t appear in searches'),
+                  _buildListItem(context, 'Your profile won\'t appear in searches'),
                   const SizedBox(height: 12),
-                  _buildListItem('Active enquiries will be paused'),
+                  _buildListItem(context, 'Active enquiries will be paused'),
                   const SizedBox(height: 12),
-                  _buildListItem('Scheduled visits will be cancelled'),
+                  _buildListItem(context, 'Scheduled visits will be cancelled'),
                   const SizedBox(height: 12),
-                  _buildListItem('Notifications will stop'),
+                  _buildListItem(context, 'Notifications will stop'),
                   const SizedBox(height: 12),
-                  _buildListItem('Saved searches and shortlists are preserved'),
+                  _buildListItem(context, 'Saved searches and shortlists are preserved'),
                 ],
               ),
             ),
@@ -135,7 +135,7 @@ class DeactivateAccountScreen extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -168,7 +168,7 @@ class DeactivateAccountScreen extends StatelessWidget {
                   'Your account will be temporarily hidden. You can reactivate by signing in again.',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -181,7 +181,7 @@ class DeactivateAccountScreen extends StatelessWidget {
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(color: Colors.grey.shade300),
+                          side: BorderSide(color: Theme.of(context).colorScheme.outline),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -216,7 +216,7 @@ class DeactivateAccountScreen extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                       ),
@@ -231,7 +231,7 @@ class DeactivateAccountScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildListItem(String text) {
+  Widget _buildListItem(BuildContext context, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -242,7 +242,7 @@ class DeactivateAccountScreen extends StatelessWidget {
             text,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.3,
             ),
           ),

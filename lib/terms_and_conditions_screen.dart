@@ -14,18 +14,18 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Terms & Conditions',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -43,7 +43,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1A1D1E),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 8),
@@ -52,7 +52,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF4A85F6),
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -60,7 +60,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                 'These terms explain the rules and conditions for using the MECO Real Estate platform. Please read them carefully before using our services.',
                 style: GoogleFonts.inter(
                   fontSize: 15,
-                  color: const Color(0xFF5F6368),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
               ),
@@ -100,7 +100,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF2F6FF),
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -110,7 +110,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A1D1E),
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -119,7 +119,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                       textAlign: TextAlign.center,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: const Color(0xFF5F6368),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -129,7 +129,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4A85F6),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -163,8 +163,8 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
     bool isLast = false,
   }) {
     bool isExpanded = _expandedIndex == index;
-    Color textColor = isExpanded ? const Color(0xFF4A85F6) : const Color(0xFF1A1D1E);
-    Color iconColor = isExpanded ? const Color(0xFF4A85F6) : const Color(0xFF5F6368);
+    Color textColor = isExpanded ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface;
+    Color iconColor = isExpanded ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Container(
       decoration: BoxDecoration(
@@ -204,7 +204,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                   content,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: const Color(0xFF5F6368),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
                 ),

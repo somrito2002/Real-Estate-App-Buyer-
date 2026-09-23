@@ -163,7 +163,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.grey.shade200,
+                      color: isDarkMode ? colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHighest,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(Icons.close, size: 20, color: colorScheme.onSurface),
@@ -194,7 +194,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: isDarkMode ? colorScheme.outlineVariant : Colors.grey.shade300,
+                          color: isDarkMode ? colorScheme.outlineVariant : Theme.of(context).colorScheme.outline,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
@@ -281,7 +281,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.grey.shade100,
+                                color: isDarkMode ? colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHighest,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(Icons.location_on_outlined, size: 20, color: colorScheme.onSurfaceVariant),
@@ -342,7 +342,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                             color: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isDarkMode ? colorScheme.outlineVariant : Colors.grey.shade200,
+                              color: isDarkMode ? colorScheme.outlineVariant : Theme.of(context).colorScheme.surfaceContainerHighest,
                             ),
                           ),
                         clipBehavior: Clip.antiAlias,
@@ -355,7 +355,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                                 city['image']!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => Container(
-                                  color: Colors.grey.shade300,
+                                  color: Theme.of(context).colorScheme.outline,
                                   child: const Icon(Icons.location_city, color: Colors.grey),
                                 ),
                               ),
@@ -401,7 +401,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                     separatorBuilder: (context, index) => Padding(
                       padding: const EdgeInsets.only(left: 48),
                       child: Divider(
-                        color: isDarkMode ? colorScheme.outlineVariant : Colors.grey.shade200,
+                        color: isDarkMode ? colorScheme.outlineVariant : Theme.of(context).colorScheme.surfaceContainerHighest,
                         height: 1,
                       ),
                     ),
@@ -412,7 +412,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                         leading: Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.grey.shade100,
+                            color: isDarkMode ? colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHighest,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(Icons.location_on_outlined, size: 20, color: colorScheme.onSurfaceVariant),

@@ -127,7 +127,7 @@ class ComparePropertiesScreen extends StatelessWidget {
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(10),
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(10),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

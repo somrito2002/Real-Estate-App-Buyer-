@@ -40,7 +40,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Wrap(
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt, color: Color(0xFF4A85F6)),
+                leading: Icon(Icons.camera_alt, color: Theme.of(context).colorScheme.primary),
                 title: Text('Camera', style: GoogleFonts.inter()),
                 onTap: () {
                   Navigator.pop(context);
@@ -48,7 +48,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF4A85F6)),
+                leading: Icon(Icons.photo_library, color: Theme.of(context).colorScheme.primary),
                 title: Text('Media/Gallery', style: GoogleFonts.inter()),
                 onTap: () {
                   Navigator.pop(context);
@@ -65,18 +65,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Edit Profile',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -91,7 +91,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Text(
               'Save',
               style: GoogleFonts.inter(
-                color: const Color(0xFF4A85F6),
+                color: Theme.of(context).colorScheme.primary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),
@@ -109,7 +109,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     backgroundImage: _imageFile != null
                         ? FileImage(_imageFile!) as ImageProvider
                         : const NetworkImage('https://i.pravatar.cc/150?img=11'), // placeholder matching design
@@ -122,13 +122,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4A85F6),
+                          color: Theme.of(context).colorScheme.primary,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                          border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.camera_alt,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                           size: 16,
                         ),
                       ),
@@ -165,7 +165,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A1D1E),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 16),
@@ -173,19 +173,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
+              child: Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   _buildChip('Gurgaon'),
                   const SizedBox(width: 8),
                   _buildChip('Bangalore'),
-                  const SizedBox(width: 8),
                   Text(
                     '+ Add more...',
                     style: GoogleFonts.inter(
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontSize: 14,
                     ),
                   ),
@@ -217,19 +219,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Receive Whatsapp updates from support',
-                  style: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF1A1D1E)),
+                Expanded(
+                  child: Text(
+                    'Receive Whatsapp updates from support',
+                    style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+                  ),
                 ),
                 Switch(
                   value: _receiveWhatsapp,
-                  activeThumbColor: const Color(0xFF4A85F6),
+                  activeThumbColor: Theme.of(context).colorScheme.primary,
                   onChanged: (val) => setState(() => _receiveWhatsapp = val),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            Divider(color: Colors.grey.shade200),
+            Divider(color: Theme.of(context).colorScheme.surfaceContainerHighest),
             const SizedBox(height: 8),
             InkWell(
               onTap: () {
@@ -244,11 +248,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       'Change Security Password',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: const Color(0xFF4A85F6),
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const Icon(Icons.arrow_forward, color: Color(0xFF4A85F6), size: 16),
+                    Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.primary, size: 16),
                   ],
                 ),
               ),
@@ -268,7 +272,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         style: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: const Color(0xFF1A1D1E),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -286,23 +290,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       readOnly: readOnly,
       style: GoogleFonts.inter(
         fontSize: 14,
-        color: readOnly ? Colors.grey.shade600 : const Color(0xFF1A1D1E),
+        color: readOnly ? Theme.of(context).colorScheme.onSurfaceVariant : Theme.of(context).colorScheme.onSurface,
       ),
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         filled: readOnly,
-        fillColor: readOnly ? Colors.grey.shade50 : Colors.white,
+        fillColor: readOnly ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF4A85F6)),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
         ),
         suffixIcon: suffixIcon,
       ),
@@ -313,17 +317,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: initialValue,
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+          icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onSurfaceVariant),
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF1A1D1E),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           items: [initialValue].map((String value) {
             return DropdownMenuItem<String>(
@@ -341,14 +345,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFEDF3FF),
+        color: Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Text(
         label,
         style: GoogleFonts.inter(
           fontSize: 12,
-          color: const Color(0xFF4A85F6),
+          color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -368,9 +372,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Checkbox(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF4A85F6),
+            activeColor: Theme.of(context).colorScheme.primary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            side: BorderSide(color: Colors.grey.shade400),
+            side: BorderSide(color: Theme.of(context).colorScheme.outline),
           ),
         ),
         const SizedBox(width: 8),
@@ -378,7 +382,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           title,
           style: GoogleFonts.inter(
             fontSize: 14,
-            color: const Color(0xFF5F6368),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],

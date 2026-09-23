@@ -681,10 +681,10 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4),
+                        BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1), blurRadius: 4),
                       ],
                     ),
                     child: Icon(
@@ -824,16 +824,16 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isActive ? 16 : 12, vertical: isActive ? 8 : 6),
       decoration: BoxDecoration(
-        color: isActive ? Colors.black : accentBlue,
+        color: isActive ? Theme.of(context).colorScheme.onSurface : accentBlue,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15), blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: Text(
         price,
         style: GoogleFonts.inter(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           fontWeight: FontWeight.bold,
           fontSize: isActive ? 14 : 12,
         ),
@@ -847,7 +847,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5)),
+          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1), blurRadius: 10, offset: Offset(0, 5)),
         ],
       ),
       padding: const EdgeInsets.all(12),
@@ -952,7 +952,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: Theme.of(context).colorScheme.outline,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

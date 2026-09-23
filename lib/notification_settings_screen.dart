@@ -27,7 +27,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA);
+    final bgColor = isDark ? Color(0xFF121212) : Theme.of(context).colorScheme.surface;
     final cardBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final borderColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
     final titleColor = isDark ? Colors.white : const Color(0xFF1A1A1A);

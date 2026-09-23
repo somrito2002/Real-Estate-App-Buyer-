@@ -60,7 +60,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       case 4:
         return const Color(0xFF0F9D58); // Green
       default:
-        return Colors.grey.shade300;
+        return Theme.of(context).colorScheme.outline;
     }
   }
 
@@ -149,18 +149,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Change Password',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -199,9 +199,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,17 +239,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(color: Theme.of(context).colorScheme.surface, strokeWidth: 2),
                       )
                     : Text(
                         'Update Password',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.surface,
                         ),
                       ),
               ),
@@ -282,9 +282,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: TextFormField(
         controller: controller,
@@ -304,14 +304,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       children: [
                         Icon(
                           obscureText ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           size: 18,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           obscureText ? 'Show' : 'Hide',
                           style: GoogleFonts.inter(
-                            color: Colors.grey.shade600,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
@@ -335,7 +335,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           children: [
             Text(
               'Password Strength:',
-              style: GoogleFonts.inter(fontSize: 13, color: Colors.grey.shade600),
+              style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             if (_newPasswordController.text.isNotEmpty)
               Text(
@@ -351,7 +351,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         const SizedBox(height: 8),
         Row(
           children: List.generate(4, (index) {
-            Color color = Colors.grey.shade300;
+            Color color = Theme.of(context).colorScheme.outline;
             if (_newPasswordController.text.isNotEmpty) {
               if (index < _passwordStrength) {
                 color = _strengthColor;
@@ -379,13 +379,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         Container(
           padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: isMet ? const Color(0xFFE6F4EA) : Colors.grey.shade100,
+            color: isMet ? Color(0xFFE6F4EA) : Theme.of(context).colorScheme.surfaceContainerHighest,
             shape: BoxShape.circle,
           ),
           child: Icon(
             Icons.check,
             size: 12,
-            color: isMet ? const Color(0xFF0F9D58) : Colors.grey.shade400,
+            color: isMet ? Color(0xFF0F9D58) : Theme.of(context).colorScheme.outline,
           ),
         ),
         const SizedBox(width: 8),
@@ -393,7 +393,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           text,
           style: GoogleFonts.inter(
             fontSize: 13,
-            color: isMet ? const Color(0xFF1A1D1E) : Colors.grey.shade600,
+            color: isMet ? Color(0xFF1A1D1E) : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],

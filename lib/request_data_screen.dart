@@ -7,18 +7,18 @@ class RequestDataScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Request My Data',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -53,7 +53,7 @@ class RequestDataScreen extends StatelessWidget {
                     'Request a copy of the personal data MECO Real Estate holds about you. We\'ll prepare your data and notify you when it\'s ready for download.',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade700,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       height: 1.5,
                     ),
                   ),
@@ -64,9 +64,9 @@ class RequestDataScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,21 +80,21 @@ class RequestDataScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildListItem('Profile information'),
+                  _buildListItem(context, 'Profile information'),
                   const SizedBox(height: 12),
-                  _buildListItem('Property search history'),
+                  _buildListItem(context, 'Property search history'),
                   const SizedBox(height: 12),
-                  _buildListItem('Saved searches & shortlisted properties'),
+                  _buildListItem(context, 'Saved searches & shortlisted properties'),
                   const SizedBox(height: 12),
-                  _buildListItem('Enquiry history'),
+                  _buildListItem(context, 'Enquiry history'),
                   const SizedBox(height: 12),
-                  _buildListItem('Visit scheduling records'),
+                  _buildListItem(context, 'Visit scheduling records'),
                   const SizedBox(height: 12),
-                  _buildListItem('Reviews & ratings'),
+                  _buildListItem(context, 'Reviews & ratings'),
                   const SizedBox(height: 12),
-                  _buildListItem('Notification preferences'),
+                  _buildListItem(context, 'Notification preferences'),
                   const SizedBox(height: 12),
-                  _buildListItem('Login & device history'),
+                  _buildListItem(context, 'Login & device history'),
                 ],
               ),
             ),
@@ -104,7 +104,7 @@ class RequestDataScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 letterSpacing: 0.5,
               ),
             ),
@@ -112,9 +112,9 @@ class RequestDataScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -147,7 +147,7 @@ class RequestDataScreen extends StatelessWidget {
                               'Completed',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
-                                color: Colors.grey.shade600,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -192,7 +192,7 @@ class RequestDataScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                 ),
               ),
@@ -213,7 +213,7 @@ class RequestDataScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildListItem(String text) {
+  Widget _buildListItem(BuildContext context, String text) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -224,7 +224,7 @@ class RequestDataScreen extends StatelessWidget {
             text,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.3,
             ),
           ),

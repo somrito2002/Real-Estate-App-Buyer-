@@ -40,9 +40,9 @@ class SuccessScreen extends StatelessWidget {
                       color: Color(0xFF4B85F0),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       size: 36,
                     ),
                   ),

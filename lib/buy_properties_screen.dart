@@ -622,7 +622,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           Container(
             height: 180,
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
             ),
           ),
@@ -634,14 +634,14 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(width: 150, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                    Container(width: 150, height: 12, decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
                     const SizedBox(height: 8),
-                    Container(width: 200, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                    Container(width: 200, height: 12, decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
                     const SizedBox(height: 16),
-                    Container(width: 100, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                    Container(width: 100, height: 12, decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
                   ],
                 ),
-                Container(width: 60, height: 12, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(6))),
+                Container(width: 60, height: 12, decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6))),
               ],
             ),
           ),
@@ -742,10 +742,10 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4),
+                        BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1), blurRadius: 4),
                       ],
                     ),
                     child: Icon(
@@ -874,16 +874,16 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isActive ? 16 : 12, vertical: isActive ? 8 : 6),
       decoration: BoxDecoration(
-        color: isActive ? Colors.black : accentBlue,
+        color: isActive ? Theme.of(context).colorScheme.onSurface : accentBlue,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15), blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: Text(
         price,
         style: GoogleFonts.inter(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           fontWeight: FontWeight.bold,
           fontSize: isActive ? 14 : 12,
         ),
@@ -897,7 +897,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 5)),
+          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1), blurRadius: 10, offset: Offset(0, 5)),
         ],
       ),
       padding: const EdgeInsets.all(12),
@@ -1002,7 +1002,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: Theme.of(context).colorScheme.outline,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),

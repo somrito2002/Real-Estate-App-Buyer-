@@ -142,7 +142,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
           preferredSize: const Size.fromHeight(5),
           child: LinearProgressIndicator(
             value: 0.75,
-            backgroundColor: Colors.grey.shade200,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
             minHeight: 5,
           ),
@@ -335,7 +335,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 child: TextButton(
                   onPressed: _onSkip,
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.grey.shade100,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                     foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(28),

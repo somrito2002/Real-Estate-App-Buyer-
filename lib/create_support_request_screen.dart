@@ -79,18 +79,18 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Create Support Request',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -114,7 +114,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                         initialValue: _selectedCategory,
                         hint: Text(
                           'Select category',
-                          style: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
+                          style: GoogleFonts.inter(color: Theme.of(context).colorScheme.outline, fontSize: 14),
                         ),
                         items: _categories.map((category) {
                           return DropdownMenuItem(
@@ -166,10 +166,10 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.grey.shade300,
+                              color: Theme.of(context).colorScheme.outline,
                               style: BorderStyle.solid, // Using solid as dotted border needs extra package or custom paint
                               width: 1,
                             ),
@@ -248,7 +248,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                     ),
                   ),
                 ),
@@ -287,17 +287,17 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
   InputDecoration _inputDecoration({String? hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 14),
+      hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.outline, fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade200),
+        borderSide: BorderSide(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),

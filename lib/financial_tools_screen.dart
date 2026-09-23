@@ -20,7 +20,7 @@ class _FinancialToolsScreenState extends State<FinancialToolsScreen> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F4FF),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -316,7 +316,7 @@ class _FinancialToolsScreenState extends State<FinancialToolsScreen> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.black),
+                  Icon(Icons.keyboard_arrow_down, size: 20, color: Theme.of(context).colorScheme.onSurface),
                 ],
               ),
             ],
@@ -330,7 +330,7 @@ class _FinancialToolsScreenState extends State<FinancialToolsScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: Theme.of(context).colorScheme.surface,
         border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -404,7 +404,7 @@ class _FinancialToolsScreenState extends State<FinancialToolsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFF0F4FF),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

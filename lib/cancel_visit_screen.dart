@@ -309,8 +309,8 @@ class _CancelVisitScreenState extends State<CancelVisitScreen> {
                                 ),
                               ),
                               child: isSelected
-                                  ? const Icon(Icons.check,
-                                      size: 12, color: Colors.white)
+                                  ? Icon(Icons.check,
+                                      size: 12, color: Theme.of(context).colorScheme.surface)
                                   : null,
                             ),
                           ],
@@ -331,7 +331,7 @@ class _CancelVisitScreenState extends State<CancelVisitScreen> {
               color: isDark ? const Color(0xFF1C1C1C) : Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withAlpha(15),
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(15),
                   blurRadius: 12,
                   offset: const Offset(0, -4),
                 ),
@@ -362,11 +362,11 @@ class _CancelVisitScreenState extends State<CancelVisitScreen> {
                           borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isCancelling
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                                color: Theme.of(context).colorScheme.surface, strokeWidth: 2))
                         : Text('Confirm Cancellation',
                             style: GoogleFonts.inter(
                                 fontWeight: FontWeight.w600, fontSize: 15)),

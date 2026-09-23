@@ -256,8 +256,8 @@ class _SavedScreenState extends State<SavedScreen> {
               Container(
                 width: 120,
                 height: 120,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF0F4FF),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   shape: BoxShape.circle,
                 ),
                 child: Stack(
@@ -432,7 +432,7 @@ class _SavedScreenState extends State<SavedScreen> {
                         shape: BoxShape.circle,
                         color: isSelected ? accentBlue : Colors.white,
                         border: Border.all(
-                          color: isSelected ? accentBlue : Colors.grey.shade400,
+                          color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline,
                           width: 1.5,
                         ),
                       ),

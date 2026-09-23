@@ -81,7 +81,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF111111), // Dark theme as per screenshot
+      backgroundColor: Theme.of(context).colorScheme.onSurface, // Dark theme as per screenshot
       body: SafeArea(
         child: Stack(
           children: [
@@ -127,7 +127,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.arrow_back, color: Colors.white, size: 24),
@@ -148,7 +148,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(Icons.arrow_forward, color: Colors.white, size: 24),
@@ -167,7 +167,7 @@ class _FullScreenImageGalleryState extends State<FullScreenImageGallery> {
                   Text(
                     '${_currentIndex + 1}/${widget.imageUrls.length}',
                     style: GoogleFonts.inter(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

@@ -89,7 +89,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
           preferredSize: const Size.fromHeight(5),
           child: LinearProgressIndicator(
             value: 0.9,
-            backgroundColor: Colors.grey.shade200,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.primary),
             minHeight: 5,
           ),
@@ -221,7 +221,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                   ),
                   overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
                   activeTrackColor: Theme.of(context).colorScheme.primary,
-                  inactiveTrackColor: Colors.grey.shade200,
+                  inactiveTrackColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                   thumbColor: Theme.of(context).colorScheme.primary,
                   overlayColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 ),

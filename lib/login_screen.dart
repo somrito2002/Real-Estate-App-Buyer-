@@ -162,7 +162,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message,
-              style: GoogleFonts.inter(fontSize: 13, color: Colors.white)),
+              style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.surface)),
           backgroundColor: const Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
           shape:
@@ -180,10 +180,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bgColor    = isDark ? Colors.black        : Colors.white;
-    final titleColor = isDark ? Colors.white        : const Color(0xFF111111);
+    final bgColor    = isDark ? Theme.of(context).colorScheme.onSurface        : Colors.white;
+    final titleColor = isDark ? Colors.white        : Theme.of(context).colorScheme.onSurface;
     final descColor  = isDark ? const Color(0xFFCCCCCC) : const Color(0xFF888888);
-    final labelColor = isDark ? Colors.white        : Colors.black;
+    final labelColor = isDark ? Colors.white        : Theme.of(context).colorScheme.onSurface;
     final borderColor= isDark ? const Color(0xFF3A3A3C) : const Color(0xFFE0E0E0);
     final hintColor  = isDark ? const Color(0xFF7A7A7E) : const Color(0xFFB3B3B3);
     final fieldFill  = isDark ? const Color(0xFF1C1C1E) : Colors.white;
@@ -278,7 +278,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -637,11 +637,11 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         child: _isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 22,
                 height: 22,
                 child: CircularProgressIndicator(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   strokeWidth: 2.4,
                 ),
               )
@@ -650,7 +650,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
       ),

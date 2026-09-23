@@ -48,7 +48,7 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
     
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFFFFFFF); 
     final titleColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
-    final cardBgColor = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF8F9FA);
+    final cardBgColor = isDark ? Color(0xFF1E1E1E) : Theme.of(context).colorScheme.surface;
     final cardBorderColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
     final textMuted = isDark ? Colors.white54 : const Color(0xFF666666);
     

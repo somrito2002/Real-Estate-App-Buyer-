@@ -129,7 +129,7 @@ class VisitRescheduledSuccessScreen extends StatelessWidget {
                       ? []
                       : [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),
@@ -162,7 +162,7 @@ class VisitRescheduledSuccessScreen extends StatelessWidget {
                       ? []
                       : [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 2),
                           ),

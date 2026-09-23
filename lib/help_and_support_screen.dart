@@ -18,18 +18,18 @@ class HelpAndSupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Help & Support',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -42,11 +42,11 @@ class HelpAndSupportScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionTitle('Popular Help Topics'),
+              _buildSectionTitle(context, 'Popular Help Topics'),
               const SizedBox(height: 16),
               _buildHelpTopicList(context),
               const SizedBox(height: 32),
-              _buildSectionTitle('Need more help?'),
+              _buildSectionTitle(context, 'Need more help?'),
               const SizedBox(height: 16),
               _buildSupportActions(context),
               const SizedBox(height: 24),
@@ -58,7 +58,7 @@ class HelpAndSupportScreen extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -66,14 +66,14 @@ class HelpAndSupportScreen extends StatelessWidget {
                       'Support hours: Mon–Sat · 9:00 AM–6:00 PM',
                       style: GoogleFonts.inter(
                         fontSize: 13,
-                        color: Colors.grey[600],
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
-              _buildSectionTitle('My Support Requests'),
+              _buildSectionTitle(context, 'My Support Requests'),
               const SizedBox(height: 16),
               _buildSupportRequestCard(context),
             ],
@@ -83,13 +83,13 @@ class HelpAndSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
       style: GoogleFonts.inter(
         fontSize: 18,
         fontWeight: FontWeight.w600,
-        color: const Color(0xFF1A1D1E),
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -97,13 +97,14 @@ class HelpAndSupportScreen extends StatelessWidget {
   Widget _buildHelpTopicList(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
           _buildHelpTopicItem(
+            context,
             icon: Icons.business,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -116,8 +117,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.home_outlined,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -130,8 +132,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.chat_bubble_outline,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -144,8 +147,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.calendar_today_outlined,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -158,8 +162,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.star_border,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -172,8 +177,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.person_outline,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -186,8 +192,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.notifications_none,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -200,8 +207,9 @@ class HelpAndSupportScreen extends StatelessWidget {
               );
             },
           ),
-          _buildDivider(),
+          _buildDivider(context),
           _buildHelpTopicItem(
+            context,
             icon: Icons.receipt_long_outlined,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -220,7 +228,8 @@ class HelpAndSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHelpTopicItem({
+  Widget _buildHelpTopicItem(
+    BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required Color iconBgColor,
@@ -254,7 +263,7 @@ class HelpAndSupportScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A1D1E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -262,25 +271,25 @@ class HelpAndSupportScreen extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.inter(
                       fontSize: 13,
-                      color: Colors.grey[600],
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 12),
-            Icon(Icons.chevron_right, color: Colors.grey[400]),
+            Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(BuildContext context) {
     return Divider(
       height: 1,
       thickness: 1,
-      color: Colors.grey.shade100,
+      color: Theme.of(context).colorScheme.outlineVariant,
       indent: 64,
     );
   }
@@ -290,6 +299,7 @@ class HelpAndSupportScreen extends StatelessWidget {
       children: [
         Expanded(
           child: _buildActionCard(
+            context,
             icon: Icons.chat_bubble_outline,
             iconColor: const Color(0xFF0F9D58),
             iconBgColor: const Color(0xFFE6F4EA),
@@ -302,6 +312,7 @@ class HelpAndSupportScreen extends StatelessWidget {
         const SizedBox(width: 16),
         Expanded(
           child: _buildActionCard(
+            context,
             icon: Icons.confirmation_number_outlined,
             iconColor: const Color(0xFF4A85F6),
             iconBgColor: const Color(0xFFEDF3FF),
@@ -315,7 +326,8 @@ class HelpAndSupportScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionCard({
+  Widget _buildActionCard(
+    BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required Color iconBgColor,
@@ -327,9 +339,9 @@ class HelpAndSupportScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         ),
         child: Column(
           children: [
@@ -348,7 +360,7 @@ class HelpAndSupportScreen extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A1D1E),
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -368,9 +380,9 @@ class HelpAndSupportScreen extends StatelessWidget {
       child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -384,7 +396,7 @@ class HelpAndSupportScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey[500],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -393,7 +405,7 @@ class HelpAndSupportScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1D1E),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -416,7 +428,7 @@ class HelpAndSupportScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          Icon(Icons.chevron_right, color: Colors.grey[400]),
+          Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
         ],
       ),
     ));

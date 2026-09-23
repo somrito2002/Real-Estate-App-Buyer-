@@ -44,18 +44,18 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Delete Account',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -106,9 +106,9 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,9 +142,9 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,14 +162,14 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     'To confirm, type DELETE in the field below:',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: Theme.of(context).colorScheme.outline),
                     ),
                     child: TextField(
                       controller: _confirmController,
@@ -181,7 +181,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                         hintText: 'Type DELETE',
                         hintStyle: GoogleFonts.inter(
                           fontSize: 14,
-                          color: Colors.grey.shade400,
+                          color: Theme.of(context).colorScheme.outline,
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         border: InputBorder.none,
@@ -215,7 +215,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                 ),
               ),
@@ -247,7 +247,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
             text,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.3,
             ),
           ),
@@ -264,7 +264,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -297,7 +297,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   'This cannot be undone. All your data, searches, and activity will be permanently removed.',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
@@ -310,7 +310,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(color: Colors.grey.shade300),
+                          side: BorderSide(color: Theme.of(context).colorScheme.outline),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -345,7 +345,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                       ),

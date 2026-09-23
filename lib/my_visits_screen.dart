@@ -107,7 +107,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF8F9FA); // Slightly off-white for background
+    final bgColor = isDark ? Color(0xFF121212) : Theme.of(context).colorScheme.surface; // Slightly off-white for background
     final titleColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
     final cardBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final cardBorderColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
@@ -267,7 +267,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
             ? []
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.03),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),

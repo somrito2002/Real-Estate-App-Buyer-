@@ -217,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(36),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
                     blurRadius: 25,
                     offset: const Offset(0, 8),
                   ),
@@ -233,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.75),
                       borderRadius: BorderRadius.circular(36),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.5),
+                      border: Border.all(color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.4), width: 1.5),
                     ),
                     child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: pillWidth,
                           height: pillHeight,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: Theme.of(context).colorScheme.outline,
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
@@ -303,7 +303,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.15),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -340,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Icon(
                 isSelected ? activeIcon : icon,
                 key: ValueKey('${index}_$isSelected'),
-                color: isSelected ? accentBlue : Colors.grey.shade700,
+                color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant,
                 size: 24,
               ),
             ),
@@ -353,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? accentBlue : Colors.grey.shade700,
+                  color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ),
@@ -538,12 +538,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       AppLocalizations.of(context)!.homePromoTitle,
-                      style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.surface),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       AppLocalizations.of(context)!.homePromoDesc,
-                      style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withAlpha(200), height: 1.5),
+                      style: GoogleFonts.inter(fontSize: 13, color: Theme.of(context).colorScheme.surface.withAlpha(200), height: 1.5),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -859,7 +859,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isSelected ? accentBlue : Colors.grey.shade300),
+            border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline),
           ),
           child: Text(
             text,
@@ -933,7 +933,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
+              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 12, offset: Offset(0, 4)),
             ],
           ),
           child: Column(
@@ -947,9 +947,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                        errorWidget: (context, url, error) => Container(height: 140, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                       )
-                    : Container(height: 140, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                    : Container(height: 140, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
               ),
               Padding(
                 padding: const EdgeInsets.all(12),
@@ -958,13 +958,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.onSurface)),
                     const SizedBox(height: 4),
-                    Text(builder, style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 12)),
+                    Text(builder, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.grey.shade600),
+                        Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         const SizedBox(width: 4),
-                        Text(location, style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 12)),
+                        Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1005,7 +1005,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 8, offset: Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -1021,16 +1021,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorWidget: (context, url, error) => Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                            errorWidget: (context, url, error) => Container(height: 160, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                           )
-                        : Container(height: 160, color: Colors.grey.shade300, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                        : Container(height: 160, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                   ),
                   Positioned(
                     top: 8,
                     right: 8,
                     child: CircleAvatar(
                       radius: 14,
-                      backgroundColor: Colors.white.withAlpha(200),
+                      backgroundColor: Theme.of(context).colorScheme.surface.withAlpha(200),
                       child: Icon(Icons.visibility_off_outlined, size: 16, color: Colors.grey.shade800),
                     ),
                   ),
@@ -1045,7 +1045,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Text(
                         price,
-                        style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                        style: GoogleFonts.inter(color: Theme.of(context).colorScheme.surface, fontWeight: FontWeight.w700, fontSize: 13),
                       ),
                     ),
                   ),
@@ -1093,7 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           CircleAvatar(
             radius: 32,
-            backgroundColor: Colors.grey.shade200,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             child: Icon(icon, size: 30, color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
@@ -1123,25 +1123,25 @@ class _HomeScreenState extends State<HomeScreen> {
         boxShadow: Theme.of(context).brightness == Brightness.dark
             ? [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.04),
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.04),
                   blurRadius: 12,
                   spreadRadius: 1,
                   offset: const Offset(0, 4),
                 ),
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.02),
+                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.02),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
               ]
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 6),
                 ),
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -1160,13 +1160,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     fit: BoxFit.cover,
                     errorWidget: (context, url, error) => Container(
                       height: 100,
-                      color: Colors.grey.shade300,
+                      color: Theme.of(context).colorScheme.outline,
                       child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
                     ),
                   )
                 : Container(
                     height: 100,
-                    color: Colors.grey.shade300,
+                    color: Theme.of(context).colorScheme.outline,
                     child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
                   ),
           ),

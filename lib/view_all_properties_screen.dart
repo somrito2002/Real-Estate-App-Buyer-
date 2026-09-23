@@ -78,25 +78,25 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
           boxShadow: Theme.of(context).brightness == Brightness.dark
               ? [
                   BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.04),
+                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.04),
                     blurRadius: 12,
                     spreadRadius: 1,
                     offset: const Offset(0, 4),
                   ),
                   BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.02),
+                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.02),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -172,10 +172,10 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withAlpha(25), blurRadius: 4),
+                          BoxShadow(color: Theme.of(context).colorScheme.onSurface.withAlpha(25), blurRadius: 4),
                         ],
                       ),
                       child: Icon(

@@ -292,7 +292,7 @@ class _OtpScreenState extends State<OtpScreen> {
                           fontWeight: FontWeight.w700,
                           color: _secondsLeft == 0
                               ? accentBlue
-                              : Colors.grey.shade400,
+                              : Theme.of(context).colorScheme.outline,
                         ),
                       ),
                     ],
@@ -335,7 +335,7 @@ class _OtpScreenState extends State<OtpScreen> {
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: hasValue ? accentBlue : Colors.grey.shade300,
+              color: hasValue ? accentBlue : Theme.of(context).colorScheme.outline,
               width: hasValue ? 1.5 : 1,
             ),
           ),

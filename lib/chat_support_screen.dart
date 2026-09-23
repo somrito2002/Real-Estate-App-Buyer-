@@ -156,12 +156,12 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Column(
@@ -170,7 +170,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
             Text(
               'Chat with Support',
               style: GoogleFonts.inter(
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -190,7 +190,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                 Text(
                   'Online',
                   style: GoogleFonts.inter(
-                    color: Colors.grey.shade700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -223,7 +223,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -264,10 +264,10 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      backgroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: Theme.of(context).colorScheme.outline),
                       ),
                       onPressed: () {
                         _sendMessage(_quickReplies[index]);
@@ -282,10 +282,10 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                   offset: const Offset(0, -2),
                   blurRadius: 10,
                 ),
@@ -309,9 +309,9 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                       ),
                       child: Row(
                         children: [
@@ -376,7 +376,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -447,7 +447,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                       margin: EdgeInsets.only(bottom: message.text.isNotEmpty ? 8 : 0),
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -457,7 +457,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                             message.attachmentFile!.extension == 'pdf' ? Icons.picture_as_pdf
                             : message.attachmentFile!.extension == 'doc' || message.attachmentFile!.extension == 'docx' ? Icons.description
                             : Icons.image,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                           const SizedBox(width: 8),
                           Flexible(
@@ -465,7 +465,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                               message.attachmentFile!.name,
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.surface,
                                 fontWeight: FontWeight.w500,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -479,7 +479,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                       message.text,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         height: 1.4,
                       ),
                     ),
@@ -515,7 +515,7 @@ class _ChatSupportScreenState extends State<ChatSupportScreen> {
                 style: GoogleFonts.inter(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade700,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

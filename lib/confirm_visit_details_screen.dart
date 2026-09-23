@@ -81,7 +81,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                     ? []
                     : [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -105,11 +105,11 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                               width: 64,
                               height: 64,
                               decoration: BoxDecoration(
-                                color: isDark ? Colors.white12 : Colors.grey.shade200,
+                                color: isDark ? Colors.white12 : Theme.of(context).colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(Icons.home_rounded,
-                                  color: isDark ? Colors.white38 : Colors.grey.shade400),
+                                  color: isDark ? Colors.white38 : Theme.of(context).colorScheme.outline),
                             ),
                           ),
                         ),

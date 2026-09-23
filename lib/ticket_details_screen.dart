@@ -7,18 +7,18 @@ class TicketDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // match the light grey background from design
+      backgroundColor: Theme.of(context).colorScheme.surface, // match the light grey background from design
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Ticket Details',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -33,9 +33,9 @@ class TicketDetailsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeaderCard(),
+                  _buildHeaderCard(context),
                   const SizedBox(height: 16),
-                  _buildDescriptionCard(),
+                  _buildDescriptionCard(context),
                   const SizedBox(height: 24),
                   Text(
                     'Activity Log',
@@ -47,16 +47,19 @@ class TicketDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildActivityItem(
+                    context,
                     date: 'Sep 14, 2026 · 3:42 PM',
                     content: 'Request submitted',
                   ),
                   const SizedBox(height: 16),
                   _buildActivityItem(
+                    context,
                     date: 'Sep 14, 2026 · 4:15 PM',
                     content: 'Assigned to support team',
                   ),
                   const SizedBox(height: 16),
                   _buildActivityItem(
+                    context,
                     date: 'Sep 15, 2026 · 10:30 AM',
                     content:
                         'Our team is investigating the issue with the scheduling system.',
@@ -65,19 +68,19 @@ class TicketDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
-          _buildBottomInputArea(),
+          _buildBottomInputArea(context),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderCard() {
+  Widget _buildHeaderCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +122,7 @@ class TicketDetailsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Divider(color: Colors.grey.shade200, height: 1),
+          Divider(color: Theme.of(context).colorScheme.surfaceContainerHighest, height: 1),
           const SizedBox(height: 16),
           Text(
             'Subject',
@@ -143,14 +146,14 @@ class TicketDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDescriptionCard() {
+  Widget _buildDescriptionCard(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,7 +180,7 @@ class TicketDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityItem({required String date, required String content}) {
+  Widget _buildActivityItem(BuildContext context, {required String date, required String content}) {
     return Padding(
       padding: const EdgeInsets.only(left: 8.0),
       child: Column(
@@ -196,7 +199,7 @@ class TicketDetailsScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.4,
-              color: Colors.grey.shade700,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -204,18 +207,18 @@ class TicketDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomInputArea() {
+  Widget _buildBottomInputArea(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.surfaceContainerHighest)),
       ),
       child: SafeArea(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(color: Theme.of(context).colorScheme.outline),
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -225,7 +228,7 @@ class TicketDetailsScreen extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'Type a message...',
                     hintStyle: GoogleFonts.inter(
-                      color: Colors.grey.shade400,
+                      color: Theme.of(context).colorScheme.outline,
                       fontSize: 14,
                     ),
                     border: InputBorder.none,

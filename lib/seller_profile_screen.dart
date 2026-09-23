@@ -72,7 +72,7 @@ class SellerProfileScreen extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 32,
-              backgroundColor: Colors.grey.shade300,
+              backgroundColor: Theme.of(context).colorScheme.outline,
               backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&auto=format&fit=crop'),
             ),
             const SizedBox(width: 16),
@@ -442,7 +442,7 @@ class SellerProfileScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                   ),
                 ),
               ),

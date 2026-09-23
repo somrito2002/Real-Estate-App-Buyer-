@@ -24,31 +24,31 @@ class FollowUpScreen extends StatelessWidget {
       statusColor = Colors.green.shade700;
       statusBgColor = Colors.green.shade50;
     } else {
-      statusColor = Colors.grey.shade700;
-      statusBgColor = Colors.grey.shade200;
+      statusColor = Theme.of(context).colorScheme.onSurfaceVariant;
+      statusBgColor = Theme.of(context).colorScheme.surfaceContainerHighest;
     }
 
     return Scaffold(
       backgroundColor: lightBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Follow Up',
           style: GoogleFonts.inter(
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: Colors.grey.shade200, height: 1),
+          child: Container(color: Theme.of(context).colorScheme.surfaceContainerHighest, height: 1),
         ),
       ),
       body: SingleChildScrollView(
@@ -60,9 +60,9 @@ class FollowUpScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Row(
                 children: [
@@ -76,7 +76,7 @@ class FollowUpScreen extends StatelessWidget {
                       errorBuilder: (_, _, _) => Container(
                         width: 60,
                         height: 60,
-                        color: Colors.grey.shade200,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         child: const Icon(Icons.home, color: Colors.grey),
                       ),
                     ),
@@ -128,7 +128,7 @@ class FollowUpScreen extends StatelessWidget {
                               enquiry['price'] ?? '₹2.45 Cr',
                               style: GoogleFonts.inter(
                                 fontWeight: FontWeight.bold,
-                                color: isClosed ? Colors.grey.shade600 : accentBlue,
+                                color: isClosed ? Theme.of(context).colorScheme.onSurfaceVariant : accentBlue,
                                 fontSize: 14,
                               ),
                             ),
@@ -160,9 +160,9 @@ class FollowUpScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,9 +175,9 @@ class FollowUpScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _buildTimelineItem('Enquiry Sent', 'Oct 12, 2026 • 10:15 AM', true, isClosed: isClosed),
-                    _buildTimelineItem('Seller Viewed', 'Oct 12, 2026 • 11:30 AM', true, isClosed: isClosed),
-                    _buildTimelineItem('Seller Responded', 'Oct 12, 2026 • 2:45 PM', true, isLast: true, isClosed: isClosed),
+                    _buildTimelineItem(context, 'Enquiry Sent', 'Oct 12, 2026 • 10:15 AM', true, isClosed: isClosed),
+                    _buildTimelineItem(context, 'Seller Viewed', 'Oct 12, 2026 • 11:30 AM', true, isClosed: isClosed),
+                    _buildTimelineItem(context, 'Seller Responded', 'Oct 12, 2026 • 2:45 PM', true, isLast: true, isClosed: isClosed),
                   ],
                 ),
               ),
@@ -188,7 +188,7 @@ class FollowUpScreen extends StatelessWidget {
             Text(
               'CONVERSATION HISTORY',
               style: GoogleFonts.inter(
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -198,9 +198,9 @@ class FollowUpScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,9 +267,9 @@ class FollowUpScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,7 +312,7 @@ class FollowUpScreen extends StatelessWidget {
                         contentPadding: const EdgeInsets.all(16),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -351,7 +351,7 @@ class FollowUpScreen extends StatelessWidget {
               Text(
                 'QUICK REPLIES',
                 style: GoogleFonts.inter(
-                  color: Colors.grey.shade600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -359,9 +359,9 @@ class FollowUpScreen extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  _buildQuickReply('Still interested'),
+                  _buildQuickReply(context, 'Still interested'),
                   const SizedBox(width: 8),
-                  _buildQuickReply('Schedule visit'),
+                  _buildQuickReply(context, 'Schedule visit'),
                 ],
               ),
               const SizedBox(height: 24),
@@ -370,7 +370,7 @@ class FollowUpScreen extends StatelessWidget {
               Text(
                 'SEND FOLLOW-UP MESSAGE',
                 style: GoogleFonts.inter(
-                  color: Colors.grey.shade600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -386,7 +386,7 @@ class FollowUpScreen extends StatelessWidget {
                   contentPadding: const EdgeInsets.all(16),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -449,8 +449,8 @@ class FollowUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineItem(String title, String time, bool isCompleted, {bool isLast = false, bool isClosed = false}) {
-    final Color iconColor = isClosed ? Colors.grey.shade600 : (isCompleted ? Colors.green : Colors.grey.shade300);
+  Widget _buildTimelineItem(BuildContext context, String title, String time, bool isCompleted, {bool isLast = false, bool isClosed = false}) {
+    final Color iconColor = isClosed ? Theme.of(context).colorScheme.onSurfaceVariant : (isCompleted ? Colors.green : Theme.of(context).colorScheme.outline);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -458,7 +458,7 @@ class FollowUpScreen extends StatelessWidget {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -504,13 +504,13 @@ class FollowUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickReply(String text) {
+  Widget _buildQuickReply(BuildContext context, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Text(
         text,

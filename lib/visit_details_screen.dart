@@ -299,7 +299,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             border: Border.all(color: const Color(0xFFEF4444)),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -342,7 +342,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             border: Border.all(color: const Color(0xFF16A34A)),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -602,7 +602,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             border: Border.all(color: const Color(0xFFEF4444)),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -624,7 +624,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -662,11 +662,11 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                             style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white)),
+                                color: Theme.of(context).colorScheme.surface)),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text('Verified',
@@ -702,7 +702,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                                 style: GoogleFonts.inter(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.surface,
                                 ),
                               ),
                             ],

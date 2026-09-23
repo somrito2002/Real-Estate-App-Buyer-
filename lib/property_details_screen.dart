@@ -376,11 +376,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       top: MediaQuery.of(context).padding.top + 8,
                       left: 16,
                       child: CircleAvatar(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         child: IconButton(
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.arrow_back,
-                            color: Colors.black,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                           onPressed: () => Navigator.pop(context),
                         ),
@@ -392,7 +392,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: Colors.white,
+                            backgroundColor: Theme.of(context).colorScheme.surface,
                             child: IconButton(
                               icon: Icon(
                                 property.isFavorite
@@ -400,18 +400,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     : Icons.favorite_border,
                                 color: property.isFavorite
                                     ? Colors.red
-                                    : Colors.black,
+                                    : Theme.of(context).colorScheme.onSurface,
                               ),
                               onPressed: () => _onHeartTapped(property),
                             ),
                           ),
                           const SizedBox(width: 12),
                           CircleAvatar(
-                            backgroundColor: Colors.white,
+                            backgroundColor: Theme.of(context).colorScheme.surface,
                             child: IconButton(
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.share,
-                                color: Colors.black,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                               onPressed: () => _showShareBottomSheet(context),
                             ),
@@ -428,13 +428,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.6),
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Text(
                           '${_currentImageIndex + 1}/4',
                           style: GoogleFonts.inter(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -743,9 +743,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               color: accentBlue,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.home,
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.surface,
                               size: 20,
                             ),
                           ),
@@ -1073,7 +1073,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 color: Theme.of(context).scaffoldBackgroundColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
                     offset: const Offset(0, -4),
                     blurRadius: 8,
                   ),
@@ -1227,7 +1227,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 errorWidget: (context, url, error) => Container(
                                   width: 60,
                                   height: 60,
-                                  color: Colors.grey.shade200,
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                   child: const Icon(Icons.home, color: Colors.grey),
                                 ),
                               ),
@@ -1770,7 +1770,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             decoration: BoxDecoration(
                               color: isDark
                                   ? Colors.white.withValues(alpha: 0.08)
-                                  : Colors.grey.shade100,
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -1795,7 +1795,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         border: Border.all(
                           color: isDark
                               ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.grey.shade200,
+                              : Theme.of(context).colorScheme.surfaceContainerHighest,
                         ),
                       ),
                       child: Row(
@@ -1810,7 +1810,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               errorWidget: (context, url, error) => Container(
                                 width: 64,
                                 height: 64,
-                                color: Colors.grey.shade300,
+                                color: Theme.of(context).colorScheme.outline,
                                 child: const Icon(Icons.home, color: Colors.grey),
                               ),
                             ),
@@ -2197,12 +2197,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             decoration: BoxDecoration(
                               color: isSelected 
                                   ? accentBlue 
-                                  : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade100),
+                                  : (isDark ? Colors.white.withValues(alpha: 0.05) : Theme.of(context).colorScheme.surfaceContainerHighest),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: isSelected 
                                     ? accentBlue 
-                                    : (isDark ? Colors.white12 : Colors.grey.shade300),
+                                    : (isDark ? Colors.white12 : Theme.of(context).colorScheme.outline),
                               ),
                             ),
                             child: Text(
@@ -2422,7 +2422,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: Theme.of(context).colorScheme.outline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2469,7 +2469,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                     ),
                   ),
                 ),
@@ -2489,7 +2489,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Colors.grey.shade300),
+                    side: BorderSide(color: Theme.of(context).colorScheme.outline),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -2540,7 +2540,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: Theme.of(context).colorScheme.outline,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -2573,7 +2573,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     ].map((reason) {
                       return Theme(
                         data: ThemeData(
-                          unselectedWidgetColor: Colors.grey.shade300,
+                          unselectedWidgetColor: Theme.of(context).colorScheme.outline,
                         ),
                         child: RadioListTile<String>(
                           title: Text(
@@ -2670,7 +2670,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                       ),
@@ -2712,7 +2712,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: Theme.of(context).colorScheme.outline,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -2758,7 +2758,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         errorWidget: (context, url, error) => Container(
                           width: 56,
                           height: 56,
-                          color: Colors.grey.shade200,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           child: const Icon(Icons.home, color: Colors.grey),
                         ),
                       ),
@@ -2875,7 +2875,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             content: Text(
                               'Link copied!',
                               style: GoogleFonts.inter(
-                                  color: Colors.white),
+                                  color: Theme.of(context).colorScheme.surface),
                             ),
                             backgroundColor: accentBlue,
                             behavior: SnackBarBehavior.floating,
@@ -2896,7 +2896,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                           ),
                         ),
                       ),
@@ -2960,18 +2960,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         SnackBar(
           content: Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
                 'Preparing to share...',
-                style: GoogleFonts.inter(color: Colors.white),
+                style: GoogleFonts.inter(color: Theme.of(context).colorScheme.surface),
               ),
             ],
           ),
