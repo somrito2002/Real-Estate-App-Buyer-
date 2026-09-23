@@ -94,12 +94,12 @@ class _ScheduleVisitHelpScreenState extends State<ScheduleVisitHelpScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1A1D1E),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 trailing: Icon(
                   isExpanded ? Icons.remove : Icons.add,
-                  color: const Color(0xFF5A75A6), // The blueish color in the image
+                  color: Theme.of(context).colorScheme.primary, // The blueish color in the image
                   size: 20,
                 ),
                 childrenPadding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
@@ -108,7 +108,7 @@ class _ScheduleVisitHelpScreenState extends State<ScheduleVisitHelpScreen> {
                     faq['answer']!,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: const Color(0xFF757A82),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       height: 1.5,
                     ),
                   ),

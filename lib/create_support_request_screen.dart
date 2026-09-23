@@ -121,7 +121,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                             value: category,
                             child: Text(
                               category,
-                              style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
+                              style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                             ),
                           );
                         }).toList(),
@@ -179,14 +179,14 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                             children: [
                               Icon(
                                 _attachment != null ? Icons.insert_drive_file_outlined : Icons.description_outlined,
-                                color: const Color(0xFF4A85F6),
+                                color: Theme.of(context).colorScheme.primary,
                                 size: 32,
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 _attachment != null ? _attachment!.name : 'Tap to attach a file',
                                 style: GoogleFonts.inter(
-                                  color: const Color(0xFF4A85F6),
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -197,7 +197,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                                 Text(
                                   'PNG, JPG, PDF up to 5MB',
                                   style: GoogleFonts.inter(
-                                    color: Colors.grey.shade500,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -237,7 +237,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
                 child: ElevatedButton(
                   onPressed: _submitRequest,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4A85F6),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -268,7 +268,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1A1D1E),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         if (isRequired)
@@ -290,7 +290,7 @@ class _CreateSupportRequestScreenState extends State<CreateSupportRequestScreen>
       hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.outline, fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: Theme.of(context).colorScheme.surfaceContainerHighest),

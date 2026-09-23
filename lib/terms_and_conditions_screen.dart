@@ -67,9 +67,9 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
               const SizedBox(height: 24),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Column(
                   children: [
@@ -140,7 +140,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                       ),
@@ -168,7 +168,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        border: isLast ? null : Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: isLast ? null : Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
       ),
       child: Theme(
         data: ThemeData(

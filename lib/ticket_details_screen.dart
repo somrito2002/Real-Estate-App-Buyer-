@@ -42,7 +42,7 @@ class TicketDetailsScreen extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1A1D1E),
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -93,13 +93,13 @@ class TicketDetailsScreen extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A1D1E),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF8E1),
+                  color: const Color(0xFFFFF8E1).withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.15 : 1.0),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -107,7 +107,7 @@ class TicketDetailsScreen extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFFF57F17), // amber tone
+                    color: const Color(0xFFF57F17),
                   ),
                 ),
               ),
@@ -118,7 +118,7 @@ class TicketDetailsScreen extends StatelessWidget {
             'Created: Sep 14, 2026',
             style: GoogleFonts.inter(
               fontSize: 13,
-              color: Colors.grey[500],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 16),
@@ -129,7 +129,7 @@ class TicketDetailsScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 4),
@@ -138,7 +138,7 @@ class TicketDetailsScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1A1D1E),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -163,7 +163,7 @@ class TicketDetailsScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
@@ -172,7 +172,7 @@ class TicketDetailsScreen extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 14,
               height: 1.5,
-              color: const Color(0xFF1A1D1E),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ],
@@ -190,7 +190,7 @@ class TicketDetailsScreen extends StatelessWidget {
             date,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: Colors.grey[500],
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 4),

@@ -77,14 +77,14 @@ class BuyingPropertyHelpScreen extends StatelessWidget {
         ),
         child: ExpansionTile(
           initiallyExpanded: initiallyExpanded,
-          iconColor: const Color(0xFF4A85F6),
-          collapsedIconColor: const Color(0xFF5F6368),
+          iconColor: Theme.of(context).colorScheme.primary,
+          collapsedIconColor: Theme.of(context).colorScheme.onSurfaceVariant,
           title: Text(
             question,
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1A1D1E),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           children: [
@@ -94,7 +94,7 @@ class BuyingPropertyHelpScreen extends StatelessWidget {
                 answer,
                 style: GoogleFonts.inter(
                   fontSize: 15,
-                  color: const Color(0xFF5F6368),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   height: 1.5,
                 ),
               ),

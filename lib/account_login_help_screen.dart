@@ -110,13 +110,13 @@ class _FAQItemState extends State<_FAQItem> {
             style: GoogleFonts.inter(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1A1D1E),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           trailing: Icon(
             _isExpanded ? Icons.remove : Icons.add,
             size: 24,
-            color: const Color(0xFF4368B1), // dark blue tone for icons as per UI
+            color: Theme.of(context).colorScheme.primary, // dark blue tone for icons as per UI
           ),
           onExpansionChanged: (expanded) {
             setState(() {
