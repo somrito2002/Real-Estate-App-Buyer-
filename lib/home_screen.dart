@@ -15,6 +15,7 @@ import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
 import 'location_bottom_sheet.dart';
 import 'my_visits_screen.dart';
+import 'widgets/ad_popup_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,6 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentState = '';
   String _selectedCategory = 'Residential';
   final Map<String, int> _visibleItemCounts = {};
+
+  // Ad popup — shows every time the user opens the home screen
+  bool _showAdPopup = false;
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -83,6 +87,12 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchLocation();
+    // Show ad popup after first frame each time the home screen is initialized
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() => _showAdPopup = true);
+      }
+    });
   }
 
   @override
@@ -199,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                     ],
                   )),
-        body: _buildBody(),
+        body: _buildBodyWithAdOverlay(),
         bottomNavigationBar: (_bottomNavIndex == 2 && mockProperties.any((p) => p.isFavorite)) ? const SizedBox.shrink() : _buildCustomBottomNav(),
       ),
     );
@@ -363,7 +373,30 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildBodyWithAdOverlay() {
+    return Stack(
+      children: [
+        _buildBody(),
+        // Ad popup overlay — shown once per app open, dismissed by X tap
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 260),
+          child: _showAdPopup
+              ? AdPopupWidget(
+                  key: const ValueKey('ad_popup'),
+                  onClose: () => setState(() => _showAdPopup = false),
+                  onExplore: () {
+                    // Placeholder: navigate to Plots/Featured Properties
+                    setState(() => _showAdPopup = false);
+                  },
+                )
+              : const SizedBox.shrink(key: ValueKey('ad_hidden')),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBody() {
+
     return IndexedStack(
       index: _bottomNavIndex,
       children: [
