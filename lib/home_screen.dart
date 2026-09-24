@@ -951,6 +951,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFeaturedPropertyCard(String title, String builder, String location, String price, {Property? property}) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double cardWidth = screenWidth > 600 ? screenWidth * 0.4 : 260;
+    
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: TiltPropertyCard(
@@ -960,7 +963,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             : null,
         child: Container(
-          width: 260,
+          width: cardWidth,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
@@ -1023,6 +1026,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildNewProjectCard(String title, String price, {Property? property}) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double cardWidth = screenWidth > 600 ? screenWidth * 0.35 : 220;
+
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: TiltPropertyCard(
@@ -1032,7 +1038,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             : null,
         child: Container(
-          width: 220,
+          width: cardWidth,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
@@ -1139,6 +1145,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildRecentlyViewedCard(String title, String location, String price, {Property? property}) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double cardWidth = screenWidth > 600 ? screenWidth * 0.3 : 180;
+
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: TiltPropertyCard(
@@ -1148,7 +1157,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             : null,
         child: Container(
-        width: 180,
+        width: cardWidth,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),

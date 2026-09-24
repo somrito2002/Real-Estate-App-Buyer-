@@ -28,17 +28,14 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
       vsync: this,
       duration: const Duration(milliseconds: 380),
     );
-
     _scaleAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutBack,
     );
-
     _fadeAnimation = CurvedAnimation(
       parent: _controller,
       curve: Curves.easeIn,
     );
-
     _controller.forward();
   }
 
@@ -54,27 +51,68 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // ── Colour tokens ────────────────────────────────────────────────────────
+    // Card background
+    final cardBg = isDark ? const Color(0xFF1C1C2E) : Colors.white;
+
+    // Title colour
+    final titleColor =
+        isDark ? const Color(0xFFE8EDFF) : const Color(0xFF0F2057);
+
+    // Subtitle / muted text
+    final subtitleColor =
+        isDark ? const Color(0xFF9AA5C4) : const Color(0xFF6B7280);
+
+    // Close button + badge background
+    const badgeBg = Color(0xFF0D1B3E);
+
+    // Scrim behind popup (slightly lighter in dark so card pops more)
+    final scrimColor =
+        isDark ? Colors.black.withValues(alpha: 0.72) : Colors.black54;
+
+    // Divider / separator between image and text panel (dark only)
+    final dividerColor =
+        isDark ? Colors.white.withValues(alpha: 0.06) : Colors.transparent;
+
+    // Glow/shadow on the card
+    final shadowColor = isDark
+        ? const Color(0xFF4B85F0).withValues(alpha: 0.18)
+        : Colors.black.withValues(alpha: 0.22);
+
+    // CTA button gradient
+    const ctaStart = Color(0xFF3B6FE8);
+    const ctaEnd = Color(0xFF5B8FFF);
+    // ────────────────────────────────────────────────────────────────────────
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Material(
-        color: Colors.black54,
+        color: scrimColor,
         child: GestureDetector(
-          onTap: _dismiss, // tap outside to dismiss
+          onTap: _dismiss,
           child: Center(
             child: GestureDetector(
-              onTap: () {}, // prevent dismiss when tapping inside
+              onTap: () {},
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 28),
                   constraints: const BoxConstraints(maxWidth: 400),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(24),
+                    border: isDark
+                        ? Border.all(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            width: 1,
+                          )
+                        : null,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.25),
-                        blurRadius: 30,
+                        color: shadowColor,
+                        blurRadius: isDark ? 40 : 30,
                         offset: const Offset(0, 12),
                       ),
                     ],
@@ -84,10 +122,10 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Image Section
+                        // ── Image Section ──────────────────────────────────
                         Stack(
                           children: [
-                            // Property Image
+                            // Property photo
                             AspectRatio(
                               aspectRatio: 16 / 10,
                               child: Image.asset(
@@ -95,6 +133,25 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                                 fit: BoxFit.cover,
                               ),
                             ),
+
+                            // Dark gradient overlay on image (dark mode only)
+                            if (isDark)
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        const Color(0xFF1C1C2E)
+                                            .withValues(alpha: 0.55),
+                                      ],
+                                      stops: const [0.5, 1.0],
+                                    ),
+                                  ),
+                                ),
+                              ),
 
                             // "EXCLUSIVE DEAL" badge (top-left)
                             Positioned(
@@ -104,7 +161,7 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1A2340).withValues(alpha: 0.88),
+                                  color: badgeBg.withValues(alpha: 0.88),
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 child: Text(
@@ -119,7 +176,7 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                               ),
                             ),
 
-                            // Close (x) button (top-right)
+                            // Close × button (top-right)
                             Positioned(
                               top: 10,
                               right: 10,
@@ -128,9 +185,17 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                                 child: Container(
                                   width: 36,
                                   height: 36,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF1A2340),
+                                  decoration: BoxDecoration(
+                                    color: badgeBg,
                                     shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            Colors.black.withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
                                   child: const Icon(
                                     Icons.close,
@@ -143,9 +208,13 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                           ],
                         ),
 
-                        // Text + CTA Section
+                        // Hairline separator (dark mode)
+                        if (isDark)
+                          Divider(height: 1, thickness: 1, color: dividerColor),
+
+                        // ── Text + CTA Section ────────────────────────────
                         Container(
-                          color: Colors.white,
+                          color: cardBg,
                           padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +225,7 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                                 style: GoogleFonts.inter(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,
-                                  color: const Color(0xFF0F2057),
+                                  color: titleColor,
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -166,13 +235,13 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                                 'Starting from \u20b925 Lakhs  \u2022  Limited Period',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
-                                  color: const Color(0xFF6B7280),
+                                  color: subtitleColor,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
                               const SizedBox(height: 12),
 
-                              // Verified badge
+                              // MECO Verified badge
                               Row(
                                 children: [
                                   const Icon(
@@ -194,28 +263,51 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                               ),
                               const SizedBox(height: 18),
 
-                              // Explore Now button
+                              // Explore Now CTA button
                               SizedBox(
                                 width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    _dismiss();
-                                    widget.onExplore();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF3B6FE8),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [ctaStart, ctaEnd],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
                                     ),
-                                    elevation: 0,
+                                    borderRadius: BorderRadius.circular(14),
+                                    boxShadow: isDark
+                                        ? [
+                                            BoxShadow(
+                                              color: ctaStart.withValues(
+                                                  alpha: 0.4),
+                                              blurRadius: 16,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ]
+                                        : [],
                                   ),
-                                  child: Text(
-                                    'Explore Now',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      _dismiss();
+                                      widget.onExplore();
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(14),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text(
+                                      'Explore Now',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
                                 ),

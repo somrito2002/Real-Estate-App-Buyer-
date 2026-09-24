@@ -184,10 +184,11 @@ class _SavedScreenState extends State<SavedScreen> {
   // ── GUEST VIEW ──────────────────────────────────────────────────────────────
   Widget _buildGuestView() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               width: 80, height: 80,
@@ -236,8 +237,10 @@ class _SavedScreenState extends State<SavedScreen> {
                     style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
               ),
             ),
+            const SizedBox(height: 100), // Bottom padding for translucent nav bar
           ],
         ),
+      ),
       ),
     );
   }
@@ -248,10 +251,11 @@ class _SavedScreenState extends State<SavedScreen> {
 
     if (saved.isEmpty) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 width: 120,
@@ -323,8 +327,10 @@ class _SavedScreenState extends State<SavedScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 100), // Bottom padding for translucent nav bar
             ],
           ),
+        ),
         ),
       );
     }
