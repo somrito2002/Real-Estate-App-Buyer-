@@ -26,6 +26,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _bottomNavIndex = 0;
+  late PageController _pageController;
   String _currentLocation = 'Locating...';
   String _currentState = '';
   String _selectedCategory = 'Residential';
@@ -86,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _bottomNavIndex);
     _fetchLocation();
     // Show ad popup after first frame each time the home screen is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -97,6 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -149,9 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         if (_bottomNavIndex != 0) {
-          setState(() {
-            _bottomNavIndex = 0;
-          });
+          _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
         } else {
           final shouldPop = await showDialog<bool>(
             context: context,
@@ -189,9 +190,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     leading: IconButton(
                       icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
                       onPressed: () {
-                        setState(() {
-                          _bottomNavIndex = 0;
-                        });
+                        _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
                       },
                     ),
                     title: Text(
@@ -251,35 +250,43 @@ class _HomeScreenState extends State<HomeScreen> {
                   final double itemWidth = constraints.maxWidth / itemCount;
                   final double pillWidth = itemWidth - 12;
                   const double pillHeight = 46;
-                  final double pillLeft = _bottomNavIndex * itemWidth + (itemWidth - pillWidth) / 2;
-                  return Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Sliding pill
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOutCubic,
-                        left: pillLeft,
-                        top: (72 - pillHeight) / 2,
-                        child: Container(
-                          width: pillWidth,
-                          height: pillHeight,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.outline,
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                        ),
-                      ),
-                      // Nav items row (no individual backgrounds)
-                      Row(
+                  return AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      double pageValue = _bottomNavIndex.toDouble();
+                      if (_pageController.hasClients && _pageController.position.haveDimensions) {
+                        pageValue = _pageController.page ?? pageValue;
+                      }
+                      final double pillLeft = pageValue * itemWidth + (itemWidth - pillWidth) / 2;
+                      return Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, AppLocalizations.of(context)!.homeNavHome, 0)),
-                          Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, AppLocalizations.of(context)!.homeNavVisits, 1)),
-                          Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, AppLocalizations.of(context)!.homeNavWishlist, 2)),
-                          Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, AppLocalizations.of(context)!.homeNavAccount, 3)),
+                          // Sliding pill
+                          Positioned(
+                            left: pillLeft,
+                            top: (72 - pillHeight) / 2,
+                            child: Container(
+                              width: pillWidth,
+                              height: pillHeight,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.outline,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                            ),
+                          ),
+                          // Nav items row (no individual backgrounds)
+                          child!,
                         ],
-                      ),
-                    ],
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        Expanded(child: _buildNavItem(Icons.home, Icons.home_outlined, AppLocalizations.of(context)!.homeNavHome, 0)),
+                        Expanded(child: _buildNavItem(Icons.calendar_month, Icons.calendar_month_outlined, AppLocalizations.of(context)!.homeNavVisits, 1)),
+                        Expanded(child: _buildNavItem(Icons.favorite, Icons.favorite_border, AppLocalizations.of(context)!.homeNavWishlist, 2)),
+                        Expanded(child: _buildNavItem(Icons.person, Icons.person_outline, AppLocalizations.of(context)!.homeNavAccount, 3)),
+                      ],
+                    ),
                   );
                 },
               ),
@@ -336,7 +343,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNavItem(IconData activeIcon, IconData icon, String label, int index) {
     final isSelected = _bottomNavIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _bottomNavIndex = index),
+      onTap: () {
+        if (_bottomNavIndex != index) {
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      },
       child: Container(
         color: Colors.transparent,
         alignment: Alignment.center,
@@ -396,20 +411,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBody() {
-
-    return IndexedStack(
-      index: _bottomNavIndex,
+    return PageView(
+      controller: _pageController,
+      onPageChanged: (index) {
+        setState(() {
+          _bottomNavIndex = index;
+        });
+      },
       children: [
         _buildHomeTab(),
         const MyVisitsScreen(isEmbedded: true),
         _bottomNavIndex == 2 
             ? SavedScreen(
                 key: UniqueKey(),
-                onExplore: () => setState(() => _bottomNavIndex = 0),
+                onExplore: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut),
                 onChange: () => setState(() {}),
               ) 
             : SavedScreen(
-                onExplore: () => setState(() => _bottomNavIndex = 0),
+                onExplore: () => _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut),
                 onChange: () => setState(() {}),
               ),
         const ProfileScreen(),
@@ -424,9 +443,7 @@ class _HomeScreenState extends State<HomeScreen> {
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
         onPressed: () {
-          setState(() {
-            _bottomNavIndex = 0;
-          });
+          _pageController.animateToPage(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
         },
       ),
       title: Text(
