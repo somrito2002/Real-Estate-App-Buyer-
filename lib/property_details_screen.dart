@@ -39,6 +39,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   bool _isFeaturesExpanded = false;
   bool _isDetailsExpanded = false;
 
+  late PageController _pageController;
+
   // Persisted Visit Booking State
   String? _visitSelectedTime;
   final TextEditingController _visitNameController = TextEditingController();
@@ -49,6 +51,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   void initState() {
     super.initState();
     _checkLoginStatus();
+    _pageController = PageController();
   }
 
   @override
@@ -56,6 +59,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     _visitNameController.dispose();
     _visitPhoneController.dispose();
     _visitSpecialReqController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -312,6 +316,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   Widget build(BuildContext context) {
     final property = widget.property;
 
+    final List<String> imageUrls = [
+      property.imageUrl,
+      'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&auto=format&fit=crop',
+    ];
+
     // Parse specs for chips
     final specsParts = property.specs.split('•').map((e) => e.trim()).toList();
     final area = specsParts.isNotEmpty ? specsParts[0] : '1,450 sq.ft';
@@ -332,19 +343,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     SizedBox(
                       height: 250,
                       child: PageView.builder(
+                        controller: _pageController,
                         onPageChanged: (index) {
                           setState(() {
                             _currentImageIndex = index;
                           });
                         },
-                        itemCount: 4,
+                        itemCount: imageUrls.length,
                         itemBuilder: (context, index) {
-                          final List<String> imageUrls = [
-                            property.imageUrl,
-                            'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&auto=format&fit=crop',
-                            'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop',
-                            'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&auto=format&fit=crop',
-                          ];
                           final url = imageUrls[index];
                           return GestureDetector(
                             onTap: () {
@@ -466,9 +472,125 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ],
                 ),
 
+                // Thumbnail Gallery
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        // Image Thumbnails
+                        ...List.generate(imageUrls.length, (index) {
+                          return GestureDetector(
+                            onTap: () {
+                              _pageController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: _currentImageIndex == index
+                                      ? accentBlue
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                                image: DecorationImage(
+                                  image: imageUrls[index].startsWith('assets/')
+                                      ? AssetImage(imageUrls[index]) as ImageProvider
+                                      : CachedNetworkImageProvider(imageUrls[index]),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                        // Video Thumbnail
+                        GestureDetector(
+                          onTap: () {
+                            // Video action
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outlineVariant,
+                                width: 1,
+                              ),
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.play_circle_outline, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 24),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Video',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // 360 View Thumbnail
+                        GestureDetector(
+                          onTap: () {
+                            // 360 view action
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outlineVariant,
+                                width: 1,
+                              ),
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.threesixty, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 24),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '360°',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 // Content Body
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1068,7 +1190,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + MediaQuery.of(context).padding.bottom),
               decoration: BoxDecoration(
                 color: Theme.of(context).scaffoldBackgroundColor,
                 boxShadow: [

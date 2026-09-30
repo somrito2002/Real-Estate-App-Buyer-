@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCustomBottomNav() {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20, left: 8, right: 8),
+      padding: EdgeInsets.only(bottom: 20 + MediaQuery.of(context).padding.bottom, left: 8, right: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

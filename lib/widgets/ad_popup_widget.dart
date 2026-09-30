@@ -68,9 +68,7 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
     // Close button + badge background
     const badgeBg = Color(0xFF0D1B3E);
 
-    // Scrim behind popup (slightly lighter in dark so card pops more)
-    final scrimColor =
-        isDark ? Colors.black.withValues(alpha: 0.72) : Colors.black54;
+    // Scrim behind popup removed
 
     // Divider / separator between image and text panel (dark only)
     final dividerColor =
@@ -88,18 +86,16 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
 
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: Material(
-        color: scrimColor,
-        child: GestureDetector(
-          onTap: _dismiss,
-          child: Center(
-            child: GestureDetector(
-              onTap: () {},
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 28),
-                  constraints: const BoxConstraints(maxWidth: 400),
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 16.0, bottom: 90.0),
+          child: Material(
+            type: MaterialType.transparency,
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 220),
                   decoration: BoxDecoration(
                     color: cardBg,
                     borderRadius: BorderRadius.circular(24),
@@ -223,7 +219,7 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                               Text(
                                 'Premium Plots Available!',
                                 style: GoogleFonts.inter(
-                                  fontSize: 20,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                   color: titleColor,
                                 ),
@@ -234,7 +230,7 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
                               Text(
                                 'Starting from \u20b925 Lakhs  \u2022  Limited Period',
                                 style: GoogleFonts.inter(
-                                  fontSize: 13,
+                                  fontSize: 10,
                                   color: subtitleColor,
                                   fontWeight: FontWeight.w400,
                                 ),
@@ -323,7 +319,6 @@ class _AdPopupWidgetState extends State<AdPopupWidget>
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
