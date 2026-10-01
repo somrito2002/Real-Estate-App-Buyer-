@@ -217,12 +217,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           // Search & Filters Header
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
-              ),
-            ),
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -328,7 +323,9 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Divider(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5), height: 1),
+                const SizedBox(height: 12),
                 _isLoading 
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -348,8 +345,8 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       ),
                     ],
                   )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${_filteredProperties.length} Properties Found',
@@ -357,6 +354,14 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'in all locations',
+                        style: GoogleFonts.inter(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 12,
                         ),
                       ),
                     ],

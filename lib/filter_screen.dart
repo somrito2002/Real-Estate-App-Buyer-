@@ -166,14 +166,14 @@ class _FilterScreenState extends State<FilterScreen> {
       _commercialProperties.updateAll((key, value) => false);
       _budgetRange = const RangeValues(5000000, 15000000);
       _selectedBudgetChip = '';
-      _bedrooms = 'Any';
-      _bathrooms = 'Any';
+      _bedrooms = '1';
+      _bathrooms = '1';
       _areaRange = const RangeValues(1000, 3500);
-      _furnishing = 'Any';
-      _parking = 'Any';
+      _furnishing = 'Furnished';
+      _parking = '1';
       _amenities.updateAll((key, value) => false);
-      _constructionStatus = 'Any';
-      _possessionTimeline = 'Any';
+      _constructionStatus = 'Ready to Move';
+      _possessionTimeline = 'Immediate';
     });
   }
 
@@ -370,7 +370,7 @@ class _FilterScreenState extends State<FilterScreen> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['Any', '1', '2', '3', '4', '5+'].map((e) => _buildSelectionCircle(
+                      children: ['1', '2', '3', '4', '5+'].map((e) => _buildSelectionCircle(
                         e, _bedrooms == e, () => setState(() => _bedrooms = e),
                       )).toList(),
                     ),
@@ -384,7 +384,7 @@ class _FilterScreenState extends State<FilterScreen> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['Any', '1', '2', '3', '4+'].map((e) => _buildSelectionCircle(
+                      children: ['1', '2', '3', '4+'].map((e) => _buildSelectionCircle(
                         e, _bathrooms == e, () => setState(() => _bathrooms = e),
                       )).toList(),
                     ),
@@ -437,7 +437,7 @@ class _FilterScreenState extends State<FilterScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 12,
-                    children: ['Any', 'Furnished', 'Semi Furnished', 'Unfurnished'].map((e) => _buildPillChip(
+                    children: ['Furnished', 'Semi Furnished', 'Unfurnished'].map((e) => _buildPillChip(
                       e, _furnishing == e, () => setState(() => _furnishing = e),
                     )).toList(),
                   ),
@@ -450,7 +450,7 @@ class _FilterScreenState extends State<FilterScreen> {
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: ['Any', '1', '2', '3+'].map((e) => _buildSelectionCircle(
+                      children: ['1', '2', '3+'].map((e) => _buildSelectionCircle(
                         e, _parking == e, () => setState(() => _parking = e),
                       )).toList(),
                     ),
@@ -461,32 +461,7 @@ class _FilterScreenState extends State<FilterScreen> {
                   // Amenities
                   _buildSectionHeader('Amenities'),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: 'Search amenities...',
-                              hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 13),
-                              border: InputBorder.none,
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+
                   Wrap(
                     spacing: 8,
                     runSpacing: 12,
@@ -509,18 +484,6 @@ class _FilterScreenState extends State<FilterScreen> {
                     )).toList(),
                   ),
                   
-                  _buildDivider(),
-                  
-                  // Possession Timeline
-                  _buildSectionHeader('Possession Timeline'),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 12,
-                    children: ['Immediate', '2024', '2025', '2026+'].map((e) => _buildPillChip(
-                      e, _possessionTimeline == e, () => setState(() => _possessionTimeline = e),
-                    )).toList(),
-                  ),
                   
                   const SizedBox(height: 32),
                 ],
@@ -528,63 +491,66 @@ class _FilterScreenState extends State<FilterScreen> {
             ),
           ),
           // Bottom sticky bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              border: Border(
-                top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          SafeArea(
+            top: false,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                ),
               ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: OutlinedButton(
-                      onPressed: _clearAll,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Theme.of(context).colorScheme.outline),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: OutlinedButton(
+                        onPressed: _clearAll,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: Text('Reset', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
                       ),
-                      child: Text('Reset', style: GoogleFonts.inter(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (widget.initialCategory == 'Rent') {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RentPropertiesScreen()),
-                          );
-                        } else if (widget.initialCategory == 'Lease') {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LeasePropertiesScreen()),
-                          );
-                        } else {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const BuyPropertiesScreen()),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentBlue,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: SizedBox(
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (widget.initialCategory == 'Rent') {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RentPropertiesScreen()),
+                            );
+                          } else if (widget.initialCategory == 'Lease') {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const LeasePropertiesScreen()),
+                            );
+                          } else {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const BuyPropertiesScreen()),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: accentBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: Text('Apply Filters', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                       ),
-                      child: Text('Apply Filters', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
