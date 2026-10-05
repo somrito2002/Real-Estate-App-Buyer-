@@ -1,4 +1,4 @@
-import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'buy_properties_screen.dart';
@@ -91,7 +91,6 @@ class _FilterScreenState extends State<FilterScreen> {
   };
 
   String _constructionStatus = 'Ready to Move';
-  String _possessionTimeline = 'Immediate';
 
   // Constants
   static const Color accentBlue = Color(0xFF4B85F0);
@@ -173,7 +172,6 @@ class _FilterScreenState extends State<FilterScreen> {
       _parking = '1';
       _amenities.updateAll((key, value) => false);
       _constructionStatus = 'Ready to Move';
-      _possessionTimeline = 'Immediate';
     });
   }
 
@@ -796,18 +794,15 @@ class _FilterScreenState extends State<FilterScreen> {
 /// the "lens" or "eye" border style.
 class _LensBorderPainter extends CustomPainter {
   final Color color;
-  final double minStroke;
-  final double maxStroke;
 
   const _LensBorderPainter({
     required this.color,
-    this.minStroke = 0.0,
-    this.maxStroke = 0.6,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final double y = size.height;
+    final double maxStroke = 0.6;
     
     // Use a LinearGradient on a single line to fade it at the edges.
     // This avoids overlapping transparent segments which caused the "dotted" effect.
@@ -832,7 +827,5 @@ class _LensBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LensBorderPainter old) =>
-      old.color != color ||
-      old.minStroke != minStroke ||
-      old.maxStroke != maxStroke;
+      old.color != color;
 }

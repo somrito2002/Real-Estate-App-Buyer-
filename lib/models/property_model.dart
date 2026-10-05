@@ -1,27 +1,184 @@
+class Partner {
+  final String id;
+  final String fullName;
+  final String companyName;
+  final String number;
+  final String email;
+  final String profilePicture;
+
+  Partner({
+    required this.id,
+    required this.fullName,
+    required this.companyName,
+    required this.number,
+    required this.email,
+    required this.profilePicture,
+  });
+
+  factory Partner.fromJson(Map<String, dynamic> json) {
+    String pfp = json['profilePicture']?.toString() ?? '';
+    if (pfp.startsWith('/')) {
+      pfp = 'https://api.prodalal.com$pfp';
+    }
+
+    return Partner(
+      id: json['id']?.toString() ?? '',
+      fullName: json['fullName']?.toString() ?? 'Unknown Agent',
+      companyName: json['companyName']?.toString() ?? 'Agent',
+      number: json['number']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      profilePicture: pfp,
+    );
+  }
+}
+
 class Property {
   final String id;
+  final String? partnerId;
   final String title;
   final String location;
+  final String city;
+  final String area;
   final String type;
   final String price;
   final String category;
   final String imageUrl;
-  final String status; // e.g., 'READY TO MOVE', 'UNDER CONSTRUCTION'
-  final String specs; // e.g., '1,450 sq.ft • 3 Bed • 2 Bath'
+  final String status;
+  final String specs;
+  final int bedrooms;
+  final int bathrooms;
+  final int balconies;
+  final List<String> amenities;
+  final List<String> images;
+  final double? lat;
+  final double? lng;
+  final String? createdAt;
+  final Partner? partner;
   bool isFavorite;
 
   Property({
     required this.id,
+    this.partnerId,
     required this.title,
     required this.location,
+    this.city = '',
+    this.area = '',
     required this.type,
     required this.price,
     required this.category,
     required this.imageUrl,
     required this.status,
     required this.specs,
+    this.bedrooms = 0,
+    this.bathrooms = 0,
+    this.balconies = 0,
+    this.amenities = const [],
+    this.images = const [],
+    this.lat,
+    this.lng,
+    this.createdAt,
+    this.partner,
     this.isFavorite = false,
   });
+
+  factory Property.fromJson(Map<String, dynamic> json) {
+    // Safely parse numeric fields
+    int parseSafeInt(dynamic val) {
+      if (val == null) return 0;
+      if (val is int) return val;
+      if (val is String) return int.tryParse(val) ?? 0;
+      if (val is double) return val.toInt();
+      return 0;
+    }
+    
+    double? parseSafeDouble(dynamic val) {
+      if (val == null) return null;
+      if (val is double) return val;
+      if (val is int) return val.toDouble();
+      if (val is String) return double.tryParse(val);
+      return null;
+    }
+
+    String cityStr = json['city']?.toString() ?? '';
+    String areaStr = json['area']?.toString() ?? '';
+    String loc = '';
+    if (areaStr.isNotEmpty && cityStr.isNotEmpty) {
+      loc = '$areaStr, $cityStr';
+    } else if (cityStr.isNotEmpty) {
+      loc = cityStr;
+    } else if (areaStr.isNotEmpty) {
+      loc = areaStr;
+    } else {
+      loc = 'Location not specified';
+    }
+
+    List<String> imagesList = [];
+    if (json['images'] is List) {
+      imagesList = (json['images'] as List).map((e) => e.toString()).toList();
+    }
+    
+    List<String> amenitiesList = [];
+    if (json['amenities'] is List) {
+      amenitiesList = (json['amenities'] as List).map((e) => e.toString()).toList();
+    }
+
+    // Default placeholder or prepend base url if relative path is used
+    String primaryImage = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop';
+    if (imagesList.isNotEmpty) {
+      String firstImage = imagesList.first;
+      if (firstImage.startsWith('/')) {
+        primaryImage = 'https://api.prodalal.com$firstImage';
+      } else {
+        primaryImage = firstImage;
+      }
+    }
+    
+    int bedCount = parseSafeInt(json['bedrooms']);
+    int bathCount = parseSafeInt(json['bathrooms']);
+    String specsStr = '';
+    if (bedCount > 0) specsStr += '$bedCount Bed • ';
+    if (bathCount > 0) specsStr += '$bathCount Bath';
+    if (specsStr.endsWith(' • ')) specsStr = specsStr.substring(0, specsStr.length - 3);
+    if (specsStr.isEmpty) specsStr = 'Custom details';
+
+    // Parse price safely and format if it's large numbers
+    String rawPrice = json['price']?.toString() ?? json['expectedPrice']?.toString() ?? '0';
+    double priceVal = parseSafeDouble(rawPrice) ?? 0;
+    String formattedPrice = rawPrice;
+    if (priceVal > 0) {
+      if (priceVal >= 10000000) {
+        formattedPrice = '₹${(priceVal / 10000000).toStringAsFixed(2)} Cr';
+      } else if (priceVal >= 100000) {
+        formattedPrice = '₹${(priceVal / 100000).toStringAsFixed(2)} L';
+      } else {
+        formattedPrice = '₹$priceVal';
+      }
+    }
+
+    return Property(
+      id: json['id']?.toString() ?? '',
+      partnerId: json['partnerId']?.toString(),
+      title: json['title']?.toString() ?? 'Unknown Title',
+      type: json['type']?.toString() ?? 'Property',
+      price: formattedPrice,
+      city: cityStr,
+      area: areaStr,
+      location: loc,
+      bedrooms: bedCount,
+      bathrooms: bathCount,
+      balconies: parseSafeInt(json['balconies']),
+      status: json['status']?.toString() ?? 'ACTIVE',
+      category: 'Buy', // Default fallback for old UI compatibility
+      imageUrl: primaryImage,
+      specs: specsStr,
+      amenities: amenitiesList,
+      images: imagesList,
+      lat: parseSafeDouble(json['lat']),
+      lng: parseSafeDouble(json['lng']),
+      createdAt: json['createdAt']?.toString(),
+      partner: json['partner'] != null ? Partner.fromJson(json['partner']) : null,
+    );
+  }
 }
 
 // Hardcoded mock data list

@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'otp_screen.dart';
+import 'services/auth_api_service.dart';
 
 /// Register screen for Meco Technologies app.
 /// Matches the "Create Your Account" design uploaded by the user.
@@ -21,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _occupationController = TextEditingController();
 
   bool _isLoading = false;
   bool _isConnected = true;
@@ -67,23 +69,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _fullNameController.dispose();
     _mobileController.dispose();
     _emailController.dispose();
+    _occupationController.dispose();
     super.dispose();
   }
 
-  void _handleVerifyByEmail() {
+  void _handleVerifyByEmail() async {
     if (_formKey.currentState!.validate()) {
+      if (_isLoading) return;
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(milliseconds: 400), () async {
+      try {
         if (_profileImagePath != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('cached_profilePhotoPath', _profileImagePath!);
         }
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('cached_fullName', _fullNameController.text.trim());
+        await prefs.setString('cached_email', _emailController.text.trim());
+        await prefs.setString('cached_mobile', _mobileController.text.trim());
+        await prefs.setString('cached_occupation', _occupationController.text.trim());
+
+        final response = await AuthApiService.signup(
+          fullName: _fullNameController.text.trim(),
+          number: _mobileController.text.trim(),
+          email: _emailController.text.trim(),
+          occupation: _occupationController.text.trim(),
+        );
+
+        final userId = (response['userId'] ?? '').toString();
+        if (userId.isNotEmpty) {
+          await prefs.setString('cached_userId', userId);
+        }
+
+        // Capture text values before async gap
+        final email = _emailController.text.trim();
+
         if (!mounted) return;
         setState(() => _isLoading = false);
+
         Navigator.of(context).push(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => OtpScreen(
-              phoneNumber: _emailController.text.trim(), // contains '@', triggers email mode
+              phoneNumber: email,
+              userId: userId,
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
@@ -95,24 +123,55 @@ class _RegisterScreenState extends State<RegisterScreen> {
             transitionDuration: const Duration(milliseconds: 220),
           ),
         );
-      });
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
     }
   }
 
-  void _handleVerifyByNumber() {
+  void _handleVerifyByNumber() async {
     if (_formKey.currentState!.validate()) {
+      if (_isLoading) return;
       setState(() => _isLoading = true);
-      Future.delayed(const Duration(milliseconds: 400), () async {
+      try {
         if (_profileImagePath != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('cached_profilePhotoPath', _profileImagePath!);
         }
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('cached_fullName', _fullNameController.text.trim());
+        await prefs.setString('cached_email', _emailController.text.trim());
+        await prefs.setString('cached_mobile', _mobileController.text.trim());
+        await prefs.setString('cached_occupation', _occupationController.text.trim());
+
+        final response = await AuthApiService.signup(
+          fullName: _fullNameController.text.trim(),
+          number: _mobileController.text.trim(),
+          email: _emailController.text.trim(),
+          occupation: _occupationController.text.trim(),
+        );
+
+        final userId = (response['userId'] ?? '').toString();
+        if (userId.isNotEmpty) {
+          await prefs.setString('cached_userId', userId);
+        }
+
+        // Capture text values before async gap
+        final mobile = _mobileController.text.trim();
+
         if (!mounted) return;
         setState(() => _isLoading = false);
+
         Navigator.of(context).push(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => OtpScreen(
-              phoneNumber: _mobileController.text.trim(),
+              phoneNumber: mobile,
+              userId: userId,
             ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
@@ -124,7 +183,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             transitionDuration: const Duration(milliseconds: 220),
           ),
         );
-      });
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
     }
   }
 
@@ -248,6 +313,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _buildLabel('Email Address', Theme.of(context).colorScheme.onSurface),
                       const SizedBox(height: 8),
                       _buildEmailField(),
+                      const SizedBox(height: 20),
+
+                      // ── OCCUPATION ──
+                      _buildLabel('Occupation', Theme.of(context).colorScheme.onSurface),
+                      const SizedBox(height: 8),
+                      _buildOccupationField(),
                       const SizedBox(height: 32),
 
                       // ── VERIFY BUTTONS ──
@@ -459,6 +530,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
         final emailRegex = RegExp(r'^[\w.+-]+@[\w-]+\.[a-zA-Z]{2,}$');
         if (!emailRegex.hasMatch(value.trim())) {
           return 'Please enter a valid email address.';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildOccupationField() {
+    return TextFormField(
+      controller: _occupationController,
+      keyboardType: TextInputType.text,
+      textCapitalization: TextCapitalization.words,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      style: GoogleFonts.inter(fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
+      decoration: _fieldDecoration(
+        fill: Theme.of(context).colorScheme.surface,
+        border: Theme.of(context).colorScheme.outline,
+        hintText: 'Real Estate Agent, Buyer, etc.',
+        hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter your occupation.';
         }
         return null;
       },

@@ -16,6 +16,7 @@ import 'notifications_screen.dart';
 import 'location_bottom_sheet.dart';
 import 'my_visits_screen.dart';
 import 'widgets/ad_popup_widget.dart';
+import 'services/property_api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,6 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currentState = '';
   String _selectedCategory = 'Residential';
   final Map<String, int> _visibleItemCounts = {};
+  
+  bool _isLoading = true;
+  List<Property> _properties = [];
 
   // Ad popup — shows every time the user opens the home screen
   bool _showAdPopup = false;
@@ -89,12 +93,30 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: _bottomNavIndex);
     _fetchLocation();
+    _fetchProperties();
     // Show ad popup after first frame each time the home screen is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() => _showAdPopup = true);
       }
     });
+  }
+
+  Future<void> _fetchProperties() async {
+    try {
+      final properties = await PropertyApiService.getProperties(limit: 10, status: 'ACTIVE');
+      if (mounted) {
+        setState(() {
+          _properties = properties;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching properties: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -719,18 +741,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'Commercial':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatComm, onLoadMore: () => setState(() => _visibleItemCounts['comm_feat'] = (_visibleItemCounts['comm_feat'] ?? 3) + 2)),
-          _buildHorizontalQueue('comm_feat', [
-            _buildFeaturedPropertyCard('Cyber Hub Plaza', 'By DLF Commercial', 'DLF Cyber City, Gurgaon', 'Starting ₹3.20 Cr', property: mockProperties[4]),
-            _buildFeaturedPropertyCard('Unitech Signature', 'By Unitech Group', 'Sector 30, Gurgaon', 'Starting ₹5.50 Cr', property: mockProperties[5]),
-            _buildFeaturedPropertyCard('World Trade Tower', 'By WTC Developers', 'Noida Sector 16', 'Starting ₹2.80 Cr', property: mockProperties[6]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('comm_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewOffice, onLoadMore: () => setState(() => _visibleItemCounts['comm_new'] = (_visibleItemCounts['comm_new'] ?? 3) + 2)),
-          _buildHorizontalQueue('comm_new', [
-            _buildNewProjectCard('Prestige Tech Cloud', '₹1.80 Cr', property: mockProperties[7]),
-            _buildNewProjectCard('Embassy Business Hub', '₹2.40 Cr', property: mockProperties[8]),
-            _buildNewProjectCard('Salarpuria Softzone', '₹1.50 Cr', property: mockProperties[9]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('comm_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -834,18 +848,10 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatProp, onLoadMore: () => setState(() => _visibleItemCounts['res_feat'] = (_visibleItemCounts['res_feat'] ?? 3) + 2)),
-          _buildHorizontalQueue('res_feat', [
-            _buildFeaturedPropertyCard('Smart World One DXP', 'By Smart World Developers', 'Sector 113, Gurgaon', 'Starting ₹1.15 Cr', property: mockProperties[4]),
-            _buildFeaturedPropertyCard('Emaar Digi Homes', 'By Emaar India', 'Sector 62, Gurgaon', 'Starting ₹1.90 Cr', property: mockProperties[5]),
-            _buildFeaturedPropertyCard(mockProperties[10].title, 'By Classic Builders', mockProperties[10].location, 'Starting ${mockProperties[10].price}', property: mockProperties[10]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('res_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewProp, onLoadMore: () => setState(() => _visibleItemCounts['res_new'] = (_visibleItemCounts['res_new'] ?? 3) + 2)),
-          _buildHorizontalQueue('res_new', [
-            _buildNewProjectCard('DLF The Crest', '₹2.45 Cr', property: mockProperties[2]),
-            _buildNewProjectCard('M3M Golf', '₹1.80 Cr', property: mockProperties[3]),
-            _buildNewProjectCard(mockProperties[8].title, mockProperties[8].price, property: mockProperties[8]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('res_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -860,42 +866,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['res_recent'] = (_visibleItemCounts['res_recent'] ?? 3) + 2)),
-          _buildHorizontalQueue('res_recent', [
-            _buildRecentlyViewedCard('Godrej Habitat', 'Sector 3, Gurgaon', '₹85 L', property: mockProperties[0]),
-            _buildRecentlyViewedCard('SS The Leaf', 'Bhilai, Chhattisgarh', '₹1.20 Cr', property: mockProperties[1]),
-            _buildRecentlyViewedCard(mockProperties[11].title, mockProperties[11].location, mockProperties[11].price, property: mockProperties[11]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('res_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
     }
   }
 
-  Widget _buildPromoBanner(String title, String subtitle, List<Color> gradientColors) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: gradientColors,
-            begin: Alignment.bottomLeft,
-            end: Alignment.topRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 8),
-            Text(subtitle, style: GoogleFonts.inter(fontSize: 13, color: Colors.white.withAlpha(200), height: 1.5)),
-            const SizedBox(height: 16),
-            Text('Start Searching', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF82B1FF))),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildSecondaryFilter(String text) {
     final isSelected = _selectedCategory == text;
@@ -925,6 +900,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHorizontalQueue(String key, List<Widget> children) {
+    if (children.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Center(
+          child: Text(
+            'No properties available.',
+            style: GoogleFonts.inter(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+    
     final count = _visibleItemCounts[key] ?? 3;
     
     List<Widget> queueItems = [];

@@ -148,7 +148,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     if (input.isEmpty) return;
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => OtpScreen(phoneNumber: input, isPasswordRecovery: true),
+                        builder: (_) => OtpScreen(
+                          phoneNumber: input,
+                          isPasswordRecovery: true,
+                        ),
                       ),
                     );
                   },

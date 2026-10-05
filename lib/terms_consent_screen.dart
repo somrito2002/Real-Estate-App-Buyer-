@@ -25,6 +25,7 @@ class _TermsConsentScreenState extends State<TermsConsentScreen> {
       );
       return;
     }
+
     if (widget.showSuccessScreen) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const SuccessScreen()),

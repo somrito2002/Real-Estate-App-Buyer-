@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'services/wishlist_api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
@@ -151,23 +152,34 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
                   right: 12,
                   child: InkWell(
                     onTap: () async {
-                      if (property.isFavorite) {
+                      bool currentFavorite = WishlistApiService.isWishlisted(property.id);
+                      if (currentFavorite) {
                         final bool? confirm = await showDialog<bool>(
                           context: context,
                           builder: (context) => RemoveShortlistDialog(
                             propertyTitle: property.title,
                           ),
                         );
-                        if (confirm == true) {
-                          setState(() {
-                            property.isFavorite = false;
-                          });
-                        }
-                      } else {
-                        setState(() {
-                          property.isFavorite = true;
-                        });
+                        if (confirm != true) return;
                       }
+
+                      if (!mounted) return;
+                      await WishlistApiService.handleToggleWishlist(
+                        context,
+                        property.id,
+                        onUpdate: (newState) {
+                          if (mounted) {
+                            setState(() {
+                              property.isFavorite = newState;
+                            });
+                          }
+                        },
+                        onError: (error) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                          }
+                        },
+                      );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(6),
@@ -179,9 +191,9 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
                         ],
                       ),
                       child: Icon(
-                        property.isFavorite ? Icons.favorite : Icons.favorite_border,
+                        WishlistApiService.isWishlisted(property.id) ? Icons.favorite : Icons.favorite_border,
                         size: 20,
-                        color: property.isFavorite ? Colors.red : Colors.grey,
+                        color: WishlistApiService.isWishlisted(property.id) ? Colors.red : Colors.grey,
                       ),
                     ),
                   ),

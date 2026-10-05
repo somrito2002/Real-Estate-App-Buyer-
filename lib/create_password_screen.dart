@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'complete_profile_screen.dart';
+import 'services/auth_api_service.dart';
+import 'home_screen.dart';
 
 const Color accentBlue = Color(0xFF4285F4);
 const Color successGreen = Color(0xFF22C55E);
@@ -35,6 +35,8 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
   bool _hasUppercase = false;
   bool _hasNumber = false;
   bool _hasSpecial = false;
+  
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -103,29 +105,46 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
   void _handleContinue() async {
     if (_formKey.currentState!.validate()) {
-      // Save credentials to SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
-      if (widget.fullName != null) await prefs.setString('cached_fullName', widget.fullName!);
-      if (widget.mobile != null) await prefs.setString('cached_mobile', widget.mobile!);
-      if (widget.email != null) await prefs.setString('cached_email', widget.email!);
-      await prefs.setString('cached_password', _passwordController.text);
-      // We don't set isLoggedIn to true here, they might need to complete preferences
-      // or we can set it during login.
+      setState(() {
+        _isLoading = true;
+      });
 
-      if (!mounted) return;
-      Navigator.of(context).push(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const CompleteProfileScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.fastOutSlowIn;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            return SlideTransition(position: animation.drive(tween), child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 220),
-        ),
-      );
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final userId = prefs.getString('cached_userId');
+
+        if (userId == null || userId.isEmpty) {
+          throw Exception('User session invalid. Please sign up again.');
+        }
+
+        final response = await AuthApiService.setPassword(
+          userId: userId,
+          password: _passwordController.text,
+        );
+
+        // Use the centralized saveSession helper (stores token + marks isLoggedIn)
+        final token = response['token'];
+        if (token != null && token.toString().isNotEmpty) {
+          await AuthApiService.saveSession(token.toString(), userId: userId);
+        }
+
+        if (!mounted) return;
+        // Clear entire auth stack so back button doesn't return here
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -255,7 +274,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _handleContinue,
+                    onPressed: _isLoading ? null : _handleContinue,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentBlue,
                       foregroundColor: Colors.white,
@@ -264,14 +283,23 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: Text(
-                      'Continue',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.surface,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            'Continue',
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                          ),
                   ),
                 ),
               ],

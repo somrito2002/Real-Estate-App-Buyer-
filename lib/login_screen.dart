@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/auth_service.dart';
+import 'services/auth_api_service.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 import 'phone_number_screen.dart';
@@ -74,58 +75,53 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
+  void _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_isLoading) return; // prevent duplicate requests
+    setState(() {
+      _isLoading = true;
+      _showVerificationError = false;
+    });
+    try {
+      final response = await AuthApiService.login(
+        identifier: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      // Store token securely and mark session as active
+      final token = response['token'];
+      if (token != null && token.toString().isNotEmpty) {
+        // Extract userId from the login response's user object
+        final userObj = response['user'];
+        String? userId;
+        if (userObj is Map) {
+          userId = (userObj['id'] ?? userObj['_id'] ?? '').toString();
+          if (userId.isEmpty) userId = null;
+        }
+        await AuthApiService.saveSession(token.toString(), userId: userId);
+      }
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _isLoading = true;
-        _showVerificationError = false;
+        _isLoading = false;
+        _showVerificationError = true;
       });
-      // TODO: replace with your real authentication call.
-      Future.delayed(const Duration(seconds: 1), () async {
-        if (!mounted) return;
-        setState(() => _isLoading = false);
-        
-        final prefs = await SharedPreferences.getInstance();
-        final cachedEmail = prefs.getString('cached_email');
-        final cachedMobile = prefs.getString('cached_mobile');
-        final cachedPassword = prefs.getString('cached_password');
-        
-        String inputId = _emailController.text.trim();
-        String inputPassword = _passwordController.text;
-        
-        // Match against cached credentials or fallback hardcoded credentials
-        bool isCachedMatch = false;
-        if (cachedPassword != null && inputPassword == cachedPassword) {
-          if ((cachedEmail != null && inputId == cachedEmail) ||
-              (cachedMobile != null && inputId == cachedMobile)) {
-            isCachedMatch = true;
-          }
-        }
-        
-        bool isHardcodedMatch = (inputId == 'user1@gmail.com' || inputId == '8900096422') &&
-                                inputPassword == 'nopass';
-        
-        if (isCachedMatch || isHardcodedMatch) {
-          // Save login state
-          await prefs.setBool('isLoggedIn', true);
-          // Track whether this is the hardcoded demo user or a real registered user
-          await prefs.setBool('isHardcodedUser', isHardcodedMatch && !isCachedMatch);
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        } else if (!isCachedMatch && !isHardcodedMatch) {
-          setState(() => _showVerificationError = true);
-        } else {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('login.login_error'.tr()),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      });
+      final message = e.toString().replaceAll('Exception: ', '');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message, style: GoogleFonts.inter(fontSize: 13, color: Colors.white)),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

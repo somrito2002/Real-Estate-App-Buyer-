@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'follow_up_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'property_details_loader.dart';
+
+import 'services/enquiry_api_service.dart';
+import 'models/enquiry_model.dart';
+
+import 'login_screen.dart';
 
 class MyEnquiriesScreen extends StatefulWidget {
   const MyEnquiriesScreen({super.key});
@@ -11,33 +17,78 @@ class MyEnquiriesScreen extends StatefulWidget {
 
 class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
   String _selectedFilter = 'All';
-
   final List<String> _filters = ['All', 'Pending', 'Responded', 'Closed'];
 
-  // Mock data
-  final List<Map<String, dynamic>> _enquiries = [
-    {
-      'imageUrl': 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=200',
-      'title': '3 BHK Premium Apartment',
-      'date': '24 Jan 2026',
-      'status': 'Pending',
-      'message': '"Is the listed price of ₹85 Lakh negotiable? I\'d like to schedule a site exploration call on upcoming Sunday."',
-    },
-    {
-      'imageUrl': 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=200',
-      'title': 'DLF Phase 3 Luxury Villa',
-      'date': '20 Jan 2026',
-      'status': 'Responded',
-      'message': '"Hello Arjun, our partner builders confirmed that the project is completely RERA cleared. We uploaded the document copy..."',
-    },
-    {
-      'imageUrl': 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=200',
-      'title': 'Vasant Vihar Premium Suite',
-      'date': '15 Jan 2026',
-      'status': 'Closed',
-      'message': '"This enquiry was resolved successfully after your offline discussion on lease terms."',
-    },
-  ];
+  List<Enquiry> _enquiries = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchEnquiries();
+  }
+
+  Future<void> _fetchEnquiries() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('cached_userId');
+      final partnerId = prefs.getString('cached_partnerId');
+
+      String? uId = (userId != null && userId.isNotEmpty) ? userId : null;
+      String? pId = (partnerId != null && partnerId.isNotEmpty) ? partnerId : null;
+
+      final fetched = await EnquiryApiService.getEnquiries(
+        userId: uId,
+        partnerId: pId,
+      );
+
+      if (mounted) {
+        setState(() {
+          _enquiries = fetched;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        String msg = e.toString();
+        if (msg.contains('401')) {
+          _handleLogout();
+          return;
+        } else if (msg.contains('403')) {
+          msg = 'You are not authorized to view these enquiries.';
+        } else if (msg.contains('SocketException') || msg.contains('HttpException')) {
+          msg = 'Unable to connect to the server. Please check your internet connection and try again.';
+        } else if (msg.contains(':')) {
+          msg = msg.split(':').last;
+        }
+
+        setState(() {
+          _errorMessage = msg;
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+    await prefs.remove('cached_userId');
+    await prefs.remove('cached_partnerId');
+
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,29 +171,73 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
           
           // List
           Expanded(
-            child: ListView.builder(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _errorMessage!,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _fetchEnquiries,
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : _enquiries.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No enquiries found.',
+                              style: GoogleFonts.inter(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                fontSize: 16,
+                              ),
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _fetchEnquiries,
+                            child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _enquiries.length,
               itemBuilder: (context, index) {
                 final enquiry = _enquiries[index];
                 
                 // Filtering logic
-                if (_selectedFilter != 'All' && enquiry['status'] != _selectedFilter) {
+                final statusFilter = _selectedFilter == 'All' ? 'All' : _selectedFilter.toUpperCase();
+                if (statusFilter != 'ALL' && enquiry.status.toUpperCase() != statusFilter) {
                   return const SizedBox.shrink();
                 }
 
                 Color statusColor;
                 Color statusBgColor;
-                if (enquiry['status'] == 'Pending') {
+                if (enquiry.status.toUpperCase() == 'PENDING' || enquiry.status.toUpperCase() == 'NEW') {
                   statusColor = Colors.orange;
                   statusBgColor = Colors.orange.withValues(alpha: 0.15);
-                } else if (enquiry['status'] == 'Responded') {
+                } else if (enquiry.status.toUpperCase() == 'RESPONDED') {
                   statusColor = Colors.green;
                   statusBgColor = Colors.green.withValues(alpha: 0.15);
                 } else {
                   statusColor = Theme.of(context).colorScheme.onSurfaceVariant;
                   statusBgColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.15);
                 }
+                
+                final imageUrl = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=200'; // No imageUrl in API summary
+                final title = enquiry.property?.title ?? 'Unknown Property';
+                final dateStr = enquiry.createdAt.isNotEmpty ? enquiry.createdAt : 'Unknown Date';
+                final displayStatus = enquiry.status.isNotEmpty ? enquiry.status : 'NEW';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -163,7 +258,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
                               child: Image.network(
-                                enquiry['imageUrl'],
+                                imageUrl,
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.cover,
@@ -181,7 +276,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    enquiry['title'],
+                                    title,
                                     style: GoogleFonts.inter(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 15,
@@ -190,7 +285,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Sent: ${enquiry['date']}',
+                                    'Sent: $dateStr',
                                     style: GoogleFonts.inter(
                                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                                       fontSize: 12,
@@ -206,7 +301,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
-                                enquiry['status'],
+                                displayStatus,
                                 style: GoogleFonts.inter(
                                   color: statusColor,
                                   fontSize: 12,
@@ -220,7 +315,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          enquiry['message'],
+                          enquiry.message,
                           style: GoogleFonts.inter(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                             height: 1.5,
@@ -232,12 +327,18 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                       const Divider(height: 1),
                       InkWell(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FollowUpScreen(enquiry: enquiry),
-                            ),
-                          );
+                          if (enquiry.property != null && enquiry.property!.id.isNotEmpty) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PropertyDetailsLoader(
+                                  propertyId: enquiry.property!.id,
+                                ),
+                              ),
+                            ).then((_) {
+                              _fetchEnquiries();
+                            });
+                          }
                         },
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(12),
@@ -248,7 +349,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                           child: Row(
                             children: [
                               Text(
-                                'View Details',
+                                'View Property',
                                 style: GoogleFonts.inter(
                                   color: accentBlue,
                                   fontWeight: FontWeight.bold,
@@ -266,6 +367,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                 );
               },
             ),
+                          ),
           ),
         ],
       ),

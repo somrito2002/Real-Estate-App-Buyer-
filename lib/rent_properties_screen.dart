@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
+import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'property_details_screen.dart';
@@ -658,23 +659,34 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
                 right: 12,
                 child: InkWell(
                   onTap: () async {
-                    if (property.isFavorite) {
+                    bool currentFavorite = WishlistApiService.isWishlisted(property.id);
+                    if (currentFavorite) {
                       final bool? confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => RemoveShortlistDialog(
                           propertyTitle: property.title,
                         ),
                       );
-                      if (confirm == true) {
-                        setState(() {
-                          property.isFavorite = false;
-                        });
-                      }
-                    } else {
-                      setState(() {
-                        property.isFavorite = true;
-                      });
+                      if (confirm != true) return;
                     }
+
+                    if (!mounted) return;
+                    await WishlistApiService.handleToggleWishlist(
+                      context,
+                      property.id,
+                      onUpdate: (newState) {
+                        if (mounted) {
+                          setState(() {
+                            property.isFavorite = newState;
+                          });
+                        }
+                      },
+                      onError: (error) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                        }
+                      },
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),

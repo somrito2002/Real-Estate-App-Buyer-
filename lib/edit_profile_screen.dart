@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'change_password_screen.dart';
+import 'services/auth_api_service.dart';
+import 'models/user_profile.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -14,18 +16,75 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  
+  bool _isLoading = true;
+  bool _isUploading = false;
+  UserProfile? _userProfile;
 
   bool _isResidentialSelected = true;
   bool _isVillasSelected = true;
   bool _isCommercialSelected = false;
   bool _receiveWhatsapp = true;
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final profile = await AuthApiService.getUserProfile();
+      if (!mounted) return;
+      setState(() {
+        _userProfile = profile;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load profile: ${e.toString().replaceAll('Exception: ', '')}')),
+      );
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
-    final XFile? pickedFile = await _picker.pickImage(source: source);
+    final XFile? pickedFile = await _picker.pickImage(source: source, imageQuality: 70);
     if (pickedFile != null) {
       setState(() {
-        _imageFile = File(pickedFile.path);
+        _isUploading = true;
       });
+
+      try {
+        final response = await AuthApiService.uploadProfilePicture(pickedFile.path);
+        if (!mounted) return;
+        
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _isUploading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['message']?.toString() ?? 'Profile picture updated.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _isUploading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
@@ -64,6 +123,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profilePicUrl = _userProfile?.profilePictureUrl(AuthApiService.backendBaseUrl);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
@@ -85,7 +146,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              // Save logic here
               Navigator.pop(context);
             },
             child: Text(
@@ -99,67 +159,86 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Stack(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    backgroundImage: _imageFile != null
-                        ? FileImage(_imageFile!) as ImageProvider
-                        : const NetworkImage('https://i.pravatar.cc/150?img=11'), // placeholder matching design
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: GestureDetector(
-                      onTap: _showImagePickerOptions,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          backgroundImage: _imageFile != null
+                              ? FileImage(_imageFile!) as ImageProvider
+                              : (profilePicUrl != null ? NetworkImage(profilePicUrl) : null),
+                          onBackgroundImageError: profilePicUrl != null ? (_, __) {} : null,
+                          child: _imageFile == null && profilePicUrl == null
+                              ? Text(
+                                  _userProfile?.fullName.isNotEmpty == true
+                                      ? _userProfile!.fullName[0].toUpperCase()
+                                      : 'U',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                )
+                              : null,
                         ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: Theme.of(context).colorScheme.surface,
-                          size: 16,
+                        if (_isUploading)
+                          const Positioned.fill(
+                            child: CircularProgressIndicator(),
+                          ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _isUploading ? null : _showImagePickerOptions,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                              ),
+                              child: Icon(
+                                Icons.camera_alt,
+                                color: Theme.of(context).colorScheme.surface,
+                                size: 16,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            _buildLabel('Full Name'),
-            _buildTextField(initialValue: 'Arjun Malhotra'),
-            const SizedBox(height: 16),
-            _buildLabel('Email Address (Verified)'),
-            _buildTextField(
-              initialValue: 'arjun.malhotra@gmail.com',
-              readOnly: true,
-              suffixIcon: const Icon(Icons.verified, color: Color(0xFF0F9D58), size: 18),
-            ),
-            const SizedBox(height: 16),
-            _buildLabel('Phone Number'),
-            _buildTextField(initialValue: '+91 90390 06890'),
-            const SizedBox(height: 16),
-            _buildLabel('Current City'),
-            _buildDropdownField(initialValue: 'Gurgaon, Haryana'),
-            const SizedBox(height: 16),
-            _buildLabel('Short Bio'),
-            _buildTextField(
-              initialValue: 'Looking for premium residential flats and independent builder floors in Gurgaon or South Delhi. Prefer ready to move.',
-              maxLines: 4,
-            ),
-            const SizedBox(height: 32),
+                  const SizedBox(height: 32),
+                  _buildLabel('Full Name'),
+                  _buildTextField(initialValue: _userProfile?.fullName ?? ''),
+                  const SizedBox(height: 16),
+                  _buildLabel('Email Address'),
+                  _buildTextField(
+                    initialValue: _userProfile?.email ?? '',
+                    readOnly: true,
+                    suffixIcon: const Icon(Icons.verified, color: Color(0xFF0F9D58), size: 18),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildLabel('Phone Number'),
+                  _buildTextField(initialValue: _userProfile?.number ?? ''),
+                  const SizedBox(height: 16),
+                  _buildLabel('Current City'),
+                  _buildDropdownField(initialValue: 'Gurgaon, Haryana'),
+                  const SizedBox(height: 16),
+                  _buildLabel('Short Bio'),
+                  _buildTextField(
+                    initialValue: 'Looking for premium residential flats and independent builder floors in Gurgaon or South Delhi. Prefer ready to move.',
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 32),
             Text(
               'Search & Property Preferences',
               style: GoogleFonts.inter(

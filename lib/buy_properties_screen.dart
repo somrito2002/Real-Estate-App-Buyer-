@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
+import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'property_details_screen.dart';
 import 'widgets/remove_shortlist_dialog.dart';
+import 'services/property_api_service.dart';
 
 class BuyPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -17,7 +19,7 @@ class BuyPropertiesScreen extends StatefulWidget {
 
 class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   late TextEditingController _searchController;
-  late List<Property> _filteredProperties;
+  final List<Property> _properties = [];
   String _selectedType = 'All Types';
   bool _isMapView = false;
   String _currentSortOption = 'Recommended';
@@ -25,19 +27,28 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
 
   bool _isConnected = true;
   bool _isLoading = true;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.initialSearchQuery);
+    _scrollController.addListener(_onScroll);
     _checkInternetConnection();
   }
 
-  void _simulateLoading() async {
-    setState(() { _isLoading = true; });
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (mounted) setState(() { _isLoading = false; });
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoading && !_isFetchingMore && _hasMore) {
+        _fetchMoreProperties();
+      }
+    }
   }
+
+
 
   Future<void> _checkInternetConnection() async {
     try {
@@ -51,42 +62,75 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       });
     }
     if (_isConnected) {
-      _filterProperties();
+      _fetchProperties(isRefresh: true);
     }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _filterProperties() {
-    final query = _searchController.text.toLowerCase();
-    setState(() {
-      _filteredProperties = mockProperties.where((p) {
-        final matchesQuery = p.title.toLowerCase().contains(query) ||
-                             p.location.toLowerCase().contains(query) ||
-                             p.type.toLowerCase().contains(query) ||
-                             p.specs.toLowerCase().contains(query);
-        final matchesType = _selectedType == 'All Types' || p.category.toLowerCase() == _selectedType.toLowerCase() ||
-                           (_selectedType == 'Residential' && p.category == 'Buy'); // simplistic matching for mock
-        return matchesQuery && matchesType;
-      }).toList();
-    });
-    _applySort();
+  Future<void> _fetchProperties({bool isRefresh = false}) async {
+    if (isRefresh) {
+      _currentPage = 1;
+      _hasMore = true;
+      setState(() { _isLoading = true; });
+    }
+
+    try {
+      final newProperties = await PropertyApiService.getProperties(
+        status: 'ACTIVE',
+        limit: 10,
+        page: _currentPage,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        if (isRefresh) {
+          _properties.clear();
+        }
+        for (var p in newProperties) {
+          if (!_properties.any((existing) => existing.id == p.id)) {
+            _properties.add(p);
+          }
+        }
+        if (newProperties.isEmpty || newProperties.length < 10) {
+          _hasMore = false;
+        }
+        _isLoading = false;
+        _isFetchingMore = false;
+      });
+      _applySort();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isFetchingMore = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading properties: $e'), action: SnackBarAction(label: 'Retry', onPressed: () => _fetchProperties(isRefresh: isRefresh))),
+      );
+    }
+  }
+
+  Future<void> _fetchMoreProperties() async {
+    setState(() { _isFetchingMore = true; });
+    _currentPage++;
+    await _fetchProperties();
   }
 
   void _applySort() {
     setState(() {
       if (_currentSortOption == 'Price — Low to High') {
-        _filteredProperties.sort((a, b) => _parsePrice(a.price).compareTo(_parsePrice(b.price)));
+        _properties.sort((a, b) => _parsePrice(a.price).compareTo(_parsePrice(b.price)));
       } else if (_currentSortOption == 'Price — High to Low') {
-        _filteredProperties.sort((a, b) => _parsePrice(b.price).compareTo(_parsePrice(a.price)));
+        _properties.sort((a, b) => _parsePrice(b.price).compareTo(_parsePrice(a.price)));
       }
-      // other logic can be added here
     });
-    _simulateLoading();
   }
 
   double _parsePrice(String price) {
@@ -209,7 +253,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
     if (_isMapView) {
       return _buildMapView();
     }
-    if (_filteredProperties.isEmpty) {
+    if (_properties.isEmpty && !_isLoading) {
       return _buildEmptyStateScreen();
     }
     return Column(
@@ -236,7 +280,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       Expanded(
                         child: TextField(
                           controller: _searchController,
-                          onChanged: (val) => _filterProperties(),
+                          onChanged: (val) { setState(() {}); },
                           decoration: InputDecoration(
                             hintText: 'Search location, project...',
                             hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 14),
@@ -349,7 +393,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${_filteredProperties.length} Properties Found',
+                        '${_properties.length} Properties Found',
                         style: GoogleFonts.inter(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
@@ -381,14 +425,25 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   return _buildSkeletonCard();
                 },
               )
-            : ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                itemCount: _filteredProperties.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  return _buildPropertyCard(_filteredProperties[index]);
-                },
-              ),
+            : RefreshIndicator(
+                  onRefresh: () => _fetchProperties(isRefresh: true),
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    itemCount: _properties.length + (_isFetchingMore ? 1 : 0),
+                    separatorBuilder: (context, index) => const SizedBox(height: 16),
+                    itemBuilder: (context, index) {
+                      if (index == _properties.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.0),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      return _buildPropertyCard(_properties[index]);
+                    },
+                  ),
+                ),
           ),
         ],
       );
@@ -533,7 +588,6 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       setState(() {
                         _searchController.clear();
                         _selectedType = 'All Types';
-                        _filterProperties();
                       });
                     },
                     style: OutlinedButton.styleFrom(
@@ -572,12 +626,12 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
     final chips = <Widget>[];
     if (_selectedType != 'All Types') {
       chips.add(_buildAppliedFilterChip(_selectedType, () {
-        setState(() { _selectedType = 'All Types'; _filterProperties(); });
+        setState(() { _selectedType = 'All Types'; });
       }));
     }
     if (_searchController.text.isNotEmpty) {
       chips.add(_buildAppliedFilterChip(_searchController.text, () {
-        setState(() { _searchController.clear(); _filterProperties(); });
+        setState(() { _searchController.clear(); });
       }));
     }
     if (_searchController.text.isEmpty && _selectedType == 'All Types') {
@@ -726,23 +780,34 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 right: 12,
                 child: InkWell(
                   onTap: () async {
-                    if (property.isFavorite) {
+                    bool currentFavorite = WishlistApiService.isWishlisted(property.id);
+                    if (currentFavorite) {
                       final bool? confirm = await showDialog<bool>(
                         context: context,
                         builder: (context) => RemoveShortlistDialog(
                           propertyTitle: property.title,
                         ),
                       );
-                      if (confirm == true) {
-                        setState(() {
-                          property.isFavorite = false;
-                        });
-                      }
-                    } else {
-                      setState(() {
-                        property.isFavorite = true;
-                      });
+                      if (confirm != true) return;
                     }
+
+                    if (!mounted) return;
+                    await WishlistApiService.handleToggleWishlist(
+                      context,
+                      property.id,
+                      onUpdate: (newState) {
+                        if (mounted) {
+                          setState(() {
+                            property.isFavorite = newState;
+                          });
+                        }
+                      },
+                      onError: (error) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                        }
+                      },
+                    );
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),
@@ -850,8 +915,8 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 bottom: 24,
                 left: 16,
                 right: 16,
-                child: _filteredProperties.isNotEmpty 
-                    ? _buildMapPropertyCard(_filteredProperties.first)
+                child: _properties.isNotEmpty 
+                    ? _buildMapPropertyCard(_properties.first)
                     : const SizedBox(),
               ),
             ],
@@ -862,7 +927,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
           child: Text(
-            'Swipe card above to browse ${_filteredProperties.length} properties in this area',
+            'Swipe card above to browse ${_properties.length} properties in this area',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -141,8 +141,7 @@ class SellerProfileScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildStatItem(context, '34', 'Active Listings'),
-          _buildStatItem(context, '98%', 'Response Rate'),
-          _buildStatItem(context, '< 15 mins', 'Avg Response Time'),
+          _buildStatItem(context, '120+', 'Reviews'),
         ],
       ),
     );

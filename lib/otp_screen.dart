@@ -5,13 +5,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'create_password_screen.dart';
 import 'reset_password_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'services/auth_api_service.dart';
 
 /// OTP verification screen shown after the user taps "Send OTP".
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
+  final String? userId;
   final bool isPasswordRecovery;
 
-  const OtpScreen({super.key, required this.phoneNumber, this.isPasswordRecovery = false});
+  const OtpScreen({super.key, required this.phoneNumber, this.userId, this.isPasswordRecovery = false});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -77,7 +79,7 @@ class _OtpScreenState extends State<OtpScreen> {
     setState(() {});
   }
 
-  void _verifyOtp() {
+  void _verifyOtp() async {
     final otp = _enteredOtp;
     if (otp.length < _otpLength) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -95,45 +97,67 @@ class _OtpScreenState extends State<OtpScreen> {
     }
 
     setState(() => _isLoading = true);
-    // Simulate OTP verification
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        if (widget.isPasswordRecovery) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const ResetPasswordScreen(),
-            ),
-          );
-        } else {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const CreatePasswordScreen(),
-            ),
-          );
-        }
+
+    try {
+      await AuthApiService.verifyOtp(userId: widget.userId ?? '', otp: otp);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (widget.isPasswordRecovery) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+        );
+      } else {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const CreatePasswordScreen()),
+        );
       }
-    });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
-  void _resendOtp() {
+  void _resendOtp() async {
     if (_secondsLeft > 0) return;
-    for (final c in _controllers) {
-      c.clear();
+    
+    try {
+      await AuthApiService.sendOtp(userId: widget.userId ?? '');
+      for (final c in _controllers) {
+        c.clear();
+      }
+      _focusNodes[0].requestFocus();
+      _startCountdown();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'OTP resent to ${widget.phoneNumber}',
+              style: GoogleFonts.inter(fontSize: 14),
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
-    _focusNodes[0].requestFocus();
-    _startCountdown();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'OTP resent to +91 ${widget.phoneNumber}',
-          style: GoogleFonts.inter(fontSize: 14),
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   String get _formattedCountdown {

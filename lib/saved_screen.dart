@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/property_model.dart';
-import 'compare_properties_screen.dart';
-import 'property_details_screen.dart';
+
+
 import 'login_screen.dart';
 import 'register_screen.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'services/wishlist_api_service.dart';
+import 'property_details_screen.dart';
 
 class SavedScreen extends StatefulWidget {
   final VoidCallback? onExplore;
@@ -26,9 +28,8 @@ class _SavedScreenState extends State<SavedScreen> {
   bool _isLoggedIn = false;
   bool _isLoading = true;
 
-  // Multi-select state
-  bool _isSelecting = false;
-  final Set<int> _selectedIndices = {};
+
+  List<Property> _apiSavedProperties = [];
 
   @override
   void initState() {
@@ -38,61 +39,50 @@ class _SavedScreenState extends State<SavedScreen> {
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
+    final loggedIn = prefs.getBool('isLoggedIn') ?? false;
+    
     if (mounted) {
       setState(() {
-        _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-        _isLoading = false;
+        _isLoggedIn = loggedIn;
       });
     }
-  }
 
-  List<Property> get _savedProperties =>
-      mockProperties.where((p) => p.isFavorite).toList();
-
-  void _enterSelectMode(int index) {
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _isSelecting = true;
-      _selectedIndices.add(index);
-    });
-  }
-
-  void _exitSelectMode() {
-    setState(() {
-      _isSelecting = false;
-      _selectedIndices.clear();
-    });
-  }
-
-  void _toggleSelection(int index) {
-    setState(() {
-      if (_selectedIndices.contains(index)) {
-        _selectedIndices.remove(index);
-        if (_selectedIndices.isEmpty) _isSelecting = false;
-      } else {
-        _selectedIndices.add(index);
+    if (loggedIn) {
+      _loadWishlist();
+    } else {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
-    });
-  }
-
-  Future<void> _removeSelected(List<Property> saved) async {
-    final toRemove = _selectedIndices.map((i) => saved[i]).toList();
-    // Show dialog only if single item; bulk remove directly for multiple
-    if (toRemove.length == 1) {
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder: (_) => RemoveShortlistDialog(propertyTitle: toRemove.first.title),
-      );
-      if (confirm != true) return;
     }
-    setState(() {
-      for (final p in toRemove) {
-        p.isFavorite = false;
-      }
-      _exitSelectMode();
-      widget.onChange?.call();
-    });
   }
+
+  Future<void> _loadWishlist() async {
+    if (!mounted) return;
+    try {
+      final properties = await WishlistApiService.getWishlist();
+      if (mounted) {
+        setState(() {
+          _apiSavedProperties = properties;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        final msg = e.toString().contains('Invalid or expired token') || e.toString().contains('Authentication required')
+            ? 'Session expired. Please login again.'
+            : 'Failed to load wishlist. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
+    }
+  }
+
+  List<Property> get _savedProperties => _apiSavedProperties;
+
 
   Future<void> _removeAll(List<Property> saved) async {
     final confirm = await showDialog<bool>(
@@ -124,11 +114,18 @@ class _SavedScreenState extends State<SavedScreen> {
       ),
     );
     if (confirm == true) {
+      final toRemove = List<Property>.from(saved);
       setState(() {
-        for (final p in saved) { p.isFavorite = false; }
-        _exitSelectMode();
+        _apiSavedProperties.clear();
         widget.onChange?.call();
       });
+      for (final p in toRemove) {
+        try {
+          await WishlistApiService.toggleWishlist(p.id);
+        } catch (e) {
+          // ignore
+        }
+      }
     }
   }
 
@@ -347,63 +344,88 @@ class _SavedScreenState extends State<SavedScreen> {
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final property = saved[index];
-              final isSelected = _selectedIndices.contains(index);
-              return _buildPropertyCard(property, index, isSelected, saved);
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                    builder: (_) => PropertyDetailsScreen(
+                      property: property,
+                    ),
+                  ))
+                      .then((_) {
+                    // Refresh the wishlist when returning from property details
+                    // to pick up any changes made there.
+                    if (mounted) {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      _loadWishlist();
+                    }
+                  });
+                },
+                child: _buildPropertyCard(property, index, saved),
+              );
             },
           ),
         ),
+        
+        // Bottom Action Bar
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: SafeArea(
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _removeAll(saved),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text('Remove All', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Compare functionality coming soon')),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4B85F0),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text('Compare Properties', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
 
-        // ── BOTTOM ACTION BAR ──
-        _buildBottomBar(saved),
       ],
     );
   }
 
-  Widget _buildHeader(List<Property> saved) {
-    if (!_isSelecting) return const SizedBox.shrink();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: _exitSelectMode,
-            child: const Icon(Icons.close, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            'saved.selected_count'.tr(namedArgs: {'count': _selectedIndices.length.toString()}),
-            style: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                if (_selectedIndices.length == saved.length) {
-                  _selectedIndices.clear();
-                } else {
-                  _selectedIndices.addAll(
-                      List.generate(saved.length, (i) => i));
-                }
-              });
-            },
-            child: Text(
-              _selectedIndices.length == saved.length ? 'saved.deselect_all'.tr() : 'saved.select_all'.tr(),
-              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600,
-                  color: accentBlue),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPropertyCard(Property property, int index, bool isSelected, List<Property> saved) {
+  Widget _buildPropertyCard(Property property, int index, List<Property> saved) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -424,28 +446,6 @@ class _SavedScreenState extends State<SavedScreen> {
                     width: 100,
                     height: 100,
                     child: _buildPropertyImage(context, property),
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: GestureDetector(
-                    onTap: () => _toggleSelection(index),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isSelected ? accentBlue : Colors.white,
-                        border: Border.all(
-                          color: isSelected ? accentBlue : Theme.of(context).colorScheme.outline,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: isSelected
-                          ? const Icon(Icons.check, size: 16, color: Colors.white)
-                          : null,
-                    ),
                   ),
                 ),
               ],
@@ -477,11 +477,22 @@ class _SavedScreenState extends State<SavedScreen> {
                                 propertyTitle: property.title),
                           );
                           if (confirm == true) {
+                            // Optimistic remove from local list
                             setState(() {
-                              property.isFavorite = false;
-                              if (isSelected) _selectedIndices.remove(index);
+                              _apiSavedProperties.remove(property);
                               widget.onChange?.call();
                             });
+                            try {
+                              await WishlistApiService.toggleWishlist(property.id);
+                            } catch (e) {
+                              // Rollback on failure
+                              if (mounted) {
+                                setState(() {
+                                  _apiSavedProperties.add(property);
+                                  widget.onChange?.call();
+                                });
+                              }
+                            }
                           }
                         },
                         child: const Icon(Icons.favorite_border,
@@ -528,11 +539,22 @@ class _SavedScreenState extends State<SavedScreen> {
                                 propertyTitle: property.title),
                           );
                           if (confirm == true) {
+                            // Optimistic remove
                             setState(() {
-                              property.isFavorite = false;
-                              if (isSelected) _selectedIndices.remove(index);
+                              _apiSavedProperties.remove(property);
                               widget.onChange?.call();
                             });
+                            try {
+                              await WishlistApiService.toggleWishlist(property.id);
+                            } catch (e) {
+                              // Rollback on failure
+                              if (mounted) {
+                                setState(() {
+                                  _apiSavedProperties.add(property);
+                                  widget.onChange?.call();
+                                });
+                              }
+                            }
                           }
                         },
                         child: Text(
@@ -571,75 +593,5 @@ class _SavedScreenState extends State<SavedScreen> {
     );
   }
 
-  // ── BOTTOM ACTION BAR ────────────────────────────────────────────────────────
-  Widget _buildBottomBar(List<Property> saved) {
-    final bool canCompare = _selectedIndices.length == 2;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: OutlinedButton(
-              onPressed: () => _removeAll(saved),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: accentRed,
-                side: const BorderSide(color: accentRed),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Remove All',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: canCompare
-                  ? () {
-                      final List<int> sortedIndices = _selectedIndices.toList()..sort();
-                      final p1 = saved[sortedIndices[0]];
-                      final p2 = saved[sortedIndices[1]];
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => ComparePropertiesScreen(prop1: p1, prop2: p2),
-                      ));
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentBlue,
-                disabledBackgroundColor: accentBlue.withAlpha(128),
-                foregroundColor: Colors.white,
-                disabledForegroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Compare Properties',
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 }
