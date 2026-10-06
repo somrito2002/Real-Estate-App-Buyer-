@@ -11,6 +11,7 @@ import 'widgets/remove_shortlist_dialog.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'services/wishlist_api_service.dart';
 import 'property_details_screen.dart';
+import 'property_details_loader.dart';
 
 class SavedScreen extends StatefulWidget {
   final VoidCallback? onExplore;
@@ -348,8 +349,8 @@ class _SavedScreenState extends State<SavedScreen> {
                 onTap: () {
                   Navigator.of(context)
                       .push(MaterialPageRoute(
-                    builder: (_) => PropertyDetailsScreen(
-                      property: property,
+                    builder: (_) => PropertyDetailsLoader(
+                      propertyId: property.id,
                     ),
                   ))
                       .then((_) {

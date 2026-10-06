@@ -36,9 +36,20 @@ class Property {
   final String id;
   final String? partnerId;
   final String title;
+  final String description;
   final String location;
   final String city;
   final String area;
+  final String builtUpArea;
+  final String address;
+  final String facing;
+  final String parking;
+  final String floor;
+  final String furnishing;
+  final String age;
+  final String carpetArea;
+  final String totalFloors;
+  final String waterSupply;
   final String type;
   final String price;
   final String category;
@@ -60,9 +71,20 @@ class Property {
     required this.id,
     this.partnerId,
     required this.title,
+    this.description = '',
     required this.location,
     this.city = '',
     this.area = '',
+    this.builtUpArea = '',
+    this.address = '',
+    this.facing = '',
+    this.parking = '',
+    this.floor = '',
+    this.furnishing = '',
+    this.age = '',
+    this.carpetArea = '',
+    this.totalFloors = '',
+    this.waterSupply = '',
     required this.type,
     required this.price,
     required this.category,
@@ -114,7 +136,10 @@ class Property {
 
     List<String> imagesList = [];
     if (json['images'] is List) {
-      imagesList = (json['images'] as List).map((e) => e.toString()).toList();
+      imagesList = (json['images'] as List).map((e) {
+        String img = e.toString();
+        return img.startsWith('/') ? 'https://api.prodalal.com$img' : img;
+      }).toList();
     }
     
     List<String> amenitiesList = [];
@@ -125,12 +150,7 @@ class Property {
     // Default placeholder or prepend base url if relative path is used
     String primaryImage = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&auto=format&fit=crop';
     if (imagesList.isNotEmpty) {
-      String firstImage = imagesList.first;
-      if (firstImage.startsWith('/')) {
-        primaryImage = 'https://api.prodalal.com$firstImage';
-      } else {
-        primaryImage = firstImage;
-      }
+      primaryImage = imagesList.first;
     }
     
     int bedCount = parseSafeInt(json['bedrooms']);
@@ -159,16 +179,27 @@ class Property {
       id: json['id']?.toString() ?? '',
       partnerId: json['partnerId']?.toString(),
       title: json['title']?.toString() ?? 'Unknown Title',
+      description: json['description']?.toString() ?? '',
       type: json['type']?.toString() ?? 'Property',
       price: formattedPrice,
       city: cityStr,
       area: areaStr,
+      builtUpArea: json['builtUpArea']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      facing: json['facing']?.toString() ?? '',
+      parking: json['parking']?.toString() ?? '',
+      floor: json['propertyOnFloor']?.toString() ?? '',
+      furnishing: json['furnishing']?.toString() ?? '',
+      age: json['age']?.toString() ?? '',
+      carpetArea: json['carpetArea']?.toString() ?? '',
+      totalFloors: json['totalFloors']?.toString() ?? '',
+      waterSupply: json['waterSupply']?.toString() ?? '',
       location: loc,
       bedrooms: bedCount,
       bathrooms: bathCount,
       balconies: parseSafeInt(json['balconies']),
       status: json['status']?.toString() ?? 'ACTIVE',
-      category: 'Buy', // Default fallback for old UI compatibility
+      category: json['category']?.toString() ?? 'Buy', // Default fallback for old UI compatibility
       imageUrl: primaryImage,
       specs: specsStr,
       amenities: amenitiesList,

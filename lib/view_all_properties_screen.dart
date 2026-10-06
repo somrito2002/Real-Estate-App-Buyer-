@@ -4,6 +4,7 @@ import 'services/wishlist_api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
+import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 
 class ViewAllPropertiesScreen extends StatefulWidget {
@@ -69,7 +70,7 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
       },
       child: Container(
         decoration: BoxDecoration(

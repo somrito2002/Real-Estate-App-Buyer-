@@ -5,6 +5,7 @@ import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'property_details_screen.dart';
+import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 import 'services/property_api_service.dart';
 
@@ -723,7 +724,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
       },
       child: Container(
       decoration: BoxDecoration(

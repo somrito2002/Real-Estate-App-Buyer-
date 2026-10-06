@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
 import 'seller_profile_screen.dart';
@@ -18,6 +19,7 @@ import 'full_screen_image_gallery.dart';
 import 'confirm_visit_details_screen.dart';
 import 'financial_tools_screen.dart';
 import 'widgets/enquiry_bottom_sheet.dart';
+import 'services/property_api_service.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -37,6 +39,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   bool _isAboutExpanded = false;
   bool _isFeaturesExpanded = false;
   bool _isDetailsExpanded = false;
+  bool _isLoadingSimilar = true;
+  List<Property> _similarProperties = [];
 
   late PageController _pageController;
 
@@ -50,7 +54,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   void initState() {
     super.initState();
     _checkLoginStatus();
+    _fetchSimilarProperties();
     _pageController = PageController();
+  }
+
+  Future<void> _fetchSimilarProperties() async {
+    try {
+      final properties = await PropertyApiService.getProperties(limit: 10, status: 'ACTIVE');
+      if (mounted) {
+        setState(() {
+          _similarProperties = properties.where((p) => p.id != widget.property.id).toList();
+          _isLoadingSimilar = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingSimilar = false);
+      }
+    }
   }
 
   @override
@@ -93,6 +114,23 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     }
   }
 
+
+  IconData _getIconForAmenity(String amenity) {
+    final lower = amenity.toLowerCase();
+    if (lower.contains('bed')) return Icons.bed_outlined;
+    if (lower.contains('bath')) return Icons.bathtub_outlined;
+    if (lower.contains('park')) return Icons.local_parking_outlined;
+    if (lower.contains('lift') || lower.contains('elevator')) return Icons.elevator_outlined;
+    if (lower.contains('secur')) return Icons.security_outlined;
+    if (lower.contains('power')) return Icons.bolt_outlined;
+    if (lower.contains('balcon')) return Icons.balcony_outlined;
+    if (lower.contains('pool')) return Icons.pool_outlined;
+    if (lower.contains('gym') || lower.contains('fitness')) return Icons.fitness_center_outlined;
+    if (lower.contains('garden')) return Icons.park_outlined;
+    if (lower.contains('wifi') || lower.contains('internet')) return Icons.wifi_outlined;
+    if (lower.contains('fire')) return Icons.local_fire_department_outlined;
+    return Icons.check_circle_outline;
+  }
 
   Widget _buildSectionHeader(String title) {
     return Text(
@@ -157,12 +195,16 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         children: [
           Icon(icon, size: 18, color: accentBlue),
           const SizedBox(width: 12),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -183,12 +225,16 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
         ],
@@ -200,18 +246,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   Widget build(BuildContext context) {
     final property = widget.property;
 
-    final List<String> imageUrls = [
-      property.imageUrl,
-      'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1574362848149-11496d93a7c7?w=800&auto=format&fit=crop',
-    ];
+    final List<String> imageUrls = property.images.isNotEmpty 
+        ? property.images 
+        : [property.imageUrl];
 
-    // Parse specs for chips
-    final specsParts = property.specs.split('•').map((e) => e.trim()).toList();
-    final area = specsParts.isNotEmpty ? specsParts[0] : '1,450 sq.ft';
-    final bedrooms = specsParts.length > 1 ? specsParts[1] : '3 Bedrooms';
-    final baths = specsParts.length > 2 ? specsParts[2] : '2 Baths';
+    final area = property.builtUpArea.isNotEmpty ? '${property.builtUpArea} sq ft' : 'Area N/A';
+    final bedrooms = property.bedrooms > 0 ? '${property.bedrooms} Bedrooms' : 'N/A';
+    final baths = property.bathrooms > 0 ? '${property.bathrooms} Baths' : 'N/A';
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -478,40 +519,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Price & Status
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            property.price,
-                            style: GoogleFonts.inter(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: accentBlue,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              property.status,
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
                       // Title
                       Text(
                         property.title,
@@ -519,6 +526,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Price
+                      Text(
+                        property.price,
+                        style: GoogleFonts.inter(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: accentBlue,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -558,7 +576,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Residential • For Sale',
+                          '${property.type} • ${property.category}',
                           style: GoogleFonts.inter(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -573,13 +591,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          _buildFeatureChip(Icons.square_foot, area),
-                          _buildFeatureChip(Icons.bed, bedrooms),
-                          _buildFeatureChip(Icons.bathtub_outlined, baths),
-                          _buildFeatureChip(
-                            Icons.directions_car_outlined,
-                            '1 Parking',
-                          ),
+                          if (property.builtUpArea.isNotEmpty)
+                            _buildFeatureChip(Icons.square_foot, '${property.builtUpArea} sq ft'),
+                          if (property.bedrooms > 0)
+                            _buildFeatureChip(Icons.bed, '${property.bedrooms} Bed'),
+                          if (property.bathrooms > 0)
+                            _buildFeatureChip(Icons.bathtub_outlined, '${property.bathrooms} Bath'),
+                          if (property.parking.isNotEmpty)
+                            _buildFeatureChip(Icons.directions_car_outlined, property.parking),
+                          if (property.facing.isNotEmpty)
+                            _buildFeatureChip(Icons.explore_outlined, '${property.facing} Facing'),
+                          if (property.floor.isNotEmpty)
+                            _buildFeatureChip(Icons.layers_outlined, 'Floor ${property.floor}'),
                         ],
                       ),
 
@@ -590,8 +613,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       const SizedBox(height: 8),
                       Text(
                         _isAboutExpanded
-                            ? 'Experience the perfect blend of luxury and comfort in this premium apartment. Features high ventilation, modern vitrified flooring, and direct access to transit hubs. Built with premium materials, this property offers unmatched security, state-of-the-art facilities, and a serene environment perfect for your family.'
-                            : 'Experience the perfect blend of luxury and comfort in this premium apartment. Features high ventilation, modern vitrified flooring, and direct access to transit hubs...',
+                            ? (property.description.isNotEmpty ? property.description : 'No description available for this property.')
+                            : (property.description.isNotEmpty 
+                                ? (property.description.length > 150 ? '${property.description.substring(0, 150)}...' : property.description) 
+                                : 'No description available for this property.'),
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -599,7 +624,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      GestureDetector(
+                      if (property.description.length > 150)
+                        GestureDetector(
                         onTap: () {
                           setState(() {
                             _isAboutExpanded = !_isAboutExpanded;
@@ -659,47 +685,24 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       // Features & Amenities
                       _buildSectionHeader('Features & Amenities'),
                       const SizedBox(height: 16),
-                      GridView.count(
-                        crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 8,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 3.5,
-                        children: [
-                          _buildAmenityItem(Icons.bed_outlined, 'Bedrooms'),
-                          _buildAmenityItem(
-                            Icons.bathtub_outlined,
-                            'Bathrooms',
-                          ),
-                          _buildAmenityItem(
-                            Icons.local_parking_outlined,
-                            'Parking',
-                          ),
-                          _buildAmenityItem(Icons.elevator_outlined, 'Lift'),
-                          _buildAmenityItem(
-                            Icons.security_outlined,
-                            'Security',
-                          ),
-                          _buildAmenityItem(
-                            Icons.bolt_outlined,
-                            'Power Backup',
-                          ),
-                          _buildAmenityItem(Icons.balcony_outlined, 'Balcony'),
-                          _buildAmenityItem(
-                            Icons.pool_outlined,
-                            'Swimming Pool',
-                          ),
-                          if (_isFeaturesExpanded) ...[
-                            _buildAmenityItem(Icons.fitness_center_outlined, 'Gym'),
-                            _buildAmenityItem(Icons.park_outlined, 'Park/Garden'),
-                            _buildAmenityItem(Icons.wifi_outlined, 'Internet/Wi-Fi'),
-                            _buildAmenityItem(Icons.local_fire_department_outlined, 'Fire Safety'),
-                          ],
-                        ],
-                      ),
+                      property.amenities.isEmpty
+                          ? const Text("No specific amenities listed.", style: TextStyle(color: Colors.grey))
+                          : GridView.count(
+                              padding: EdgeInsets.zero,
+                              crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 2,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                              childAspectRatio: 3.5,
+                              children: property.amenities
+                                  .take(_isFeaturesExpanded ? property.amenities.length : 8)
+                                  .map((amenity) => _buildAmenityItem(_getIconForAmenity(amenity), amenity))
+                                  .toList(),
+                            ),
                       const SizedBox(height: 12),
-                      GestureDetector(
+                      if (property.amenities.length > 8)
+                        GestureDetector(
                         onTap: () {
                           setState(() {
                             _isFeaturesExpanded = !_isFeaturesExpanded;
@@ -730,36 +733,33 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       // Location Map
                       _buildSectionHeader('Location'),
                       const SizedBox(height: 12),
-                      Container(
-                        height: 150,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&auto=format&fit=crop',
+                      if (property.lat != null && property.lng != null)
+                        Container(
+                          height: 150,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: GoogleMap(
+                            initialCameraPosition: CameraPosition(
+                              target: LatLng(property.lat!, property.lng!),
+                              zoom: 14,
                             ),
-                            fit: BoxFit.cover,
+                            markers: {
+                              Marker(
+                                markerId: const MarkerId('property_loc'),
+                                position: LatLng(property.lat!, property.lng!),
+                              ),
+                            },
+                            zoomControlsEnabled: false,
+                            scrollGesturesEnabled: false,
+                            myLocationButtonEnabled: false,
                           ),
                         ),
-                        child: Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: accentBlue,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.home,
-                              color: Theme.of(context).colorScheme.surface,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 12),
                       Text(
-                        property.location,
+                        property.address.isNotEmpty ? property.address : property.location,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -768,7 +768,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       const SizedBox(height: 8),
                       GestureDetector(
                         onTap: () async {
-                          final query = Uri.encodeComponent(property.location);
+                          final query = Uri.encodeComponent(property.address.isNotEmpty ? property.address : property.location);
                           final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
                           if (await canLaunchUrl(uri)) {
                             await launchUrl(uri);
@@ -807,11 +807,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 24,
-                            backgroundImage: NetworkImage(
-                              'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop',
-                            ),
+                            backgroundImage: (property.partner?.profilePicture.isNotEmpty == true)
+                                ? NetworkImage(property.partner!.profilePicture)
+                                : const AssetImage('assets/images/placeholder_avatar.png') as ImageProvider,
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            child: (property.partner?.profilePicture.isEmpty ?? true)
+                                ? Icon(Icons.person, color: Theme.of(context).colorScheme.onSurfaceVariant)
+                                : null,
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -819,17 +823,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Rajesh Sharma',
+                                  property.partner?.fullName ?? 'Property Owner',
                                   style: GoogleFonts.inter(
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface,
+                                    color: Theme.of(context).colorScheme.onSurface,
                                   ),
                                 ),
                                 Text(
-                                  'Property Owner',
+                                  property.partner?.companyName ?? 'Independent Agent',
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     color: Theme.of(
@@ -877,16 +879,21 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       // Property Details Table
                       _buildSectionHeader('Property Details'),
                       const SizedBox(height: 12),
-                      _buildDetailRow('Property ID', 'RT-20481'),
-                      _buildDetailRow('Property Type', 'Apartment'),
-                      _buildDetailRow('Listing Type', 'For Sale'),
-                      _buildDetailRow('Area', area),
+                      if (property.type.isNotEmpty) _buildDetailRow('Property Type', property.type),
+                      if (property.category.isNotEmpty) _buildDetailRow('Listing Type', property.category),
+                      if (property.address.isNotEmpty) _buildDetailRow('Address', property.address),
                       if (_isDetailsExpanded) ...[
-                        _buildDetailRow('Furnishing', 'Semi-Furnished'),
-                        _buildDetailRow('Facing', 'North-East'),
-                        _buildDetailRow('Age of Construction', 'New Construction'),
-                        _buildDetailRow('Floor Number', '5 of 12'),
-                        _buildDetailRow('Water Supply', '24 Hours Available'),
+                        if (property.furnishing.isNotEmpty) _buildDetailRow('Furnishing', property.furnishing),
+                        if (property.carpetArea.isNotEmpty) _buildDetailRow('Carpet Area', '${property.carpetArea} sq ft'),
+                        if (property.parking.isNotEmpty) _buildDetailRow('Parking', property.parking),
+                        if (property.age.isNotEmpty) _buildDetailRow('Age of Property', property.age),
+                        if (property.totalFloors.isNotEmpty) _buildDetailRow('Total Floors', property.totalFloors),
+                        if (property.waterSupply.isNotEmpty) _buildDetailRow('Water Supply', property.waterSupply),
+                        if (property.balconies > 0) _buildDetailRow('Balconies', property.balconies.toString()),
+                        if (property.status.isNotEmpty) _buildDetailRow('Status', property.status),
+                        if (property.amenities.isNotEmpty) _buildDetailRow('Amenities', '${property.amenities.length} Included'),
+                        if (property.createdAt != null)
+                           _buildDetailRow('Listed On', property.createdAt!.split('T').first),
                       ],
                       const SizedBox(height: 12),
                       GestureDetector(
@@ -917,39 +924,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
                       _buildDivider(),
 
-                      // Report Listing
-                      Center(
-                        child: TextButton.icon(
-                          onPressed: () async {
-                            final prefs = await SharedPreferences.getInstance();
-                            final isLoggedIn =
-                                prefs.getBool('isLoggedIn') ?? false;
-                            if (!isLoggedIn) {
-                              if (!context.mounted) return;
-                              _showLoginRequiredBottomSheet(context);
-                            } else {
-                              if (!context.mounted) return;
-                              _showReportBottomSheet(context);
-                            }
-                          },
-                          icon: const Icon(
-                            Icons.flag_outlined,
-                            color: Colors.red,
-                            size: 18,
-                          ),
-                          label: Text(
-                            'Report This Listing',
-                            style: GoogleFonts.inter(
-                              color: Colors.red,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      _buildDivider(),
-
                       // Similar Properties
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -962,7 +936,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                 MaterialPageRoute(
                                   builder: (_) => ViewAllPropertiesScreen(
                                     title: 'Similar Properties',
-                                    properties: mockProperties,
+                                    properties: _similarProperties,
                                   ),
                                 ),
                               );
@@ -979,16 +953,20 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        height: 180,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: mockProperties.length > 2
-                              ? 2
-                              : mockProperties.length,
-                          itemBuilder: (context, index) {
-                            final similar = mockProperties[index];
-                            return Container(
+                      _isLoadingSimilar
+                          ? const Center(child: CircularProgressIndicator())
+                          : _similarProperties.isEmpty
+                              ? const Text("No similar properties found.")
+                              : SizedBox(
+                                  height: 180,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _similarProperties.length > 5
+                                        ? 5
+                                        : _similarProperties.length,
+                                    itemBuilder: (context, index) {
+                                      final similar = _similarProperties[index];
+                                      return Container(
                               width: 200,
                               margin: const EdgeInsets.only(right: 16),
                               decoration: BoxDecoration(

@@ -5,7 +5,9 @@ import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'property_details_screen.dart';
+import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
+import 'services/property_api_service.dart';
 
 class RentPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -18,7 +20,9 @@ class RentPropertiesScreen extends StatefulWidget {
 
 class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
   late TextEditingController _searchController;
-  late List<Property> _filteredProperties;
+  List<Property> _allProperties = [];
+  List<Property> _filteredProperties = [];
+  bool _isLoading = true;
   String _selectedType = 'All Types';
   bool _isMapView = false;
   String _currentSortOption = 'Recommended';
@@ -45,7 +49,7 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
       });
     }
     if (_isConnected) {
-      _filterProperties();
+      _fetchProperties();
     }
   }
 
@@ -55,10 +59,29 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
     super.dispose();
   }
 
+  Future<void> _fetchProperties() async {
+    setState(() { _isLoading = true; });
+    try {
+      final properties = await PropertyApiService.getProperties(status: 'ACTIVE', limit: 30);
+      if (mounted) {
+        setState(() {
+          // Temporarily filtering by 'Rent' until a category param is added to the backend
+          _allProperties = properties.where((p) => p.category == 'Rent').toList();
+          _isLoading = false;
+        });
+        _filterProperties();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() { _isLoading = false; });
+      }
+    }
+  }
+
   void _filterProperties() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredProperties = mockProperties.where((p) {
+      _filteredProperties = _allProperties.where((p) {
         final matchesQuery = p.title.toLowerCase().contains(query) ||
                              p.location.toLowerCase().contains(query) ||
                              p.type.toLowerCase().contains(query) ||
@@ -198,6 +221,9 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
   Widget _buildBody() {
     if (!_isConnected) {
       return _buildNoInternetScreen();
+    }
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
     }
     if (_isMapView) {
       return _buildMapView();
@@ -602,7 +628,7 @@ class _RentPropertiesScreenState extends State<RentPropertiesScreen> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
       },
       child: Container(
       decoration: BoxDecoration(

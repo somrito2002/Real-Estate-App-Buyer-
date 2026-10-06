@@ -11,6 +11,7 @@ import 'saved_screen.dart';
 import 'search_screen.dart' as import_search_screen;
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
+import 'property_details_loader.dart';
 import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
 import 'location_bottom_sheet.dart';
@@ -231,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   )),
         body: _buildBodyWithAdOverlay(),
-        bottomNavigationBar: (_bottomNavIndex == 2 && mockProperties.any((p) => p.isFavorite)) ? const SizedBox.shrink() : _buildCustomBottomNav(),
+        bottomNavigationBar: _bottomNavIndex == 2 ? const SizedBox.shrink() : _buildCustomBottomNav(),
       ),
     );
   }
@@ -761,28 +762,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['comm_recent'] = (_visibleItemCounts['comm_recent'] ?? 3) + 2)),
-          _buildHorizontalQueue('comm_recent', [
-            _buildRecentlyViewedCard('Infinity IT Park', 'Andheri East, Mumbai', '₹2.10 Cr', property: mockProperties[4]),
-            _buildRecentlyViewedCard('Mantri Commercio', 'Outer Ring Road, Bangalore', '₹3.50 Cr', property: mockProperties[5]),
-            _buildRecentlyViewedCard('Adani Inspire', 'BKC, Mumbai', '₹4.80 Cr', property: mockProperties[6]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('comm_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
 
       case 'Plots':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_feat'] = (_visibleItemCounts['plots_feat'] ?? 3) + 2)),
-          _buildHorizontalQueue('plots_feat', [
-            _buildFeaturedPropertyCard('DLF Garden City', 'By DLF Ltd.', 'Shilaj, Ahmedabad', 'Starting ₹45 L', property: mockProperties[0]),
-            _buildFeaturedPropertyCard('Sobha International', 'By Sobha Ltd.', 'Devanahalli, Bangalore', 'Starting ₹60 L', property: mockProperties[1]),
-            _buildFeaturedPropertyCard('Godrej Reserve', 'By Godrej Properties', 'Sarjapur Road, Bangalore', 'Starting ₹55 L', property: mockProperties[2]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('plots_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_new'] = (_visibleItemCounts['plots_new'] ?? 3) + 2)),
-          _buildHorizontalQueue('plots_new', [
-            _buildNewProjectCard('Prestige Elysian', '₹38 L', property: mockProperties[3]),
-            _buildNewProjectCard('Brigade Meadows', '₹42 L', property: mockProperties[4]),
-            _buildNewProjectCard('Mahindra Happinest', '₹29 L', property: mockProperties[5]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('plots_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -799,28 +788,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['plots_recent'] = (_visibleItemCounts['plots_recent'] ?? 3) + 2)),
-          _buildHorizontalQueue('plots_recent', [
-            _buildRecentlyViewedCard('Adarsh Palm Retreat', 'Varthur Road, Bangalore', '₹62 L', property: mockProperties[0]),
-            _buildRecentlyViewedCard('TVS Emerald', 'Thirumazhisai, Chennai', '₹35 L', property: mockProperties[1]),
-            _buildRecentlyViewedCard('Casagrand Ferns', 'Kovur, Chennai', '₹28 L', property: mockProperties[2]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('plots_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
 
       case 'PG/Co-living':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_feat'] = (_visibleItemCounts['pg_feat'] ?? 3) + 2)),
-          _buildHorizontalQueue('pg_feat', [
-            _buildFeaturedPropertyCard('Stanza Living', 'By Stanza Living', 'Koramangala, Bangalore', 'Starting ₹8,000/mo', property: mockProperties[6]),
-            _buildFeaturedPropertyCard('OYO Life', 'By OYO Rooms', 'Baner, Pune', 'Starting ₹9,500/mo', property: mockProperties[7]),
-            _buildFeaturedPropertyCard('Zolo Stays', 'By Zolo', 'Sector 62, Noida', 'Starting ₹7,500/mo', property: mockProperties[8]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('pg_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_new'] = (_visibleItemCounts['pg_new'] ?? 3) + 2)),
-          _buildHorizontalQueue('pg_new', [
-            _buildNewProjectCard('CoHo Homes', '₹10,000/mo', property: mockProperties[9]),
-            _buildNewProjectCard('NestAway Plus', '₹12,000/mo', property: mockProperties[10]),
-            _buildNewProjectCard('Colive Studio', '₹14,500/mo', property: mockProperties[11]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('pg_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -837,11 +814,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['pg_recent'] = (_visibleItemCounts['pg_recent'] ?? 3) + 2)),
-          _buildHorizontalQueue('pg_recent', [
-            _buildRecentlyViewedCard('Hello World PG', 'HSR Layout, Bangalore', '₹9,000/mo', property: mockProperties[6]),
-            _buildRecentlyViewedCard('Liv-in PG', 'Wakad, Pune', '₹7,800/mo', property: mockProperties[7]),
-            _buildRecentlyViewedCard('Settl. Coliving', 'Whitefield, Bangalore', '₹11,000/mo', property: mockProperties[8]),
-          ]),
+          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('pg_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
 
       // Residential (default)
@@ -965,7 +938,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: TiltPropertyCard(
         onTap: property != null
             ? () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
               }
             : null,
         child: Container(
@@ -1040,7 +1013,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: TiltPropertyCard(
         onTap: property != null
             ? () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
               }
             : null,
         child: Container(
@@ -1159,7 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: TiltPropertyCard(
         onTap: property != null
             ? () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsScreen(property: property)));
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
               }
             : null,
         child: Container(

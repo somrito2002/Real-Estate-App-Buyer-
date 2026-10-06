@@ -36,10 +36,16 @@ class PropertyApiService {
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final data = json.decode(response.body);
-        if (data != null && data['property'] != null) {
-          return Property.fromJson(data['property']);
+        if (data != null) {
+          if (data['property'] != null) {
+            return Property.fromJson(data['property']);
+          } else if (data['properties'] != null && (data['properties'] as List).isNotEmpty) {
+            return Property.fromJson(data['properties'][0]);
+          } else if (data['id'] != null) {
+            return Property.fromJson(data);
+          }
         }
-        throw Exception('Property data not found in response.');
+        throw Exception('Property data not found in response. Received: $data');
       } else if (response.statusCode == 404) {
         throw Exception('Property not found.');
       } else {
