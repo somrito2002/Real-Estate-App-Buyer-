@@ -269,9 +269,24 @@ class WishlistApiService {
 
     // Store original state for rollback
     final originalState = isWishlisted(propertyId);
+    final optimisticState = !originalState;
+
+    // Optimistically update the UI immediately
+    if (optimisticState) {
+      _wishlistedIds.add(propertyId);
+    } else {
+      _wishlistedIds.remove(propertyId);
+    }
+    onUpdate(optimisticState);
 
     try {
       final newState = await toggleWishlist(propertyId);
+      // Synchronize with the exact state returned by the backend
+      if (newState) {
+        _wishlistedIds.add(propertyId);
+      } else {
+        _wishlistedIds.remove(propertyId);
+      }
       onUpdate(newState);
     } on Exception catch (e) {
       final errorString = e.toString();
@@ -298,7 +313,12 @@ class WishlistApiService {
         return;
       }
 
-      // Revert UI on error
+      // Revert UI and cache on error
+      if (originalState) {
+        _wishlistedIds.add(propertyId);
+      } else {
+        _wishlistedIds.remove(propertyId);
+      }
       onUpdate(originalState);
 
       // Extract the most useful message to show the user

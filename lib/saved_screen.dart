@@ -116,16 +116,23 @@ class _SavedScreenState extends State<SavedScreen> {
     );
     if (confirm == true) {
       final toRemove = List<Property>.from(saved);
+      // Optimistically update UI
       setState(() {
         _apiSavedProperties.clear();
-        widget.onChange?.call();
       });
-      for (final p in toRemove) {
-        try {
-          await WishlistApiService.toggleWishlist(p.id);
-        } catch (e) {
-          // ignore
+      
+      // Execute all toggle requests concurrently
+      try {
+        await Future.wait(
+          toRemove.map((p) => WishlistApiService.toggleWishlist(p.id))
+        );
+        
+        // Notify parent only after backend has finished deleting
+        if (mounted) {
+          widget.onChange?.call();
         }
+      } catch (e) {
+        debugPrint('[Wishlist Debug] Remove All error: $e');
       }
     }
   }
@@ -458,48 +465,13 @@ class _SavedScreenState extends State<SavedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        property.price,
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: accentBlue,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (_) => RemoveShortlistDialog(
-                                propertyTitle: property.title),
-                          );
-                          if (confirm == true) {
-                            // Optimistic remove from local list
-                            setState(() {
-                              _apiSavedProperties.remove(property);
-                              widget.onChange?.call();
-                            });
-                            try {
-                              await WishlistApiService.toggleWishlist(property.id);
-                            } catch (e) {
-                              // Rollback on failure
-                              if (mounted) {
-                                setState(() {
-                                  _apiSavedProperties.add(property);
-                                  widget.onChange?.call();
-                                });
-                              }
-                            }
-                          }
-                        },
-                        child: const Icon(Icons.favorite_border,
-                            color: accentRed, size: 22),
-                      ),
-                    ],
+                  Text(
+                    property.price,
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF4B85F0), // accentBlue
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -540,13 +512,19 @@ class _SavedScreenState extends State<SavedScreen> {
                                 propertyTitle: property.title),
                           );
                           if (confirm == true) {
-                            // Optimistic remove
+                            // Optimistic remove locally first to make UI feel fast
                             setState(() {
                               _apiSavedProperties.remove(property);
-                              widget.onChange?.call();
                             });
+                            
                             try {
+                              // Await the backend deletion BEFORE triggering the parent refresh
                               await WishlistApiService.toggleWishlist(property.id);
+                              
+                              // Now it's safe to notify the parent
+                              if (mounted) {
+                                widget.onChange?.call();
+                              }
                             } catch (e) {
                               // Rollback on failure
                               if (mounted) {

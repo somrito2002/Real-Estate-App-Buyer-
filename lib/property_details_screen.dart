@@ -95,14 +95,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   void _onHeartTapped(Property property) async {
     if (property.isFavorite) {
-      // Show confirm dialog before removing
-      final bool? confirm = await showDialog<bool>(
-        context: context,
-        builder: (context) => RemoveShortlistDialog(
-          propertyTitle: property.title,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Property is already added in the wishlist'),
+          backgroundColor: accentBlue,
+          duration: const Duration(seconds: 2),
         ),
       );
-      if (confirm != true) return;
+      return;
     }
 
     WishlistApiService.handleToggleWishlist(
@@ -259,6 +259,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final property = widget.property;
+    
+    // Sync local object state with the global wishlist cache to ensure accurate UI
+    property.isFavorite = WishlistApiService.isWishlisted(property.id);
 
     final List<String> imageUrls = property.images.isNotEmpty 
         ? property.images 
