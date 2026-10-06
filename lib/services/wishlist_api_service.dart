@@ -37,15 +37,50 @@ class WishlistApiService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('auth_token') ?? '';
+      String userId = prefs.getString('cached_userId') ?? '';
+      
+      if (userId.isEmpty && token.isNotEmpty) {
+        try {
+          final parts = token.split('.');
+          if (parts.length == 3) {
+            final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+            final data = json.decode(payload);
+            userId = (data['id'] ?? data['_id'] ?? data['userId'] ?? data['sub'] ?? '').toString();
+            if (userId.isNotEmpty) {
+              await prefs.setString('cached_userId', userId);
+            }
+          }
+        } catch (_) {}
+      }
 
-      if (token.isEmpty) {
-        throw Exception('Authentication required. Please provide a valid token.');
+      if (userId.isEmpty && token.isNotEmpty) {
+        try {
+          final profileRes = await http.get(
+            Uri.parse('$_baseUrl/auth/user'),
+            headers: {'Authorization': 'Bearer $token'},
+          ).timeout(const Duration(seconds: 10));
+          if (profileRes.statusCode == 200) {
+            final data = json.decode(profileRes.body);
+            userId = (data['id'] ?? data['userId'] ?? data['_id'] ?? '').toString();
+            if (userId.isNotEmpty) {
+              await prefs.setString('cached_userId', userId);
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (token.isEmpty || userId.isEmpty) {
+        throw Exception('Authentication required. Please login.');
       }
 
       if (propertyId.isEmpty) {
         throw Exception('400:Property ID is missing.');
       }
 
+      debugPrint('[Wishlist Debug] POST /api/wishlist/toggle');
+      debugPrint('[Wishlist Debug] userId = $userId');
+      debugPrint('[Wishlist Debug] propertyId = $propertyId');
+      
       final response = await http.post(
         Uri.parse('$_baseUrl/wishlist/toggle'),
         headers: {
@@ -53,9 +88,13 @@ class WishlistApiService {
           'Authorization': 'Bearer $token',
         },
         body: json.encode({
+          'userId': userId,
           'propertyId': propertyId,
         }),
       ).timeout(const Duration(seconds: 15));
+
+      debugPrint('[Wishlist Debug] statusCode = ${response.statusCode}');
+      debugPrint('[Wishlist Debug] responseBody = ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -87,28 +126,69 @@ class WishlistApiService {
   }
 
   /// Fetches the user's wishlist and updates the local cache.
-  /// GET /api/wishlist/
+  /// GET /api/wishlist/:userId
   static Future<List<Property>> getWishlist() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
+    String userId = prefs.getString('cached_userId') ?? '';
     
-    if (token.isEmpty) {
-      throw Exception('Authentication required. Please provide a valid token.');
+    if (userId.isEmpty && token.isNotEmpty) {
+      try {
+        final parts = token.split('.');
+        if (parts.length == 3) {
+          final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+          final data = json.decode(payload);
+          userId = (data['id'] ?? data['_id'] ?? data['userId'] ?? data['sub'] ?? '').toString();
+          if (userId.isNotEmpty) {
+            await prefs.setString('cached_userId', userId);
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (userId.isEmpty && token.isNotEmpty) {
+      try {
+        final profileRes = await http.get(
+          Uri.parse('$_baseUrl/auth/user'),
+          headers: {'Authorization': 'Bearer $token'},
+        ).timeout(const Duration(seconds: 10));
+        if (profileRes.statusCode == 200) {
+          final data = json.decode(profileRes.body);
+          userId = (data['id'] ?? data['userId'] ?? data['_id'] ?? '').toString();
+          if (userId.isNotEmpty) {
+            await prefs.setString('cached_userId', userId);
+          }
+        }
+      } catch (_) {}
+    }
+    
+    if (token.isEmpty || userId.isEmpty) {
+      throw Exception('Authentication required. Please login.');
     }
 
     final response = await http.get(
-      Uri.parse('$_baseUrl/wishlist/'),
+      Uri.parse('$_baseUrl/wishlist'),
       headers: {
         'Authorization': 'Bearer $token',
       },
     ).timeout(const Duration(seconds: 30));
+
+    debugPrint('[Wishlist Debug] GET /api/wishlist statusCode = ${response.statusCode}');
+    debugPrint('[Wishlist Debug] responseBody = ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data != null && data['wishlist'] != null) {
         final List propertiesData = data['wishlist'];
         
-        final properties = propertiesData.map((json) => Property.fromJson(json)).toList();
+        final properties = propertiesData.map((json) {
+          try {
+            return Property.fromJson(json);
+          } catch (e) {
+            debugPrint('[Wishlist Debug] Error parsing property: $e');
+            rethrow;
+          }
+        }).toList();
         
         // Update local cache
         _wishlistedIds.clear();
@@ -154,7 +234,30 @@ class WishlistApiService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('isLoggedIn') != true) {
-      onError('Please login to save properties to your wishlist.');
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Login Required'),
+            content: const Text('Please login to save properties to your wishlist.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                },
+                child: const Text('Log In'),
+              ),
+            ],
+          ),
+        );
+      }
       return;
     }
 

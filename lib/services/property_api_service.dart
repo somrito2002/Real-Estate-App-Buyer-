@@ -41,7 +41,7 @@ class PropertyApiService {
             return Property.fromJson(data['property']);
           } else if (data['properties'] != null && (data['properties'] as List).isNotEmpty) {
             return Property.fromJson(data['properties'][0]);
-          } else if (data['id'] != null) {
+          } else if (data['id'] != null || data['_id'] != null) {
             return Property.fromJson(data);
           }
         }

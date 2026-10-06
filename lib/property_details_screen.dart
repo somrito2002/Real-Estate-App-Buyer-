@@ -20,6 +20,7 @@ import 'confirm_visit_details_screen.dart';
 import 'financial_tools_screen.dart';
 import 'widgets/enquiry_bottom_sheet.dart';
 import 'services/property_api_service.dart';
+import 'services/wishlist_api_service.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -101,17 +102,30 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           propertyTitle: property.title,
         ),
       );
-      
-      if (confirm == true) {
-        setState(() {
-          property.isFavorite = false;
-        });
-      }
-    } else {
-      setState(() {
-        property.isFavorite = true;
-      });
+      if (confirm != true) return;
     }
+
+    WishlistApiService.handleToggleWishlist(
+      context,
+      property.id,
+      onUpdate: (newState) {
+        if (mounted) {
+          setState(() {
+            property.isFavorite = newState;
+          });
+        }
+      },
+      onError: (errorMsg) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+    );
   }
 
 
@@ -811,7 +825,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             radius: 24,
                             backgroundImage: (property.partner?.profilePicture.isNotEmpty == true)
                                 ? NetworkImage(property.partner!.profilePicture)
-                                : const AssetImage('assets/images/placeholder_avatar.png') as ImageProvider,
+                                : null,
                             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                             child: (property.partner?.profilePicture.isEmpty ?? true)
                                 ? Icon(Icons.person, color: Theme.of(context).colorScheme.onSurfaceVariant)

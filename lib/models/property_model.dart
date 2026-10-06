@@ -176,7 +176,7 @@ class Property {
     }
 
     return Property(
-      id: json['id']?.toString() ?? '',
+      id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       partnerId: json['partnerId']?.toString(),
       title: json['title']?.toString() ?? 'Unknown Title',
       description: json['description']?.toString() ?? '',
