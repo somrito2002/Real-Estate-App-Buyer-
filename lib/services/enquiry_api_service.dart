@@ -61,6 +61,44 @@ class EnquiryApiService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
+    
+    // Automatically fallback to token parsing if userId is not passed
+    if (userId == null && partnerId == null && token.isNotEmpty) {
+      String fallbackId = prefs.getString('cached_userId') ?? '';
+      if (fallbackId.isEmpty) {
+        try {
+          final parts = token.split('.');
+          if (parts.length == 3) {
+            final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+            final data = json.decode(payload);
+            fallbackId = (data['id'] ?? data['_id'] ?? data['userId'] ?? data['sub'] ?? '').toString();
+            if (fallbackId.isNotEmpty) {
+              await prefs.setString('cached_userId', fallbackId);
+            }
+          }
+        } catch (_) {}
+      }
+      
+      if (fallbackId.isEmpty) {
+        try {
+          final profileRes = await http.get(
+            Uri.parse('$_baseUrl/auth/user'),
+            headers: {'Authorization': 'Bearer $token'},
+          ).timeout(const Duration(seconds: 10));
+          if (profileRes.statusCode == 200) {
+            final data = json.decode(profileRes.body);
+            fallbackId = (data['id'] ?? data['userId'] ?? data['_id'] ?? '').toString();
+            if (fallbackId.isNotEmpty) {
+              await prefs.setString('cached_userId', fallbackId);
+            }
+          }
+        } catch (_) {}
+      }
+      
+      if (fallbackId.isNotEmpty) {
+        userId = fallbackId;
+      }
+    }
 
     if (token.isEmpty) {
       throw Exception('401:Authentication required. Please provide a valid token.');

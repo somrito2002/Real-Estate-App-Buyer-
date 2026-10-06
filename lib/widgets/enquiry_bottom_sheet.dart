@@ -105,7 +105,7 @@ class _EnquiryBottomSheetState extends State<EnquiryBottomSheet> {
     }
   }
 
-  Widget _buildEnquiryTextField(String label, String hintText, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildEnquiryTextField(String label, String hintText, TextEditingController controller, {int maxLines = 1, bool enabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -121,6 +121,7 @@ class _EnquiryBottomSheetState extends State<EnquiryBottomSheet> {
         TextFormField(
           controller: controller,
           maxLines: maxLines,
+          enabled: enabled,
           style: GoogleFonts.inter(fontSize: 14),
           decoration: InputDecoration(
             hintText: hintText,
@@ -267,11 +268,11 @@ class _EnquiryBottomSheetState extends State<EnquiryBottomSheet> {
               const SizedBox(height: 20),
 
               // Form fields
-              _buildEnquiryTextField('Full Name', 'e.g. Robert Charles', _nameController),
+              _buildEnquiryTextField('Full Name', 'e.g. Robert Charles', _nameController, enabled: false),
               const SizedBox(height: 16),
               _buildEnquiryTextField('Mobile Number', '+91 98102 34567', _phoneController),
               const SizedBox(height: 16),
-              _buildEnquiryTextField('Email Address', 'robert.charles@gmail.com', _emailController),
+              _buildEnquiryTextField('Email Address', 'robert.charles@gmail.com', _emailController, enabled: false),
               const SizedBox(height: 16),
               
               // Dropdown
