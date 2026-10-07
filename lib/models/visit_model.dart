@@ -22,15 +22,30 @@ class Visit {
   });
 
   factory Visit.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic> propertyJson = {};
+    if (json['property'] is Map) {
+      propertyJson = Map<String, dynamic>.from(json['property']);
+    } else if (json['property'] is String) {
+      propertyJson = {'id': json['property']};
+    }
+    
+    if (propertyJson['id'] == null && propertyJson['_id'] == null) {
+      if (json['propertyId'] != null) {
+        propertyJson['id'] = json['propertyId'];
+      } else if (json['property'] is Map && json['property']['_id'] != null) {
+        propertyJson['id'] = json['property']['_id'];
+      }
+    }
+
     return Visit(
-      id: json['id']?.toString() ?? '',
+      id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       date: json['date']?.toString() ?? '',
       time: json['time']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
-      property: VisitProperty.fromJson(json['property'] ?? {}),
+      property: VisitProperty.fromJson(propertyJson),
       createdAt: json['createdAt']?.toString() ?? '',
     );
   }
@@ -62,7 +77,7 @@ class VisitProperty {
     }
 
     return VisitProperty(
-      id: json['id']?.toString() ?? '',
+      id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       city: json['city']?.toString() ?? '',
       imageUrl: parsedImage,

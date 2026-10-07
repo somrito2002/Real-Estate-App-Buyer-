@@ -142,15 +142,15 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           visitType: 'In-Person Visit',
           status: v.status, // Strictly fetch status from backend API
           dateTime: '${v.date} • ${v.time}',
-          location: v.property.city,
+          location: (prop != null && prop.address.isNotEmpty) ? prop.address : v.property.city,
           price: (prop != null) ? prop.price : 'Price on Request',
           timeSlot: v.time,
           refId: v.id,
           agentName: 'Assigned Agent',
           agentRole: 'Property Agent',
           otp: '123456',
-          lat: 28.4595,
-          lng: 77.0266,
+          lat: (prop != null && prop.lat != null) ? prop.lat! : 28.4595,
+          lng: (prop != null && prop.lng != null) ? prop.lng! : 77.0266,
         );
       }).toList();
 
@@ -228,7 +228,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
               : (_visits.isEmpty 
                   ? const Center(child: Text("No visits found.")) 
                   : ListView.separated(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
                       itemCount: filteredVisits.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 16),
                       itemBuilder: (context, index) {
