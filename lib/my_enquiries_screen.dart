@@ -5,6 +5,8 @@ import 'property_details_loader.dart';
 
 import 'services/enquiry_api_service.dart';
 import 'models/enquiry_model.dart';
+import 'models/property_model.dart';
+import 'services/property_api_service.dart';
 
 import 'login_screen.dart';
 
@@ -20,7 +22,8 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
   final List<String> _filters = ['All', 'Pending', 'Responded', 'Closed'];
 
   List<Enquiry> _enquiries = [];
-  bool _isLoading = true;
+  Map<String, String> _propertyImages = {};
+bool _isLoading = true;
   String? _errorMessage;
 
   @override
@@ -41,16 +44,33 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
       final partnerId = prefs.getString('cached_partnerId');
 
       String? uId = (userId != null && userId.isNotEmpty) ? userId : null;
-      String? pId = (partnerId != null && partnerId.isNotEmpty) ? partnerId : null;
 
       final fetched = await EnquiryApiService.getEnquiries(
-        userId: uId,
-        partnerId: pId,
+        userId: null, // Let backend rely purely on the Auth token
+        partnerId: null, // Strictly fetch as user, not as partner
       );
+
+      final propertyFutures = fetched.map((e) {
+        if (e.property?.id != null && e.property!.id.isNotEmpty) {
+          return PropertyApiService.getPropertyById(e.property!.id).catchError((_) => null as dynamic);
+        }
+        return Future.value(null);
+      });
+      final propertiesList = await Future.wait(propertyFutures);
+      
+      final Map<String, String> loadedImages = {};
+      for (int i = 0; i < fetched.length; i++) {
+        final propId = fetched[i].property?.id;
+        final Property? propDetails = propertiesList[i] as Property?;
+        if (propId != null && propDetails != null && propDetails.imageUrl.isNotEmpty) {
+          loadedImages[propId] = propDetails.imageUrl;
+        }
+      }
 
       if (mounted) {
         setState(() {
           _enquiries = fetched;
+          _propertyImages = loadedImages;
           _isLoading = false;
         });
       }
@@ -216,7 +236,7 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                 final enquiry = _enquiries[index];
                 
                 // Filtering logic
-                final statusFilter = _selectedFilter == 'All' ? 'All' : _selectedFilter.toUpperCase();
+                final statusFilter = _selectedFilter.toUpperCase();
                 if (statusFilter != 'ALL' && enquiry.status.toUpperCase() != statusFilter) {
                   return const SizedBox.shrink();
                 }
@@ -234,7 +254,10 @@ class _MyEnquiriesScreenState extends State<MyEnquiriesScreen> {
                   statusBgColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.15);
                 }
                 
-                final imageUrl = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=200'; // No imageUrl in API summary
+                final String propId = enquiry.property?.id ?? '';
+                final imageUrl = _propertyImages.containsKey(propId) 
+                    ? _propertyImages[propId]! 
+                    : 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=200';
                 final title = enquiry.property?.title ?? 'Unknown Property';
                 final dateStr = enquiry.createdAt.isNotEmpty ? enquiry.createdAt : 'Unknown Date';
                 final displayStatus = enquiry.status.isNotEmpty ? enquiry.status : 'NEW';

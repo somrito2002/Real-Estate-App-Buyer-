@@ -61,45 +61,8 @@ class EnquiryApiService {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
-    
-    // Automatically fallback to token parsing if userId is not passed
-    if (userId == null && partnerId == null && token.isNotEmpty) {
-      String fallbackId = prefs.getString('cached_userId') ?? '';
-      if (fallbackId.isEmpty) {
-        try {
-          final parts = token.split('.');
-          if (parts.length == 3) {
-            final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
-            final data = json.decode(payload);
-            fallbackId = (data['id'] ?? data['_id'] ?? data['userId'] ?? data['sub'] ?? '').toString();
-            if (fallbackId.isNotEmpty) {
-              await prefs.setString('cached_userId', fallbackId);
-            }
-          }
-        } catch (_) {}
-      }
-      
-      if (fallbackId.isEmpty) {
-        try {
-          final profileRes = await http.get(
-            Uri.parse('$_baseUrl/auth/user'),
-            headers: {'Authorization': 'Bearer $token'},
-          ).timeout(const Duration(seconds: 10));
-          if (profileRes.statusCode == 200) {
-            final data = json.decode(profileRes.body);
-            fallbackId = (data['id'] ?? data['userId'] ?? data['_id'] ?? '').toString();
-            if (fallbackId.isNotEmpty) {
-              await prefs.setString('cached_userId', fallbackId);
-            }
-          }
-        } catch (_) {}
-      }
-      
-      if (fallbackId.isNotEmpty) {
-        userId = fallbackId;
-      }
-    }
-
+    // Do not auto-append userId. The backend infers the user purely from the Auth token.
+    // Explicit query params are only needed for partner-level filtering.
     if (token.isEmpty) {
       throw Exception('401:Authentication required. Please provide a valid token.');
     }
@@ -120,7 +83,14 @@ class EnquiryApiService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final List enquiriesData = data['enquiries'] ?? [];
+      List enquiriesData = [];
+      if (data is List) {
+        enquiriesData = data;
+      } else if (data is Map && data.containsKey('enquiries')) {
+        enquiriesData = data['enquiries'] ?? [];
+      } else if (data is Map && data.containsKey('data')) {
+        enquiriesData = data['data'] ?? [];
+      }
       return enquiriesData.map((e) => Enquiry.fromJson(e)).toList();
     } else if (response.statusCode == 401) {
       throw Exception('401:Authentication required. Please provide a valid token.');

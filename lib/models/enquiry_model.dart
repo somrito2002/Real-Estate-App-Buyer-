@@ -21,15 +21,26 @@ class Enquiry {
 
   factory Enquiry.fromJson(Map<String, dynamic> json) {
     return Enquiry(
-      id: json['id']?.toString() ?? '',
+      id: (json['id'] ?? json['_id'])?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       message: json['message']?.toString() ?? '',
       status: json['status']?.toString() ?? 'NEW',
       createdAt: json['createdAt']?.toString() ?? '',
-      property: json['property'] != null ? EnquiryProperty.fromJson(json['property']) : null,
+      property: _parseProperty(json['property']),
     );
+  }
+
+  static EnquiryProperty? _parseProperty(dynamic propJson) {
+    if (propJson == null) return null;
+    if (propJson is String) {
+      return EnquiryProperty(id: propJson, title: '', bedrooms: '', type: '');
+    }
+    if (propJson is Map<String, dynamic>) {
+      return EnquiryProperty.fromJson(propJson);
+    }
+    return null;
   }
 }
 
@@ -48,7 +59,7 @@ class EnquiryProperty {
 
   factory EnquiryProperty.fromJson(Map<String, dynamic> json) {
     return EnquiryProperty(
-      id: json['id']?.toString() ?? '',
+      id: (json['id'] ?? json['_id'])?.toString() ?? '',
       title: json['title']?.toString() ?? '',
       bedrooms: json['bedrooms']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
