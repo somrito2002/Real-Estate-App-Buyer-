@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'my_visits_screen.dart';
+import 'services/visit_api_service.dart';
 
 class CancelVisitScreen extends StatefulWidget {
   final VisitMock visit;
@@ -52,12 +53,25 @@ class _CancelVisitScreenState extends State<CancelVisitScreen> {
 
   void _confirmCancellation() async {
     setState(() => _isCancelling = true);
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    if (!mounted) return;
-    // Pop back to My Visits
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    try {
+      await VisitApiService.updateVisitStatus(
+        visitId: widget.visit.refId,
+        status: 'CANCELLED',
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Visit cancelled successfully.')),
+      );
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isCancelling = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to cancel visit: $e')),
+      );
+    }
   }
 
   @override

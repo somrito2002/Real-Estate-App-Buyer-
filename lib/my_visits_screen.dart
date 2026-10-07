@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'visit_details_screen.dart';
 import 'home_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
-
+import 'services/visit_api_service.dart';
+import 'services/property_api_service.dart';
 class VisitMock {
   final String imageUrl;
   final String title;
@@ -102,6 +103,73 @@ class MyVisitsScreen extends StatefulWidget {
 class _MyVisitsScreenState extends State<MyVisitsScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
   String _selectedFilter = 'Upcoming';
+  List<VisitMock> _visits = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchVisits();
+  }
+
+  Future<void> _fetchVisits() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final apiVisits = await VisitApiService.getVisits();
+      
+      // Fetch full property details concurrently to get the correct real property images
+      final propertyFutures = apiVisits.map((v) => 
+        PropertyApiService.getPropertyById(v.property.id).catchError((_) => null as dynamic)
+      );
+      final properties = await Future.wait(propertyFutures);
+
+      final mappedVisits = apiVisits.asMap().entries.map((entry) {
+        final index = entry.key;
+        final v = entry.value;
+        final prop = properties[index];
+        
+        String finalImageUrl = v.property.imageUrl;
+        if (prop != null && prop.imageUrl.isNotEmpty) {
+          finalImageUrl = prop.imageUrl;
+        }
+
+        return VisitMock(
+          imageUrl: finalImageUrl,
+          title: v.property.title,
+          visitType: 'In-Person Visit',
+          status: v.status, // Strictly fetch status from backend API
+          dateTime: '${v.date} • ${v.time}',
+          location: v.property.city,
+          price: (prop != null) ? prop.price : 'Price on Request',
+          timeSlot: v.time,
+          refId: v.id,
+          agentName: 'Assigned Agent',
+          agentRole: 'Property Agent',
+          otp: '123456',
+          lat: 28.4595,
+          lng: 77.0266,
+        );
+      }).toList();
+
+      setState(() {
+        _visits = mappedVisits;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _visits = [];
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load visits: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,10 +184,19 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     final textMuted = isDark ? Colors.white54 : const Color(0xFF666666);
     final dividerColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
 
-    List<VisitMock> filteredVisits = mockVisits.where((v) {
-      if (_selectedFilter == 'Upcoming') return v.status == 'Upcoming';
-      if (_selectedFilter == 'Completed') return v.status == 'Completed';
-      if (_selectedFilter == 'Cancelled') return v.status == 'Cancelled';
+    List<VisitMock> filteredVisits = _visits.where((v) {
+      if (_selectedFilter == 'Upcoming') {
+        return v.status.toUpperCase() == 'PENDING' || v.status.toUpperCase() == 'SCHEDULED';
+      }
+      if (_selectedFilter == 'Confirmed') {
+        return v.status.toUpperCase() == 'CONFIRMED';
+      }
+      if (_selectedFilter == 'Completed') {
+        return v.status.toUpperCase() == 'COMPLETED';
+      }
+      if (_selectedFilter == 'Cancelled') {
+        return v.status.toUpperCase() == 'CANCELLED';
+      }
       return true;
     }).toList();
 
@@ -133,31 +210,32 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                _buildFilterChip('visits.upcoming'.tr(), isDark, chipBgUnselected, chipBorderUnselected),
+                _buildFilterChip('Upcoming', isDark, chipBgUnselected, chipBorderUnselected),
                 const SizedBox(width: 8),
-                _buildFilterChip('visits.completed'.tr(), isDark, chipBgUnselected, chipBorderUnselected),
+                _buildFilterChip('Confirmed', isDark, chipBgUnselected, chipBorderUnselected),
                 const SizedBox(width: 8),
-                _buildFilterChip('visits.cancelled'.tr(), isDark, chipBgUnselected, chipBorderUnselected),
+                _buildFilterChip('Completed', isDark, chipBgUnselected, chipBorderUnselected),
+                const SizedBox(width: 8),
+                _buildFilterChip('Cancelled', isDark, chipBgUnselected, chipBorderUnselected),
               ],
             ),
           ),
           
           // Visit List
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: _selectedFilter == 'Upcoming' ? mockVisits.length : filteredVisits.length, // Showing all just for demo to match screenshot if needed, but let's stick to real filtering
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                // To perfectly match the screenshot where we see multiple statuses on one screen,
-                // we'll just show all mock visits if it's a static demo, but let's assume the screenshot 
-                // was just a mockup showing different card types. Wait, the screenshot shows "Upcoming" selected,
-                // but lists "Upcoming" and "Completed" underneath! That's a classic UI mockup inconsistency.
-                // We will just show all mock visits to match the visual exactly.
-                final visit = mockVisits[index];
-                return _buildVisitCard(visit, cardBgColor, cardBorderColor, titleColor, textMuted, dividerColor, isDark);
-              },
-            ),
+            child: _isLoading 
+              ? const Center(child: CircularProgressIndicator()) 
+              : (_visits.isEmpty 
+                  ? const Center(child: Text("No visits found.")) 
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredVisits.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 16),
+                      itemBuilder: (context, index) {
+                        final visit = filteredVisits[index];
+                        return _buildVisitCard(visit, cardBgColor, cardBorderColor, titleColor, textMuted, dividerColor, isDark);
+                      },
+                    )),
           ),
         ],
       );
@@ -171,14 +249,10 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: titleColor),
             onPressed: () {
-              if (Navigator.canPop(context)) {
-                Navigator.of(context).pop();
-              } else {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (route) => false,
-                );
-              }
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+              );
             },
           ),
           title: Text(
@@ -209,10 +283,9 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     final isSelected = _selectedFilter.tr() == label || _selectedFilter == label || 'visits.${_selectedFilter.toLowerCase()}'.tr() == label;
     return GestureDetector(
       onTap: () {
-        // Find the original key based on label if needed, or just set selectedFilter to the english enum
-        if (label == 'visits.upcoming'.tr()) setState(() => _selectedFilter = 'Upcoming');
-        else if (label == 'visits.completed'.tr()) setState(() => _selectedFilter = 'Completed');
-        else if (label == 'visits.cancelled'.tr()) setState(() => _selectedFilter = 'Cancelled');
+        setState(() {
+          _selectedFilter = label;
+        });
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -247,10 +320,11 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     Color badgeBg;
     Color badgeText;
     
-    if (visit.status == 'Upcoming') {
+    final upperStatus = visit.status.toUpperCase();
+    if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED' || upperStatus == 'CONFIRMED') {
       badgeBg = isDark ? const Color(0xFF1A2A4A) : const Color(0xFFE8F0FE);
       badgeText = const Color(0xFF4B85F0);
-    } else if (visit.status == 'Completed') {
+    } else if (upperStatus == 'COMPLETED') {
       badgeBg = isDark ? const Color(0xFF1A3320) : const Color(0xFFE8F8F0);
       badgeText = isDark ? const Color(0xFF4ADE80) : const Color(0xFF22C55E);
     } else {
@@ -323,7 +397,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    visit.status == 'Upcoming' ? 'visits.upcoming'.tr() : (visit.status == 'Completed' ? 'visits.completed'.tr() : 'visits.cancelled'.tr()),
+                    visit.status,
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -363,7 +437,11 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                       MaterialPageRoute(
                         builder: (_) => VisitDetailsScreen(visit: visit),
                       ),
-                    );
+                    ).then((_) {
+                      if (mounted) {
+                        _fetchVisits();
+                      }
+                    });
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,

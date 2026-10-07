@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'my_visits_screen.dart';
 import 'reschedule_visit_screen.dart';
 import 'cancel_visit_screen.dart';
+import 'services/visit_api_service.dart';
 
 class VisitDetailsScreen extends StatefulWidget {
   final VisitMock visit;
@@ -41,8 +42,36 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
     }
   }
 
+  bool _isUpdating = false;
+  Future<void> _updateVisitStatus(String newStatus) async {
+    setState(() => _isUpdating = true);
+    try {
+      await VisitApiService.updateVisitStatus(
+        visitId: widget.visit.refId,
+        status: newStatus,
+      );
+      if (mounted) {
+        setState(() {
+          widget.visit.status = newStatus;
+          _isUpdating = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Status updated to $newStatus')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUpdating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
+        );
+      }
+    }
+  }
+
   List<Map<String, String>> _buildTimeline() {
-    if (widget.visit.status == 'Cancelled') {
+    final upperStatus = widget.visit.status.toUpperCase();
+    if (upperStatus == 'CANCELLED') {
       return [
         {'title': 'Visit Scheduled', 'status': 'Completed'},
         {'title': 'Visit Confirmed', 'status': 'Completed'},
@@ -56,11 +85,11 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
       {'title': 'Visit Confirmed', 'status': 'Completed'},
       {
         'title': 'Visit Day',
-        'status': widget.visit.status == 'Upcoming' ? 'Upcoming' : 'Completed',
+        'status': (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED' || upperStatus == 'CONFIRMED') ? 'Upcoming' : 'Completed',
       },
       {
         'title': 'OTP Verification',
-        'status': widget.visit.status == 'Completed' ? 'Completed' : 'Pending',
+        'status': upperStatus == 'COMPLETED' ? 'Completed' : 'Pending',
       },
       {
         'title': 'Visit Completed',
@@ -159,18 +188,17 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
     final textMuted = isDark ? Colors.white54 : const Color(0xFF888899);
     final timeline = _buildTimeline();
 
-    String statusLabel;
+    final upperStatus = widget.visit.status.toUpperCase();
+    String statusLabel = upperStatus;
     Color statusBg, statusText;
-    if (widget.visit.status == 'Upcoming') {
-      statusLabel = 'CONFIRMED';
+
+    if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED' || upperStatus == 'CONFIRMED') {
       statusBg = isDark ? const Color(0xFF0D2E18) : const Color(0xFFE6F9EE);
       statusText = const Color(0xFF16A34A);
-    } else if (widget.visit.status == 'Completed') {
-      statusLabel = 'COMPLETED';
+    } else if (upperStatus == 'COMPLETED') {
       statusBg = isDark ? const Color(0xFF1A2A4A) : const Color(0xFFE8F0FE);
       statusText = accentBlue;
     } else {
-      statusLabel = 'CANCELLED';
       statusBg = isDark ? const Color(0xFF3A1A1A) : const Color(0xFFFEE8E8);
       statusText = const Color(0xFFEF4444);
     }
@@ -1009,8 +1037,64 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
               const SizedBox(height: 12),
 
               // ──────────────────────────────────────────────────────────────
-              // 10. CANCEL VISIT
+              // 10. UPDATE STATUS (CONFIRM/COMPLETE)
               // ──────────────────────────────────────────────────────────────
+              if (upperStatus != 'CANCELLED' && upperStatus != 'COMPLETED')
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED')
+                        Expanded(
+                          child: SizedBox(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _isUpdating ? null : () => _updateVisitStatus('CONFIRMED'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF16A34A),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: _isUpdating 
+                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Text('Confirm Visit',
+                                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
+                            ),
+                          ),
+                        ),
+                      if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED')
+                        const SizedBox(width: 12),
+                      
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _isUpdating ? null : () => _updateVisitStatus('COMPLETED'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: accentBlue,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: _isUpdating 
+                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                : Text('Complete Visit',
+                                style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              if (upperStatus != 'CANCELLED' && upperStatus != 'COMPLETED')
+                const SizedBox(height: 12),
+
+              // ──────────────────────────────────────────────────────────────
+              // 11. CANCEL VISIT
+              // ──────────────────────────────────────────────────────────────
+              if (upperStatus != 'CANCELLED' && upperStatus != 'COMPLETED')
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: SizedBox(

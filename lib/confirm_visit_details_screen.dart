@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'visit_scheduled_success_screen.dart';
+import 'services/visit_api_service.dart';
+import 'services/auth_api_service.dart';
 
-
-class ConfirmVisitDetailsScreen extends StatelessWidget {
-  static const Color accentBlue = Color(0xFF4B85F0);
-
+class ConfirmVisitDetailsScreen extends StatefulWidget {
   final Property property;
   final String visitDate;
   final String visitTime;
   final String contactName;
   final String phoneNumber;
+  final String? requirements;
 
   const ConfirmVisitDetailsScreen({
     super.key,
@@ -20,7 +20,57 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
     required this.visitTime,
     required this.contactName,
     required this.phoneNumber,
+    this.requirements,
   });
+
+  @override
+  State<ConfirmVisitDetailsScreen> createState() => _ConfirmVisitDetailsScreenState();
+}
+
+class _ConfirmVisitDetailsScreenState extends State<ConfirmVisitDetailsScreen> {
+  static const Color accentBlue = Color(0xFF4B85F0);
+  bool _isScheduling = false;
+
+  void _scheduleVisit() async {
+    setState(() {
+      _isScheduling = true;
+    });
+
+    try {
+      final profile = await AuthApiService.getUserProfile();
+
+      await VisitApiService.scheduleVisit(
+        propertyId: widget.property.id,
+        partnerId: widget.property.partnerId ?? 'unknown-partner',
+        userId: profile.id, // Must pass userId so it shows up in GET /api/visits
+        name: widget.contactName,
+        email: profile.email,
+        phone: widget.phoneNumber,
+        date: widget.visitDate,
+        time: widget.visitTime,
+        requirements: widget.requirements,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => VisitScheduledSuccessScreen(
+            property: widget.property,
+            visitDate: widget.visitDate,
+            visitTime: widget.visitTime,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isScheduling = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to schedule visit: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +147,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
                           child: Image.network(
-                            property.imageUrl,
+                            widget.property.imageUrl,
                             width: 64,
                             height: 64,
                             fit: BoxFit.cover,
@@ -119,7 +169,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                property.title,
+                                widget.property.title,
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
@@ -130,7 +180,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                property.price,
+                                widget.property.price,
                                 style: GoogleFonts.inter(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
@@ -139,7 +189,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                property.location,
+                                widget.property.location,
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   color: labelColor,
@@ -156,15 +206,19 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Column(
                       children: [
-                        _buildRow('Visit Date', visitDate, labelColor, valueColor),
+                        _buildRow('Visit Date', widget.visitDate, labelColor, valueColor),
                         const SizedBox(height: 14),
-                        _buildRow('Visit Time', visitTime, labelColor, valueColor),
+                        _buildRow('Visit Time', widget.visitTime, labelColor, valueColor),
                         const SizedBox(height: 14),
                         _buildRow('Visit Type', 'In-Person Visit', labelColor, valueColor),
                         const SizedBox(height: 14),
-                        _buildRow('Contact Name', contactName, labelColor, valueColor),
+                        _buildRow('Contact Name', widget.contactName, labelColor, valueColor),
                         const SizedBox(height: 14),
-                        _buildRow('Phone Number', '+91 $phoneNumber', labelColor, valueColor),
+                        _buildRow('Phone Number', '+91 ${widget.phoneNumber}', labelColor, valueColor),
+                        if (widget.requirements != null && widget.requirements!.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          _buildRow('Requirements', widget.requirements!, labelColor, valueColor),
+                        ]
                       ],
                     ),
                   ),
@@ -189,17 +243,7 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => VisitScheduledSuccessScreen(
-                        property: property,
-                        visitDate: visitDate,
-                        visitTime: visitTime,
-                      ),
-                    ),
-                  );
-                },
+                onPressed: _isScheduling ? null : _scheduleVisit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: accentBlue,
                   foregroundColor: Colors.white,
@@ -208,14 +252,20 @@ class ConfirmVisitDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
-                  'Confirm Visit',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.2,
-                  ),
-                ),
+                child: _isScheduling 
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    )
+                  : Text(
+                      'Confirm Visit',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
               ),
             ),
             const SizedBox(height: 12),

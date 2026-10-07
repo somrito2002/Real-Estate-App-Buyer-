@@ -21,6 +21,7 @@ import 'financial_tools_screen.dart';
 import 'widgets/enquiry_bottom_sheet.dart';
 import 'services/property_api_service.dart';
 import 'services/wishlist_api_service.dart';
+import 'services/auth_api_service.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -90,6 +91,23 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       setState(() {
         _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
       });
+      if (_isLoggedIn) {
+        try {
+          final profile = await AuthApiService.getUserProfile();
+          if (mounted) {
+            setState(() {
+              if (_visitNameController.text.isEmpty) {
+                _visitNameController.text = profile.fullName;
+              }
+              if (_visitPhoneController.text.isEmpty) {
+                _visitPhoneController.text = profile.number;
+              }
+            });
+          }
+        } catch (_) {
+          // ignore profile fetch error
+        }
+      }
     }
   }
 
@@ -1938,9 +1956,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _visitNameController,
-                      onChanged: (value) => setSheetState(() {}),
+                      readOnly: true, // Freeze the name field
                       decoration: InputDecoration(
-                        hintText: 'Arjun Malhotra',
+                        hintText: 'Enter your full name',
                         hintStyle: GoogleFonts.inter(color: colorScheme.onSurfaceVariant),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         border: OutlineInputBorder(
@@ -2068,8 +2086,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                             property: widget.property,
                                             visitDate: dateString,
                                             visitTime: _visitSelectedTime!,
-                                            contactName: _visitNameController.text.trim().isEmpty ? 'Arjun Malhotra' : _visitNameController.text.trim(),
+                                            contactName: _visitNameController.text.trim(),
                                             phoneNumber: _visitPhoneController.text.trim(),
+                                            requirements: _visitSpecialReqController.text.trim(),
                                           ),
                                         ),
                                       );
