@@ -18,6 +18,7 @@ import 'location_bottom_sheet.dart';
 import 'my_visits_screen.dart';
 import 'widgets/ad_popup_widget.dart';
 import 'services/property_api_service.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -93,9 +94,22 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _bottomNavIndex);
-    _fetchLocation();
-    _fetchProperties();
-    // Show ad popup after first frame each time the home screen is initialized
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    // 1. Ask for location permissions first. This prompts a system dialog on first launch.
+    // We MUST wait for this to finish, otherwise the OS backgrounds the app and aborts the HTTP request!
+    try {
+      await _fetchLocation();
+    } catch (e) {
+      print('Location fetch error: $e');
+    }
+
+    // 2. Safely fetch properties now that the app is in the foreground
+    await _fetchProperties();
+
+    // 3. Show ad popup after first frame each time the home screen is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() => _showAdPopup = true);
@@ -742,10 +756,10 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'Commercial':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatComm, onLoadMore: () => setState(() => _visibleItemCounts['comm_feat'] = (_visibleItemCounts['comm_feat'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('comm_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewOffice, onLoadMore: () => setState(() => _visibleItemCounts['comm_new'] = (_visibleItemCounts['comm_new'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('comm_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -762,16 +776,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['comm_recent'] = (_visibleItemCounts['comm_recent'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('comm_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
 
       case 'Plots':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_feat'] = (_visibleItemCounts['plots_feat'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('plots_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_new'] = (_visibleItemCounts['plots_new'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('plots_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -788,16 +802,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['plots_recent'] = (_visibleItemCounts['plots_recent'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('plots_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
 
       case 'PG/Co-living':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_feat'] = (_visibleItemCounts['pg_feat'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('pg_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_new'] = (_visibleItemCounts['pg_new'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('pg_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -814,17 +828,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['pg_recent'] = (_visibleItemCounts['pg_recent'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('pg_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
 
       // Residential (default)
       default:
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatProp, onLoadMore: () => setState(() => _visibleItemCounts['res_feat'] = (_visibleItemCounts['res_feat'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('res_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewProp, onLoadMore: () => setState(() => _visibleItemCounts['res_new'] = (_visibleItemCounts['res_new'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('res_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
           SingleChildScrollView(
@@ -839,7 +853,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['res_recent'] = (_visibleItemCounts['res_recent'] ?? 3) + 2)),
-          _isLoading ? const Center(child: CircularProgressIndicator()) : _buildHorizontalQueue('res_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
     }
   }
@@ -1208,6 +1222,55 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ),
     ),
+    );
+  }
+  // ── Shimmer Skeleton Builder ──────────────────────────────────────────────
+  Widget _buildShimmerSkeleton() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const NeverScrollableScrollPhysics(),
+      child: Row(
+        children: List.generate(3, (index) {
+          return Container(
+            width: 260,
+            margin: const EdgeInsets.only(right: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 1),
+            ),
+            child: Shimmer.fromColors(
+              baseColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              highlightColor: Theme.of(context).colorScheme.surface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 140,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(height: 16, width: double.infinity, color: Colors.white),
+                        const SizedBox(height: 8),
+                        Container(height: 14, width: 150, color: Colors.white),
+                        const SizedBox(height: 12),
+                        Container(height: 16, width: 100, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 
