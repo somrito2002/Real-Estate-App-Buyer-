@@ -5,6 +5,7 @@ import 'home_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'services/visit_api_service.dart';
 import 'services/property_api_service.dart';
+import 'models/property_model.dart';
 class VisitMock {
   final String imageUrl;
   final String title;
@@ -129,7 +130,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
       final mappedVisits = apiVisits.asMap().entries.map((entry) {
         final index = entry.key;
         final v = entry.value;
-        final prop = properties[index];
+        final Property? prop = properties[index] as Property?;
         
         String finalImageUrl = v.property.imageUrl;
         if (prop != null && prop.imageUrl.isNotEmpty) {
