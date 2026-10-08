@@ -98,23 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeData() async {
-    // 1. Ask for location permissions first. This prompts a system dialog on first launch.
-    // We MUST wait for this to finish, otherwise the OS backgrounds the app and aborts the HTTP request!
-    try {
-      await _fetchLocation();
-    } catch (e) {
-      print('Location fetch error: $e');
-    }
+    // 1. Run location and property fetching in parallel to reduce load time
+    await Future.wait([
+      _fetchLocation().catchError((e) {
+        print('Location fetch error: $e');
+      }),
+      _fetchProperties(),
+    ]);
 
-    // 2. Safely fetch properties now that the app is in the foreground
-    await _fetchProperties();
-
-    // 3. Show ad popup after first frame each time the home screen is initialized
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() => _showAdPopup = true);
-      }
-    });
+    // 2. Show ad popup after first frame each time the home screen is initialized
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (mounted) {
+    //     setState(() => _showAdPopup = true);
+    //   }
+    // });
   }
 
   Future<void> _fetchProperties() async {
