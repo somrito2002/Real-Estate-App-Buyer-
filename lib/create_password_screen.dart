@@ -111,21 +111,33 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
       try {
         final prefs = await SharedPreferences.getInstance();
-        final userId = prefs.getString('cached_userId');
+        
+        final fullName = prefs.getString('cached_fullName') ?? '';
+        final email = prefs.getString('cached_email') ?? '';
+        final mobile = prefs.getString('cached_mobile') ?? '';
+        final occupation = prefs.getString('cached_occupation') ?? '';
+        final otp = prefs.getString('cached_otp') ?? '';
 
-        if (userId == null || userId.isEmpty) {
-          throw Exception('User session invalid. Please sign up again.');
+        if (email.isEmpty || otp.isEmpty) {
+          throw Exception('Signup details missing. Please restart signup.');
         }
 
-        final response = await AuthApiService.setPassword(
-          userId: userId,
+        final response = await AuthApiService.completeSignup(
+          fullName: fullName,
+          email: email,
+          number: mobile,
+          occupation: occupation,
+          otp: otp,
           password: _passwordController.text,
         );
 
         // Use the centralized saveSession helper (stores token + marks isLoggedIn)
         final token = response['token'];
+        final userObj = response['user'] as Map<String, dynamic>?;
+        final userId = userObj?['_id'] ?? userObj?['id'] ?? '';
+        
         if (token != null && token.toString().isNotEmpty) {
-          await AuthApiService.saveSession(token.toString(), userId: userId);
+          await AuthApiService.saveSession(token.toString(), userId: userId.toString());
         }
 
         if (!mounted) return;

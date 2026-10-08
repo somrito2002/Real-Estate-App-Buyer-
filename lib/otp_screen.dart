@@ -6,6 +6,7 @@ import 'create_password_screen.dart';
 import 'reset_password_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'services/auth_api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// OTP verification screen shown after the user taps "Send OTP".
 class OtpScreen extends StatefulWidget {
@@ -99,7 +100,11 @@ class _OtpScreenState extends State<OtpScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await AuthApiService.verifyOtp(userId: widget.userId ?? '', otp: otp);
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('cached_email') ?? widget.phoneNumber;
+      
+      await AuthApiService.verifyOtp(email: email, otp: otp);
+      await prefs.setString('cached_otp', otp);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -129,7 +134,10 @@ class _OtpScreenState extends State<OtpScreen> {
     if (_secondsLeft > 0) return;
     
     try {
-      await AuthApiService.sendOtp(userId: widget.userId ?? '');
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('cached_email') ?? widget.phoneNumber;
+      
+      await AuthApiService.sendOtp(email: email);
       for (final c in _controllers) {
         c.clear();
       }

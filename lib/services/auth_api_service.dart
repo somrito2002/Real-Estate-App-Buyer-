@@ -121,13 +121,13 @@ class AuthApiService {
   /// POST /api/auth/verify-otp
   /// OTP must remain a String (preserves leading zeros).
   static Future<Map<String, dynamic>> verifyOtp({
-    required String userId,
+    required String email,
     required String otp,
   }) async {
     return _post(
       '$_baseUrl/verify-otp',
       body: {
-        'userId': userId,
+        'email': email,
         'otp': otp, // intentionally a String — never convert to int
       },
       headers: await _publicHeaders,
@@ -138,29 +138,42 @@ class AuthApiService {
   ///
   /// POST /api/auth/send-otp
   static Future<Map<String, dynamic>> sendOtp({
-    required String userId,
+    required String email,
+    String? number,
   }) async {
+    final body = <String, dynamic>{};
+    if (email.isNotEmpty) body['email'] = email;
+    if (number != null && number.isNotEmpty) body['number'] = number;
+    
     return _post(
       '$_baseUrl/send-otp',
-      body: {'userId': userId},
+      body: body,
       headers: await _publicHeaders,
     );
   }
 
-  /// Step 4 — Set the user's password and complete signup.
+  /// Step 4 — Complete signup with all details and password.
   ///
-  /// POST /api/auth/set-password
+  /// POST /api/auth/complete-signup
   /// Returns: { "token": "JWT", "user": { ... } }
-  static Future<Map<String, dynamic>> setPassword({
-    required String userId,
+  static Future<Map<String, dynamic>> completeSignup({
+    required String fullName,
+    required String email,
+    required String number,
+    required String occupation,
+    required String otp,
     required String password,
   }) async {
     final deviceData = await _getDeviceData();
     
     return _post(
-      '$_baseUrl/set-password',
+      '$_baseUrl/complete-signup',
       body: {
-        'userId': userId,
+        'fullName': fullName,
+        'email': email,
+        'number': number,
+        'occupation': occupation,
+        'otp': otp,
         'password': password, // NEVER log this
         ...deviceData,
       },
