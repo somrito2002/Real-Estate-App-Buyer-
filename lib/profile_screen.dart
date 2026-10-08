@@ -63,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _userProfile = profile;
         _isFetchingProfile = false;
+        _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
@@ -81,6 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
       setState(() {
         _isFetchingProfile = false;
+        _isLoading = false;
         _errorMessage = message;
       });
     }
@@ -208,10 +210,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                     const SizedBox(height: 16),
                     GestureDetector(
-                      onTap: () => Navigator.push(
+                      onTap: () async {
+                        final bool? updated = await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const EditProfileScreen())),
+                          MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                        );
+                        if (updated == true && mounted) {
+                          setState(() {
+                            _isLoading = true;
+                          });
+                          await _fetchProfile();
+                        }
+                      },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 20, vertical: 8),
