@@ -94,6 +94,9 @@ class UserProfile {
   final String fullName;
   final String email;
   final String number;
+  final String? occupation;
+  final String? area;
+  final String? propertyType;
 
   /// May be a relative path like "/Upload/profiles/photo.jpg".
   /// Use [profilePictureUrl] to get the full URL.
@@ -108,6 +111,9 @@ class UserProfile {
     required this.fullName,
     required this.email,
     required this.number,
+    this.occupation,
+    this.area,
+    this.propertyType,
     this.profilePicture,
     this.wishlist = const [],
     this.enquiries = const [],
@@ -158,6 +164,9 @@ class UserProfile {
       fullName: (json['fullName'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
       number: (json['number'] ?? '').toString(),
+      occupation: json['occupation']?.toString(),
+      area: json['area']?.toString(),
+      propertyType: json['propertyType']?.toString(),
       profilePicture: json['profilePicture']?.toString(),
       wishlist: wishlist,
       enquiries: enquiries,

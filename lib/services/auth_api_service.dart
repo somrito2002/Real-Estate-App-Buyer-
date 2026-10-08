@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'wishlist_api_service.dart';
 import '../models/user_profile.dart';
 
@@ -18,22 +19,73 @@ class AuthApiService {
   /// such as profile pictures returned as relative paths.
   static const String backendBaseUrl = 'https://api.prodalal.com';
 
-  // ─── Headers ─────────────────────────────────────────────────────────────
+  // ─── Device & Headers ───────────────────────────────────────────────────
+
+  /// Fetches structured device data and a synthesized User-Agent
+  static Future<Map<String, String>> _getDeviceData() async {
+    final data = <String, String>{
+      'type': 'mobile',
+      'clientType': 'mobile', // Updated to 'mobile'
+      'browser': 'Flutter App',
+      'userAgent': 'MecoApp/1.0',
+    };
+
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      String deviceName = 'Unknown Device';
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        deviceName = androidInfo.model; // e.g. RMX3844
+        data['deviceName'] = deviceName;
+        data['os'] = 'Android ${androidInfo.version.release}';
+        data['userAgent'] = 'Mozilla/5.0 (Linux; Android ${androidInfo.version.release}; ${androidInfo.model}) AppleWebKit/537.36 (KHTML, like Gecko) Mobile MecoApp/1.0';
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        deviceName = iosInfo.name;
+        data['deviceName'] = deviceName;
+        data['os'] = 'iOS ${iosInfo.systemVersion}';
+        data['userAgent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS ${iosInfo.systemVersion.replaceAll('.', '_')} like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile MecoApp/1.0';
+      }
+      
+      data['name'] = '$deviceName (Flutter App)';
+      
+    } catch (_) {
+      // Fallback if platform detection fails
+      data['name'] = 'Unknown Mobile (Flutter App)';
+    }
+    
+    // DEBUG LOG: device information collected by Flutter
+    print('DEBUG: Flutter Device Info Collected: $data');
+    return data;
+  }
 
   /// Headers for public (unauthenticated) endpoints.
-  static Map<String, String> get _publicHeaders => {
-        'Content-Type': 'application/json',
-      };
+  static Future<Map<String, String>> get _publicHeaders async {
+    final headers = {
+      'Content-Type': 'application/json',
+    };
+    final deviceData = await _getDeviceData();
+    if (deviceData.containsKey('userAgent')) {
+      headers['User-Agent'] = deviceData['userAgent']!;
+    }
+    return headers;
+  }
 
   /// Headers for protected (authenticated) endpoints.
   /// Reads the stored JWT from SharedPreferences.
   static Future<Map<String, String>> authHeaders() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';
-    return {
+    
+    final headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     };
+    final deviceData = await _getDeviceData();
+    if (deviceData.containsKey('userAgent')) {
+      headers['User-Agent'] = deviceData['userAgent']!;
+    }
+    return headers;
   }
 
   // ─── Signup Flow ──────────────────────────────────────────────────────────
@@ -48,6 +100,8 @@ class AuthApiService {
     required String email,
     required String occupation,
   }) async {
+    final deviceData = await _getDeviceData();
+    
     final response = await _post(
       '$_baseUrl/signup',
       body: {
@@ -55,8 +109,9 @@ class AuthApiService {
         'number': number,
         'email': email,
         'occupation': occupation,
+        ...deviceData,
       },
-      headers: _publicHeaders,
+      headers: await _publicHeaders,
     );
     return response;
   }
@@ -75,7 +130,7 @@ class AuthApiService {
         'userId': userId,
         'otp': otp, // intentionally a String — never convert to int
       },
-      headers: _publicHeaders,
+      headers: await _publicHeaders,
     );
   }
 
@@ -88,7 +143,7 @@ class AuthApiService {
     return _post(
       '$_baseUrl/send-otp',
       body: {'userId': userId},
-      headers: _publicHeaders,
+      headers: await _publicHeaders,
     );
   }
 
@@ -100,13 +155,16 @@ class AuthApiService {
     required String userId,
     required String password,
   }) async {
+    final deviceData = await _getDeviceData();
+    
     return _post(
       '$_baseUrl/set-password',
       body: {
         'userId': userId,
         'password': password, // NEVER log this
+        ...deviceData,
       },
-      headers: _publicHeaders,
+      headers: await _publicHeaders,
     );
   }
 
@@ -121,17 +179,83 @@ class AuthApiService {
     required String identifier,
     required String password,
   }) async {
-    return _post(
+    final deviceData = await _getDeviceData();
+    
+    final payload = {
+      'identifier': identifier,
+      'password': password, // NEVER log this
+      ...deviceData,
+    };
+    
+    // DEBUG LOG: login request metadata (masking password)
+    final debugPayload = Map<String, dynamic>.from(payload);
+    debugPayload['password'] = '********';
+    print('DEBUG: Login Request Payload: $debugPayload');
+    
+    final response = await _post(
       '$_baseUrl/login',
-      body: {
-        'identifier': identifier,
-        'password': password, // NEVER log this
-      },
-      headers: _publicHeaders,
+      body: payload,
+      headers: await _publicHeaders,
     );
+    
+    // DEBUG LOG: session creation response (keys only to avoid logging JWT)
+    print('DEBUG: Login Response Keys: ${response.keys.toList()}');
+    if (response.containsKey('user')) {
+      print('DEBUG: Login Response User Info: ${response['user']}');
+    }
+    
+    return response;
   }
 
   // ─── User Profile ─────────────────────────────────────────────────────────
+
+  /// Update the authenticated user's profile.
+  ///
+  /// PUT /api/auth/user/:id
+  static Future<Map<String, dynamic>> updateUserProfile({
+    String? fullName,
+    String? number,
+    String? occupation,
+    String? area,
+    String? propertyType,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+    final userId = prefs.getString('cached_userId') ?? '';
+
+    if (userId.isEmpty) {
+      throw _ApiException('User session not found. Please log in again.', statusCode: 401);
+    }
+
+    final body = <String, dynamic>{};
+    if (fullName != null) body['fullName'] = fullName;
+    if (number != null) body['number'] = number;
+    if (occupation != null) body['occupation'] = occupation;
+    if (area != null) body['area'] = area;
+    if (propertyType != null) body['propertyType'] = propertyType;
+
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$_baseUrl/user/$userId'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: json.encode(body),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      return _processResponse(response);
+    } on SocketException {
+      throw Exception('Unable to connect to the server. Please check your internet connection.');
+    } on HttpException {
+      throw Exception('Unable to connect to the server. Please check your internet connection.');
+    } catch (e) {
+      if (e is _ApiException) rethrow;
+      throw Exception('Request failed. Please try again.');
+    }
+  }
 
   /// Fetch the authenticated user's profile.
   ///
@@ -281,6 +405,113 @@ class AuthApiService {
     WishlistApiService.clearCache();
   }
 
+  // ─── Sessions ─────────────────────────────────────────────────────────────
+
+  /// Get all active sessions/devices for the authenticated user
+  /// GET /api/auth/sessions
+  static Future<List<dynamic>> getSessions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    if (token.isEmpty) {
+      throw _ApiException('User session not found.', statusCode: 401);
+    }
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_baseUrl/sessions'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        
+        // DEBUG LOG: GET /api/auth/sessions response
+        print('DEBUG: GET /api/auth/sessions Response: $data');
+        
+        return data['sessions'] as List<dynamic>? ?? [];
+      }
+
+      throw _ApiException(_defaultError(response.statusCode), statusCode: response.statusCode);
+    } on SocketException {
+      throw Exception('Unable to connect to the server.');
+    } catch (e) {
+      if (e is _ApiException) rethrow;
+      throw Exception('Request failed.');
+    }
+  }
+
+  /// Logout of a specific device
+  /// DELETE /api/auth/sessions/:sessionId
+  static Future<void> logoutDevice(String sessionId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    if (token.isEmpty) {
+      throw _ApiException('User session not found.', statusCode: 401);
+    }
+
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('$_baseUrl/sessions/$sessionId'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return;
+      }
+      throw _ApiException(_defaultError(response.statusCode), statusCode: response.statusCode);
+    } on SocketException {
+      throw Exception('Unable to connect to the server.');
+    } catch (e) {
+      if (e is _ApiException) rethrow;
+      throw Exception('Request failed.');
+    }
+  }
+
+  /// Logout of all other devices
+  /// DELETE /api/auth/sessions
+  static Future<void> logoutAllOtherDevices() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    if (token.isEmpty) {
+      throw _ApiException('User session not found.', statusCode: 401);
+    }
+
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('$_baseUrl/sessions'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return;
+      }
+      throw _ApiException(_defaultError(response.statusCode), statusCode: response.statusCode);
+    } on SocketException {
+      throw Exception('Unable to connect to the server.');
+    } catch (e) {
+      if (e is _ApiException) rethrow;
+      throw Exception('Request failed.');
+    }
+  }
+
   // ─── Internal HTTP helper ─────────────────────────────────────────────────
 
   static Future<Map<String, dynamic>> _post(
@@ -288,6 +519,17 @@ class AuthApiService {
     required Map<String, dynamic> body,
     required Map<String, String> headers,
   }) async {
+    // DEBUG LOG: Request Endpoint and Headers
+    print('DEBUG: Request Endpoint: $url');
+    final debugHeaders = Map<String, String>.from(headers);
+    debugHeaders.remove('Authorization');
+    print('DEBUG: Request Headers: $debugHeaders');
+    if (debugHeaders.containsKey('User-Agent')) {
+      print('REQUEST USER-AGENT:\n${debugHeaders['User-Agent']}');
+    } else {
+      print('REQUEST USER-AGENT: (Not set explicitly, using Dart default)');
+    }
+
     try {
       final response = await http
           .post(

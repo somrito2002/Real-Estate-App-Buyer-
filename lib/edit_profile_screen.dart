@@ -19,12 +19,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   
   bool _isLoading = true;
   bool _isUploading = false;
+  bool _isSaving = false;
   UserProfile? _userProfile;
 
-  bool _isResidentialSelected = true;
-  bool _isVillasSelected = true;
-  bool _isCommercialSelected = false;
-  bool _receiveWhatsapp = true;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _occupationController = TextEditingController();
+  final TextEditingController _propertyTypeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _cityController.dispose();
+    _occupationController.dispose();
+    _propertyTypeController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -38,6 +50,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (!mounted) return;
       setState(() {
         _userProfile = profile;
+        _nameController.text = profile.fullName;
+        _phoneController.text = profile.number;
+        _cityController.text = profile.area ?? 'Gurgaon';
+        _occupationController.text = profile.occupation ?? 'Software Engineer';
+        _propertyTypeController.text = profile.propertyType ?? 'Residential';
         _isLoading = false;
       });
     } catch (e) {
@@ -85,6 +102,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      final response = await AuthApiService.updateUserProfile(
+        fullName: _nameController.text.trim(),
+        number: _phoneController.text.trim(),
+        area: _cityController.text.trim(),
+        occupation: _occupationController.text.trim(),
+        propertyType: _propertyTypeController.text.trim(),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response['message']?.toString() ?? 'Profile updated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true); // Return true to signal success
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
@@ -144,19 +201,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         centerTitle: false,
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text(
-              'Save',
-              style: GoogleFonts.inter(
-                color: Theme.of(context).colorScheme.primary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          _isSaving 
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                )
+              : TextButton(
+                  onPressed: _saveProfile,
+                  child: Text(
+                    'Save',
+                    style: GoogleFonts.inter(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
         ],
       ),
       body: _isLoading
@@ -218,125 +278,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 32),
                   _buildLabel('Full Name'),
-                  _buildTextField(initialValue: _userProfile?.fullName ?? ''),
-                  const SizedBox(height: 16),
-                  _buildLabel('Email Address'),
-                  _buildTextField(
-                    initialValue: _userProfile?.email ?? '',
-                    readOnly: true,
-                    suffixIcon: const Icon(Icons.verified, color: Color(0xFF0F9D58), size: 18),
-                  ),
+                  _buildTextField(controller: _nameController),
                   const SizedBox(height: 16),
                   _buildLabel('Phone Number'),
-                  _buildTextField(initialValue: _userProfile?.number ?? ''),
+                  _buildTextField(controller: _phoneController),
                   const SizedBox(height: 16),
                   _buildLabel('Current City'),
-                  _buildDropdownField(initialValue: 'Gurgaon, Haryana'),
+                  _buildTextField(controller: _cityController),
                   const SizedBox(height: 16),
-                  _buildLabel('Short Bio'),
-                  _buildTextField(
-                    initialValue: 'Looking for premium residential flats and independent builder floors in Gurgaon or South Delhi. Prefer ready to move.',
-                    maxLines: 4,
-                  ),
+                  _buildLabel('Occupation'),
+                  _buildTextField(controller: _occupationController),
+                  const SizedBox(height: 16),
+                  _buildLabel('Property Type'),
+                  _buildTextField(controller: _propertyTypeController),
                   const SizedBox(height: 32),
-            Text(
-              'Search & Property Preferences',
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildLabel('Preferred Locations'),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).colorScheme.outline),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Wrap(
-                spacing: 8.0,
-                runSpacing: 4.0,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  _buildChip('Gurgaon'),
-                  const SizedBox(width: 8),
-                  _buildChip('Bangalore'),
-                  Text(
-                    '+ Add more...',
-                    style: GoogleFonts.inter(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildLabel('Budget Range (INR)'),
-            _buildTextField(initialValue: '₹2.00 Cr - ₹5.00 Cr'),
-            const SizedBox(height: 16),
-            _buildLabel('Interested Property Types'),
-            _buildCheckbox(
-              title: 'Residential Apartments',
-              value: _isResidentialSelected,
-              onChanged: (val) => setState(() => _isResidentialSelected = val!),
-            ),
-            _buildCheckbox(
-              title: 'Villas & Independent Houses',
-              value: _isVillasSelected,
-              onChanged: (val) => setState(() => _isVillasSelected = val!),
-            ),
-            _buildCheckbox(
-              title: 'Commercial Office Spaces',
-              value: _isCommercialSelected,
-              onChanged: (val) => setState(() => _isCommercialSelected = val!),
-            ),
-            const SizedBox(height: 24),
-            _buildLabel('Communication Channels'),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Receive Whatsapp updates from support',
-                    style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
-                  ),
-                ),
-                Switch(
-                  value: _receiveWhatsapp,
-                  activeThumbColor: Theme.of(context).colorScheme.primary,
-                  onChanged: (val) => setState(() => _receiveWhatsapp = val),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Divider(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePasswordScreen()));
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Change Security Password',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.primary, size: 16),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -358,13 +313,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildTextField({
-    required String initialValue,
+    TextEditingController? controller,
     int maxLines = 1,
     bool readOnly = false,
     Widget? suffixIcon,
   }) {
     return TextFormField(
-      initialValue: initialValue,
+      controller: controller,
       maxLines: maxLines,
       readOnly: readOnly,
       style: GoogleFonts.inter(
@@ -392,79 +347,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildDropdownField({required String initialValue}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: initialValue,
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          items: [initialValue].map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (_) {},
-        ),
-      ),
-    );
-  }
 
-  Widget _buildChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
 
-  Widget _buildCheckbox({
-    required String title,
-    required bool value,
-    required ValueChanged<bool?> onChanged,
-  }) {
-    return Row(
-      children: [
-        SizedBox(
-          height: 32,
-          width: 24,
-          child: Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: Theme.of(context).colorScheme.primary,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            side: BorderSide(color: Theme.of(context).colorScheme.outline),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    );
-  }
+
 }
