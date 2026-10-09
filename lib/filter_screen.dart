@@ -19,11 +19,25 @@ class _FilterScreenState extends State<FilterScreen> {
   RangeValues _budgetRange = const RangeValues(0, 100000000);
   String? _bedrooms;
   
+  String? _status;
+  String? _constructionPhase;
+  RangeValues _areaRange = const RangeValues(0, 10000);
+  String? _bathrooms;
+  String? _parking;
+  String? _furnishing;
+  List<String> _amenities = [];
+
   final List<String> _purposes = ['Sell', 'Rent', 'Lease'];
   final List<String> _categories = ['Residential', 'Commercial'];
   
   final List<String> _residentialTypes = ['Apartment', 'Villa', 'Independent House', 'Plot'];
   final List<String> _commercialTypes = ['Office Space', 'Shop & Retail', 'Warehouse / Godown'];
+
+  final List<String> _statuses = ['ACTIVE', 'SOLD', 'PAUSED', 'DRAFT'];
+  final List<String> _constructionPhases = ['READY TO MOVE', 'UNDER CONSTRUCTION', 'NEW LAUNCH'];
+  final List<String> _parkingOptions = ['1 Covered', '2 Covered', 'Open'];
+  final List<String> _furnishingOptions = ['Fully Furnished', 'Semi-Furnished', 'Unfurnished'];
+  final List<String> _amenityOptions = ['Gym', 'Pool', 'Parking', 'Security', 'Lift', 'Power Backup', 'Garden'];
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -38,6 +52,16 @@ class _FilterScreenState extends State<FilterScreen> {
       double minP = widget.initialFilters!.minPrice ?? 0;
       double maxP = widget.initialFilters!.maxPrice ?? 100000000;
       _budgetRange = RangeValues(minP, maxP);
+      
+      _status = widget.initialFilters!.status;
+      _constructionPhase = widget.initialFilters!.constructionPhase;
+      double minA = widget.initialFilters!.minArea ?? 0;
+      double maxA = widget.initialFilters!.maxArea ?? 10000;
+      _areaRange = RangeValues(minA, maxA);
+      _bathrooms = widget.initialFilters!.bathrooms;
+      _parking = widget.initialFilters!.parking;
+      _furnishing = widget.initialFilters!.furnishing;
+      _amenities = widget.initialFilters!.amenities != null ? List.from(widget.initialFilters!.amenities!) : [];
     } else {
       _purpose = 'Sell';
       _category = 'Residential';
@@ -51,6 +75,13 @@ class _FilterScreenState extends State<FilterScreen> {
       _type = null;
       _budgetRange = const RangeValues(0, 100000000);
       _bedrooms = null;
+      _status = null;
+      _constructionPhase = null;
+      _areaRange = const RangeValues(0, 10000);
+      _bathrooms = null;
+      _parking = null;
+      _furnishing = null;
+      _amenities = [];
     });
   }
 
@@ -275,6 +306,112 @@ class _FilterScreenState extends State<FilterScreen> {
                       )).toList(),
                     ),
                   ),
+                  _buildDivider(),
+
+                  _buildSectionHeader('Bathrooms'),
+                  const SizedBox(height: 16),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: ['1', '2', '3', '4+'].map((e) => _buildSelectionCircle(
+                        e, _bathrooms == e, () => setState(() => _bathrooms = _bathrooms == e ? null : e),
+                      )).toList(),
+                    ),
+                  ),
+                  _buildDivider(),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader('Area (sqft)'),
+                      Text(
+                        '${_areaRange.start.toInt()} - ${_areaRange.end.toInt() == 10000 ? '10000+' : _areaRange.end.toInt()}',
+                        style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: accentBlue),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      trackHeight: 2.0,
+                      rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 8.0),
+                      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
+                    ),
+                    child: RangeSlider(
+                      values: _areaRange,
+                      min: 0,
+                      max: 10000,
+                      divisions: 20,
+                      activeColor: accentBlue,
+                      inactiveColor: Theme.of(context).colorScheme.outlineVariant,
+                      onChanged: (values) {
+                        setState(() {
+                          _areaRange = values;
+                        });
+                      },
+                    ),
+                  ),
+                  _buildDivider(),
+
+                  _buildSectionHeader('Property Status'),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: _statuses.map((s) => _buildPillChip(
+                      s, _status == s, () => setState(() => _status = _status == s ? null : s)
+                    )).toList(),
+                  ),
+                  _buildDivider(),
+
+                  _buildSectionHeader('Construction Phase'),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: _constructionPhases.map((c) => _buildPillChip(
+                      c, _constructionPhase == c, () => setState(() => _constructionPhase = _constructionPhase == c ? null : c)
+                    )).toList(),
+                  ),
+                  _buildDivider(),
+
+                  _buildSectionHeader('Parking'),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: _parkingOptions.map((p) => _buildPillChip(
+                      p, _parking == p, () => setState(() => _parking = _parking == p ? null : p)
+                    )).toList(),
+                  ),
+                  _buildDivider(),
+
+                  _buildSectionHeader('Furnishing State'),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: _furnishingOptions.map((f) => _buildPillChip(
+                      f, _furnishing == f, () => setState(() => _furnishing = _furnishing == f ? null : f)
+                    )).toList(),
+                  ),
+                  _buildDivider(),
+
+                  _buildSectionHeader('Amenities'),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: _amenityOptions.map((a) => _buildPillChip(
+                      a, _amenities.contains(a), () => setState(() {
+                        if (_amenities.contains(a)) {
+                          _amenities.remove(a);
+                        } else {
+                          _amenities.add(a);
+                        }
+                      })
+                    )).toList(),
+                  ),
 
                   const SizedBox(height: 32),
                 ],
@@ -303,6 +440,14 @@ class _FilterScreenState extends State<FilterScreen> {
                       bedrooms: _bedrooms,
                       minPrice: _budgetRange.start > 0 ? _budgetRange.start : null,
                       maxPrice: _budgetRange.end < 100000000 ? _budgetRange.end : null,
+                      status: _status,
+                      constructionPhase: _constructionPhase,
+                      minArea: _areaRange.start > 0 ? _areaRange.start : null,
+                      maxArea: _areaRange.end < 10000 ? _areaRange.end : null,
+                      bathrooms: _bathrooms,
+                      parking: _parking,
+                      furnishing: _furnishing,
+                      amenities: _amenities,
                     );
                     Navigator.pop(context, filters);
                   },

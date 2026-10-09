@@ -17,6 +17,13 @@ class PropertyApiService {
     String? bedrooms,
     double? minPrice,
     double? maxPrice,
+    String? constructionPhase,
+    double? minArea,
+    double? maxArea,
+    String? bathrooms,
+    String? parking,
+    String? furnishing,
+    List<String>? amenities,
   }) async {
     try {
       final params = <String, String>{
@@ -32,6 +39,13 @@ class PropertyApiService {
       if (bedrooms != null && bedrooms.isNotEmpty) params['bedrooms'] = bedrooms;
       if (minPrice != null) params['minPrice'] = minPrice.toInt().toString();
       if (maxPrice != null) params['maxPrice'] = maxPrice.toInt().toString();
+      if (constructionPhase != null && constructionPhase.isNotEmpty) params['constructionPhase'] = constructionPhase;
+      if (minArea != null) params['minArea'] = minArea.toInt().toString();
+      if (maxArea != null) params['maxArea'] = maxArea.toInt().toString();
+      if (bathrooms != null && bathrooms.isNotEmpty) params['bathrooms'] = bathrooms;
+      if (parking != null && parking.isNotEmpty) params['parking'] = parking;
+      if (furnishing != null && furnishing.isNotEmpty) params['furnishing'] = furnishing;
+      if (amenities != null && amenities.isNotEmpty) params['amenities'] = amenities.join(',');
 
       final uri = Uri.parse('$_baseUrl/properties').replace(queryParameters: params);
       final response = await http.get(uri).timeout(const Duration(seconds: 30));

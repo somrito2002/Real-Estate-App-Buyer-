@@ -66,6 +66,8 @@ class Property {
   final String? createdAt;
   final Partner? partner;
   bool isFavorite;
+  final String constructionPhase;
+  final String budgetRange;
 
   Property({
     required this.id,
@@ -91,6 +93,8 @@ class Property {
     required this.imageUrl,
     required this.status,
     required this.specs,
+    this.constructionPhase = '',
+    this.budgetRange = '',
     this.bedrooms = 0,
     this.bathrooms = 0,
     this.balconies = 0,
@@ -195,6 +199,8 @@ class Property {
       totalFloors: json['totalFloors']?.toString() ?? '',
       waterSupply: json['waterSupply']?.toString() ?? '',
       location: loc,
+      constructionPhase: json['constructionPhase']?.toString() ?? '',
+      budgetRange: json['budgetRange']?.toString() ?? '',
       bedrooms: bedCount,
       bathrooms: bathCount,
       balconies: parseSafeInt(json['balconies']),

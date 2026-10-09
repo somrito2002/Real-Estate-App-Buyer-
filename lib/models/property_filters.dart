@@ -8,6 +8,14 @@ class PropertyFilters {
   final String? bedrooms;
   final double? minPrice;
   final double? maxPrice;
+  final String? status;
+  final String? constructionPhase;
+  final double? minArea;
+  final double? maxArea;
+  final String? bathrooms;
+  final String? parking;
+  final String? furnishing;
+  final List<String>? amenities;
 
   const PropertyFilters({
     this.purpose,
@@ -18,6 +26,14 @@ class PropertyFilters {
     this.bedrooms,
     this.minPrice,
     this.maxPrice,
+    this.status,
+    this.constructionPhase,
+    this.minArea,
+    this.maxArea,
+    this.bathrooms,
+    this.parking,
+    this.furnishing,
+    this.amenities,
   });
 
   bool get isEmpty =>
@@ -28,7 +44,15 @@ class PropertyFilters {
       state == null &&
       bedrooms == null &&
       minPrice == null &&
-      maxPrice == null;
+      maxPrice == null &&
+      status == null &&
+      constructionPhase == null &&
+      minArea == null &&
+      maxArea == null &&
+      bathrooms == null &&
+      parking == null &&
+      furnishing == null &&
+      (amenities == null || amenities!.isEmpty);
 
   PropertyFilters copyWith({
     String? purpose,
@@ -39,6 +63,14 @@ class PropertyFilters {
     String? bedrooms,
     double? minPrice,
     double? maxPrice,
+    String? status,
+    String? constructionPhase,
+    double? minArea,
+    double? maxArea,
+    String? bathrooms,
+    String? parking,
+    String? furnishing,
+    List<String>? amenities,
   }) {
     return PropertyFilters(
       purpose: purpose ?? this.purpose,
@@ -49,6 +81,14 @@ class PropertyFilters {
       bedrooms: bedrooms ?? this.bedrooms,
       minPrice: minPrice ?? this.minPrice,
       maxPrice: maxPrice ?? this.maxPrice,
+      status: status ?? this.status,
+      constructionPhase: constructionPhase ?? this.constructionPhase,
+      minArea: minArea ?? this.minArea,
+      maxArea: maxArea ?? this.maxArea,
+      bathrooms: bathrooms ?? this.bathrooms,
+      parking: parking ?? this.parking,
+      furnishing: furnishing ?? this.furnishing,
+      amenities: amenities ?? this.amenities,
     );
   }
 
@@ -60,11 +100,28 @@ class PropertyFilters {
     if (city != null) labels.add(city!);
     if (state != null) labels.add(state!);
     if (bedrooms != null) labels.add('$bedrooms BHK');
+    if (bathrooms != null) labels.add('$bathrooms Bath');
+    if (status != null) labels.add(status!);
+    if (constructionPhase != null) labels.add(constructionPhase!);
+    if (parking != null) labels.add(parking!);
+    if (furnishing != null) labels.add(furnishing!);
+    
     if (minPrice != null || maxPrice != null) {
       final min = minPrice != null ? _fmt(minPrice!) : '?0';
       final max = maxPrice != null ? _fmt(maxPrice!) : '?10Cr';
       labels.add('$min - $max');
     }
+    
+    if (minArea != null || maxArea != null) {
+      final min = minArea != null ? minArea!.toInt().toString() : '0';
+      final max = maxArea != null ? maxArea!.toInt().toString() : 'Any';
+      labels.add('$min - $max sqft');
+    }
+
+    if (amenities != null && amenities!.isNotEmpty) {
+      labels.add('${amenities!.length} Amenities');
+    }
+
     return labels;
   }
 
