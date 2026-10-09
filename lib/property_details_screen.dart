@@ -7,6 +7,7 @@ import 'models/property_model.dart';
 import 'seller_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -43,6 +44,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   bool _isDetailsExpanded = false;
   bool _isLoadingSimilar = true;
   List<Property> _similarProperties = [];
+  int? _aqi;
 
   late PageController _pageController;
 
@@ -57,7 +59,54 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     super.initState();
     _checkLoginStatus();
     _fetchSimilarProperties();
+    _fetchAqi();
     _pageController = PageController();
+  }
+
+  Future<void> _fetchAqi() async {
+    final property = widget.property;
+    try {
+      double? lat = property.lat;
+      double? lng = property.lng;
+
+      if (lat == null || lng == null) {
+        if (property.city.isNotEmpty) {
+          final geoRes = await http.get(Uri.parse('https://geocoding-api.open-meteo.com/v1/search?name=${Uri.encodeComponent(property.city)}&count=1'));
+          if (geoRes.statusCode == 200) {
+            final geoData = jsonDecode(geoRes.body);
+            if (geoData['results'] != null && geoData['results'].isNotEmpty) {
+              lat = geoData['results'][0]['latitude'];
+              lng = geoData['results'][0]['longitude'];
+            }
+          }
+        }
+      }
+
+      if (lat != null && lng != null) {
+        final aqiRes = await http.get(Uri.parse('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=$lat&longitude=$lng&current=us_aqi'));
+        if (aqiRes.statusCode == 200) {
+          final aqiData = jsonDecode(aqiRes.body);
+          if (aqiData['current'] != null && aqiData['current']['us_aqi'] != null) {
+            if (mounted) {
+              setState(() {
+                _aqi = (aqiData['current']['us_aqi'] as num).toInt();
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      debugPrint("Failed to fetch AQI: $err");
+    }
+  }
+
+  Color _getAqiColor(int aqi) {
+    if (aqi <= 50) return Colors.green;
+    if (aqi <= 100) return Colors.yellow.shade700;
+    if (aqi <= 150) return Colors.orange;
+    if (aqi <= 200) return Colors.red;
+    if (aqi <= 300) return Colors.purple;
+    return Colors.brown;
   }
 
   Future<void> _fetchSimilarProperties() async {
@@ -793,12 +842,47 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                           ),
                         ),
                       const SizedBox(height: 12),
-                      Text(
-                        property.address.isNotEmpty ? property.address : property.location,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              property.address.isNotEmpty ? property.address : property.location,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          if (_aqi != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _getAqiColor(_aqi!).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: _getAqiColor(_aqi!)),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'AQI',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: _getAqiColor(_aqi!),
+                                    ),
+                                  ),
+                                  Text(
+                                    '$_aqi',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: _getAqiColor(_aqi!),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       GestureDetector(

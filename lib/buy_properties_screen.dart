@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
+import 'models/property_filters.dart';
 import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -8,6 +9,7 @@ import 'property_details_screen.dart';
 import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 import 'services/property_api_service.dart';
+
 
 class BuyPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
@@ -33,6 +35,8 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   int _currentPage = 1;
   final ScrollController _scrollController = ScrollController();
 
+  PropertyFilters? _filters;
+
   @override
   void initState() {
     super.initState();
@@ -48,8 +52,6 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       }
     }
   }
-
-
 
   Future<void> _checkInternetConnection() async {
     try {
@@ -86,6 +88,14 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         status: 'ACTIVE',
         limit: 10,
         page: _currentPage,
+        purpose: _filters?.purpose,
+        category: _filters?.category,
+        type: _filters?.type,
+        city: _filters?.city,
+        state: _filters?.state,
+        bedrooms: _filters?.bedrooms,
+        minPrice: _filters?.minPrice,
+        maxPrice: _filters?.maxPrice,
       );
 
       if (!mounted) return;
@@ -117,6 +127,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
       );
     }
   }
+
 
   Future<void> _fetchMoreProperties() async {
     setState(() { _isFetchingMore = true; });
@@ -293,8 +304,17 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                        onTap: () async {
+                          final filters = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => FilterScreen(initialFilters: _filters)),
+                          );
+                          if (filters != null && filters is PropertyFilters) {
+                            setState(() {
+                              _filters = filters;
+                            });
+                            _fetchProperties(isRefresh: true);
+                          }
                         },
                         child: Icon(Icons.tune, color: Theme.of(context).colorScheme.onSurface, size: 20),
                       ),
@@ -339,25 +359,35 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                         ),
                       ),
                       // Filter Chips
-                      ...['Residential', 'Budget: Any', 'BHK: Any'].map((type) {
-                        final isSelected = type == 'Residential'; // Mock selected state
+                      ...(_filters?.activeLabels ?? ['Residential', 'Any Budget', 'Any BHK']).map((type) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: InkWell(
-                            onTap: () {},
+                            onTap: () async {
+                              final filters = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => FilterScreen(initialFilters: _filters)),
+                              );
+                              if (filters != null && filters is PropertyFilters) {
+                                setState(() {
+                                  _filters = filters;
+                                });
+                                _fetchProperties(isRefresh: true);
+                              }
+                            },
                             borderRadius: BorderRadius.circular(20),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
-                                border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
+                                color: _filters != null && !_filters!.isEmpty ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+                                border: Border.all(color: _filters != null && !_filters!.isEmpty ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 type,
                                 style: GoogleFonts.inter(
-                                  color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                  color: _filters != null && !_filters!.isEmpty ? accentBlue : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: _filters != null && !_filters!.isEmpty ? FontWeight.w600 : FontWeight.w500,
                                   fontSize: 13,
                                 ),
                               ),
@@ -603,8 +633,17 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                    onPressed: () async {
+                      final filters = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => FilterScreen(initialFilters: _filters)),
+                      );
+                      if (filters != null && filters is PropertyFilters) {
+                        setState(() {
+                          _filters = filters;
+                        });
+                        _fetchProperties(isRefresh: true);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentBlue,
@@ -625,21 +664,19 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
 
   List<Widget> _buildAppliedFilterChips() {
     final chips = <Widget>[];
-    if (_selectedType != 'All Types') {
-      chips.add(_buildAppliedFilterChip(_selectedType, () {
-        setState(() { _selectedType = 'All Types'; });
-      }));
-    }
     if (_searchController.text.isNotEmpty) {
       chips.add(_buildAppliedFilterChip(_searchController.text, () {
         setState(() { _searchController.clear(); });
+        _fetchProperties(isRefresh: true);
       }));
     }
-    if (_searchController.text.isEmpty && _selectedType == 'All Types') {
-      chips.add(_buildAppliedFilterChip('Residential', () {}));
-      chips.add(_buildAppliedFilterChip('3 BHK', () {}));
-      chips.add(_buildAppliedFilterChip('Durg', () {}));
-      chips.add(_buildAppliedFilterChip('₹50L-₹90L', () {}));
+    if (_filters != null && !_filters!.isEmpty) {
+      for (final label in _filters!.activeLabels) {
+        chips.add(_buildAppliedFilterChip(label, () {
+          setState(() { _filters = null; });
+          _fetchProperties(isRefresh: true);
+        }));
+      }
     }
     return chips;
   }

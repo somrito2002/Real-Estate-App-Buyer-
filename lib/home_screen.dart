@@ -1,5 +1,7 @@
 import 'package:realty_app/l10n/app_localizations.dart';
 import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
@@ -136,8 +138,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _pageController.dispose();
     super.dispose();
   }
-
-
 
   Future<void> _fetchLocation() async {
     try {
@@ -994,16 +994,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F5FF),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        price,
-                        style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 13),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F5FF),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            price,
+                            style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 13),
+                          ),
+                        ),
+                        if (property != null) AqiBadge(property: property),
+                      ],
                     ),
                   ],
                 ),
@@ -1105,6 +1112,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.inter(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 9),
                       ),
                     ),
+                    if (property != null) ...[
+                      const SizedBox(width: 4),
+                      AqiBadge(property: property),
+                    ],
                   ],
                 ),
               )
@@ -1207,7 +1218,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(price, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 12)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(price, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 12)),
+                    if (property != null) AqiBadge(property: property),
+                  ],
+                ),
                 const SizedBox(height: 4),
                 Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
                 const SizedBox(height: 2),
@@ -1280,6 +1298,88 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Center(
         child: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
       ),
+    );
+  }
+}
+
+class AqiBadge extends StatefulWidget {
+  final Property property;
+  const AqiBadge({super.key, required this.property});
+
+  @override
+  State<AqiBadge> createState() => _AqiBadgeState();
+}
+
+class _AqiBadgeState extends State<AqiBadge> {
+  int? _aqi;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAqi();
+  }
+
+  Future<void> _fetchAqi() async {
+    try {
+      double? lat = widget.property.lat;
+      double? lng = widget.property.lng;
+
+      if (lat == null || lng == null) {
+        if (widget.property.city.isNotEmpty) {
+          final geoRes = await http.get(Uri.parse('https://geocoding-api.open-meteo.com/v1/search?name=${Uri.encodeComponent(widget.property.city)}&count=1'));
+          if (geoRes.statusCode == 200) {
+            final geoData = jsonDecode(geoRes.body);
+            if (geoData['results'] != null && geoData['results'].isNotEmpty) {
+              lat = geoData['results'][0]['latitude'];
+              lng = geoData['results'][0]['longitude'];
+            }
+          }
+        }
+      }
+
+      if (lat != null && lng != null) {
+        final aqiRes = await http.get(Uri.parse('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=$lat&longitude=$lng&current=us_aqi'));
+        if (aqiRes.statusCode == 200) {
+          final aqiData = jsonDecode(aqiRes.body);
+          if (aqiData['current'] != null && aqiData['current']['us_aqi'] != null) {
+            if (mounted) {
+              setState(() {
+                _aqi = (aqiData['current']['us_aqi'] as num).toInt();
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      debugPrint("Failed to fetch AQI: $err");
+    }
+  }
+
+  Color _getAqiColor(int aqi) {
+    if (aqi <= 50) return Colors.green;
+    if (aqi <= 100) return Colors.yellow.shade700;
+    if (aqi <= 150) return Colors.orange;
+    if (aqi <= 200) return Colors.red;
+    if (aqi <= 300) return Colors.purple;
+    return Colors.brown;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_aqi == null) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.air, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        const SizedBox(width: 4),
+        Text(
+          'AQI: $_aqi',
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

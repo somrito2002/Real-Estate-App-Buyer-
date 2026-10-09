@@ -8,10 +8,32 @@ class PropertyApiService {
   static Future<List<Property>> getProperties({
     String status = 'ACTIVE',
     int limit = 10,
-    int page = 1, // Optional: if backend uses it
+    int page = 1,
+    String? purpose,
+    String? category,
+    String? type,
+    String? city,
+    String? state,
+    String? bedrooms,
+    double? minPrice,
+    double? maxPrice,
   }) async {
     try {
-      final uri = Uri.parse('$_baseUrl/properties?status=$status&limit=$limit&page=$page');
+      final params = <String, String>{
+        'status': status,
+        'limit': limit.toString(),
+        'page': page.toString(),
+      };
+      if (purpose != null && purpose.isNotEmpty) params['purpose'] = purpose;
+      if (category != null && category.isNotEmpty) params['category'] = category;
+      if (type != null && type.isNotEmpty) params['type'] = type;
+      if (city != null && city.isNotEmpty) params['city'] = city;
+      if (state != null && state.isNotEmpty) params['state'] = state;
+      if (bedrooms != null && bedrooms.isNotEmpty) params['bedrooms'] = bedrooms;
+      if (minPrice != null) params['minPrice'] = minPrice.toInt().toString();
+      if (maxPrice != null) params['maxPrice'] = maxPrice.toInt().toString();
+
+      final uri = Uri.parse('$_baseUrl/properties').replace(queryParameters: params);
       final response = await http.get(uri).timeout(const Duration(seconds: 30));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {

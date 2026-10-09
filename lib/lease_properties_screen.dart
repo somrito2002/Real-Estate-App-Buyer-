@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
+import 'models/property_filters.dart';
 import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -29,6 +30,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
 
   bool _isConnected = true;
+  PropertyFilters? _filters;
 
   @override
   void initState() {
@@ -62,11 +64,21 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
   Future<void> _fetchProperties() async {
     setState(() { _isLoading = true; });
     try {
-      final properties = await PropertyApiService.getProperties(status: 'ACTIVE', limit: 30);
+      final properties = await PropertyApiService.getProperties(
+        status: 'ACTIVE',
+        limit: 30,
+        purpose: _filters?.purpose ?? 'Lease',
+        category: _filters?.category,
+        type: _filters?.type,
+        city: _filters?.city,
+        state: _filters?.state,
+        bedrooms: _filters?.bedrooms,
+        minPrice: _filters?.minPrice,
+        maxPrice: _filters?.maxPrice,
+      );
       if (mounted) {
         setState(() {
-          // Temporarily filtering by 'Lease' until a category param is added to the backend
-          _allProperties = properties.where((p) => p.category == 'Lease').toList();
+          _allProperties = properties;
           _isLoading = false;
         });
         _filterProperties();
@@ -272,8 +284,17 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                        onTap: () async {
+                          final filters = await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => FilterScreen(initialFilters: _filters)),
+                          );
+                          if (filters != null && filters is PropertyFilters) {
+                            setState(() {
+                              _filters = filters;
+                            });
+                            _fetchProperties();
+                          }
                         },
                         child: Icon(Icons.tune, color: Theme.of(context).colorScheme.onSurface, size: 20),
                       ),
@@ -286,30 +307,35 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: ['All Lease', 'Commercial', 'Industrial'].map((type) {
-                      final isSelected = _selectedType == type;
+                    children: (_filters?.activeLabels ?? ['Commercial', 'Any Budget']).map((type) {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: InkWell(
-                          onTap: () {
-                            setState(() {
-                              _selectedType = type;
-                              _filterProperties();
-                            });
+                          onTap: () async {
+                            final filters = await Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => FilterScreen(initialFilters: _filters)),
+                            );
+                            if (filters != null && filters is PropertyFilters) {
+                              setState(() {
+                                _filters = filters;
+                              });
+                              _fetchProperties();
+                            }
                           },
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
-                              color: isSelected ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
-                              border: Border.all(color: isSelected ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
+                              color: _filters != null && !_filters!.isEmpty ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+                              border: Border.all(color: _filters != null && !_filters!.isEmpty ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               type,
                               style: GoogleFonts.inter(
-                                color: isSelected ? accentBlue : Theme.of(context).colorScheme.onSurface,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                color: _filters != null && !_filters!.isEmpty ? accentBlue : Theme.of(context).colorScheme.onSurface,
+                                fontWeight: _filters != null && !_filters!.isEmpty ? FontWeight.w600 : FontWeight.w500,
                                 fontSize: 13,
                               ),
                             ),
@@ -550,8 +576,17 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                    onPressed: () async {
+                      final filters = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => FilterScreen(initialFilters: _filters)),
+                      );
+                      if (filters != null && filters is PropertyFilters) {
+                        setState(() {
+                          _filters = filters;
+                        });
+                        _fetchProperties();
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentBlue,
@@ -572,19 +607,18 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
 
   List<Widget> _buildAppliedFilterChips() {
     final chips = <Widget>[];
-    if (_selectedType != 'All Lease') {
-      chips.add(_buildAppliedFilterChip(_selectedType, () {
-        setState(() { _selectedType = 'All Lease'; _filterProperties(); });
-      }));
-    }
     if (_searchController.text.isNotEmpty) {
       chips.add(_buildAppliedFilterChip(_searchController.text, () {
         setState(() { _searchController.clear(); _filterProperties(); });
       }));
     }
-    if (_searchController.text.isEmpty && _selectedType == 'All Lease') {
-      chips.add(_buildAppliedFilterChip('Commercial', () {}));
-      chips.add(_buildAppliedFilterChip('Industrial', () {}));
+    if (_filters != null && !_filters!.isEmpty) {
+      for (final label in _filters!.activeLabels) {
+        chips.add(_buildAppliedFilterChip(label, () {
+          setState(() { _filters = null; });
+          _fetchProperties();
+        }));
+      }
     }
     return chips;
   }
