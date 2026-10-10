@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'my_visits_screen.dart';
 import 'visit_rescheduled_success_screen.dart';
+import 'services/visit_api_service.dart';
+
 class RescheduleVisitScreen extends StatefulWidget {
   final VisitMock visit;
 
@@ -14,6 +16,8 @@ class RescheduleVisitScreen extends StatefulWidget {
 class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
   
+  bool _isSubmitting = false;
+
   late DateTime _currentMonth;
   late DateTime _selectedDate;
   late DateTime _today;
@@ -368,7 +372,9 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: _isSubmitting ? null : () async {
+                    setState(() => _isSubmitting = true);
+
                     // Calculate end time (assuming 30 min duration for demo)
                     String endTime = selectedTime.contains("AM") 
                         ? selectedTime.replaceAll("11:00", "11:30").replaceAll("10:00", "10:30")
@@ -378,19 +384,61 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
                     String monthName = _months[_selectedDate.month - 1].substring(0, 3);
                     String fullMonthName = _months[_selectedDate.month - 1];
                     
-                    // Update the visit model so it reflects in the My Visits screen
-                    widget.visit.dateTime = '$weekdayName, ${_selectedDate.day} $monthName • $selectedTime';
-                    widget.visit.timeSlot = '$selectedTime - $endTime';
-                    
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => VisitRescheduledSuccessScreen(
-                          visit: widget.visit,
-                          newDate: '${_selectedDate.day} $fullMonthName ${_selectedDate.year}',
-                          newTime: '$selectedTime - $endTime',
+                    try {
+                      // Format date for API (YYYY-MM-DD)
+                      String paddedMonth = _selectedDate.month.toString().padLeft(2, '0');
+                      String paddedDay = _selectedDate.day.toString().padLeft(2, '0');
+                      String apiDate = '${_selectedDate.year}-$paddedMonth-$paddedDay';
+
+                      // Format time for API (HH:mm)
+                      int hour = int.parse(selectedTime.split(':')[0]);
+                      if (selectedTime.contains("PM") && hour != 12) hour += 12;
+                      if (selectedTime.contains("AM") && hour == 12) hour = 0;
+                      String minutes = selectedTime.split(':')[1].substring(0, 2);
+                      String apiTime = '${hour.toString().padLeft(2, '0')}:$minutes';
+
+                      // First cancel the current visit
+                      await VisitApiService.updateVisitStatus(
+                        visitId: widget.visit.refId,
+                        status: 'CANCELLED',
+                      );
+
+                      // Then create a new visit request
+                      if (widget.visit.rawVisit != null && widget.visit.partnerId != null && widget.visit.partnerId!.isNotEmpty) {
+                        await VisitApiService.scheduleVisit(
+                          propertyId: widget.visit.rawVisit!.property.id,
+                          partnerId: widget.visit.partnerId!,
+                          name: widget.visit.rawVisit!.name.isEmpty ? '-' : widget.visit.rawVisit!.name,
+                          email: widget.visit.rawVisit!.email.isEmpty ? '-' : widget.visit.rawVisit!.email,
+                          phone: widget.visit.rawVisit!.phone.isEmpty ? '-' : widget.visit.rawVisit!.phone,
+                          date: apiDate,
+                          time: apiTime,
+                          requirements: 'Rescheduled from ${widget.visit.refId}',
+                        );
+                      }
+
+                      // Update the visit model so it reflects in the My Visits screen
+                      widget.visit.dateTime = '$weekdayName, ${_selectedDate.day} $monthName • $selectedTime';
+                      widget.visit.timeSlot = '$selectedTime - $endTime';
+                      widget.visit.status = 'RESCHEDULED';
+                      
+                      if (!mounted) return;
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => VisitRescheduledSuccessScreen(
+                            visit: widget.visit,
+                            newDate: '${_selectedDate.day} $fullMonthName ${_selectedDate.year}',
+                            newTime: '$selectedTime - $endTime',
+                          ),
                         ),
-                      ),
-                    );
+                      );
+                    } catch (e) {
+                      if (!mounted) return;
+                      setState(() => _isSubmitting = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to reschedule: $e')),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentBlue,
@@ -400,13 +448,19 @@ class _RescheduleVisitScreenState extends State<RescheduleVisitScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Text(
-                    'Confirm Reschedule',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
+                  child: _isSubmitting 
+                      ? const SizedBox(
+                          height: 20, 
+                          width: 20, 
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                        )
+                      : Text(
+                          'Confirm Reschedule',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
+                        ),
                 ),
               ),
             ),

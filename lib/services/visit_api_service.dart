@@ -185,4 +185,39 @@ class VisitApiService {
       throw Exception('${response.statusCode}:$errorMessage');
     }
   }
+
+  static Future<String> generateOtp(String visitId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    if (token.isEmpty) {
+      throw Exception('401:Authentication required. Please provide a valid token.');
+    }
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/visits/$visitId/generate-otp'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = json.decode(response.body);
+      return data['otp']?.toString() ?? '';
+    } else if (response.statusCode == 401) {
+      throw Exception('401:Authentication required. Please provide a valid token.');
+    } else {
+      String errorMessage = 'Failed to generate OTP.';
+      try {
+        final data = json.decode(response.body);
+        if (data['error'] != null) {
+          errorMessage = data['error'].toString();
+        } else if (data['message'] != null) {
+          errorMessage = data['message'].toString();
+        }
+      } catch (_) {}
+      throw Exception('${response.statusCode}:$errorMessage');
+    }
+  }
 }

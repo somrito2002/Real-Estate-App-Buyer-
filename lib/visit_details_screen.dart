@@ -20,6 +20,10 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
   GoogleMapController? _mapController;
 
+  bool _isOtpGenerated = false;
+  String? _generatedOtp;
+  bool _isGeneratingOtp = false;
+
   @override
   void dispose() {
     _mapController?.dispose();
@@ -71,21 +75,23 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
 
   List<Map<String, String>> _buildTimeline() {
     final upperStatus = widget.visit.status.toUpperCase();
-    if (upperStatus == 'CANCELLED') {
+    if (upperStatus == 'CANCELLED' || upperStatus == 'REJECTED') {
       return [
-        {'title': 'Visit Scheduled', 'status': 'Completed'},
-        {'title': 'Visit Confirmed', 'status': 'Completed'},
+        {'title': 'Visit Request Sent', 'status': 'Completed'},
+        {'title': 'Visit Confirmed', 'status': 'Cancelled'},
         {'title': 'Visit Cancelled', 'status': 'Cancelled'},
-        {'title': 'Visit Day', 'status': 'Pending'},
-        {'title': 'OTP Verification', 'status': 'Pending'},
       ];
     }
+    
     return [
-      {'title': 'Visit Scheduled', 'status': 'Completed'},
-      {'title': 'Visit Confirmed', 'status': 'Completed'},
+      {'title': 'Visit Request Sent', 'status': 'Completed'},
+      {
+        'title': 'Visit Confirmed', 
+        'status': (upperStatus == 'PENDING') ? 'Pending' : 'Completed'
+      },
       {
         'title': 'Visit Day',
-        'status': (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED' || upperStatus == 'CONFIRMED') ? 'Upcoming' : 'Completed',
+        'status': (upperStatus == 'PENDING' || upperStatus == 'ACCEPTED' || upperStatus == 'CONFIRMED' || upperStatus == 'RESCHEDULED') ? 'Upcoming' : 'Completed',
       },
       {
         'title': 'OTP Verification',
@@ -93,7 +99,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
       },
       {
         'title': 'Visit Completed',
-        'status': widget.visit.status == 'Completed' ? 'Completed' : 'Pending',
+        'status': upperStatus == 'COMPLETED' ? 'Completed' : 'Pending',
       },
     ];
   }
@@ -192,7 +198,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
     String statusLabel = upperStatus;
     Color statusBg, statusText;
 
-    if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED' || upperStatus == 'CONFIRMED') {
+    if (upperStatus == 'PENDING' || upperStatus == 'ACCEPTED' || upperStatus == 'CONFIRMED') {
       statusBg = isDark ? const Color(0xFF0D2E18) : const Color(0xFFE6F9EE);
       statusText = const Color(0xFF16A34A);
     } else if (upperStatus == 'COMPLETED') {
@@ -539,8 +545,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                       radius: 26,
                       backgroundColor:
                           isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E4EE),
-                      backgroundImage: const NetworkImage(
-                          'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop'),
+                      backgroundImage: NetworkImage(widget.visit.agentImageUrl),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -565,7 +570,14 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                       child: SizedBox(
                         height: 42,
                         child: OutlinedButton.icon(
-                          onPressed: (widget.visit.status == 'Cancelled' || widget.visit.status == 'Completed') ? null : () {},
+                          onPressed: (widget.visit.status == 'Cancelled' || widget.visit.status == 'Completed' || widget.visit.agentPhone.isEmpty) 
+                              ? null 
+                              : () async {
+                                  final uri = Uri.parse('tel:${widget.visit.agentPhone}');
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  }
+                                },
                           icon: Icon(Icons.call_outlined, size: 16, color: (widget.visit.status == 'Cancelled' || widget.visit.status == 'Completed') ? textMuted : accentBlue),
                           label: Text('Call',
                               style: GoogleFonts.inter(
@@ -746,7 +758,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                   ],
                 ),
               )
-            else
+            else if (upperStatus == 'ACCEPTED')
               Container(
                 color: cardBg,
                 padding: const EdgeInsets.all(16),
@@ -785,37 +797,113 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                           fontSize: 12, color: textMuted, height: 1.5),
                     ),
                     const SizedBox(height: 18),
-                    // Big OTP number
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: widget.visit.otp));
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text('OTP copied!', style: GoogleFonts.inter()),
-                            backgroundColor: accentBlue,
-                            duration: const Duration(seconds: 2),
-                          ));
-                        },
-                        child: Column(
-                          children: [
-                            Text(
-                              widget.visit.otp,
-                              style: GoogleFonts.inter(
-                                fontSize: 52,
-                                fontWeight: FontWeight.bold,
-                                color: accentBlue,
-                                letterSpacing: 12,
+                    // Big OTP number OR Generate OTP Button
+                    Builder(
+                      builder: (context) {
+                        bool isVisitDay = false;
+                        if (widget.visit.parsedDateTime != null) {
+                          final now = DateTime.now();
+                          final vDate = widget.visit.parsedDateTime!;
+                          isVisitDay = now.year == vDate.year && now.month == vDate.month && now.day == vDate.day;
+                        }
+                        
+                        if (_isOtpGenerated) {
+                          return Center(
+                            child: GestureDetector(
+                              onTap: () {
+                                Clipboard.setData(ClipboardData(text: _generatedOtp ?? '------'));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                  content: Text('OTP copied!', style: GoogleFonts.inter()),
+                                  backgroundColor: accentBlue,
+                                  duration: const Duration(seconds: 2),
+                                ));
+                              },
+                              child: Column(
+                                children: [
+                                  Text(
+                                    _generatedOtp ?? '------',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 52,
+                                      fontWeight: FontWeight.bold,
+                                      color: accentBlue,
+                                      letterSpacing: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text('Visit OTP',
+                                      style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: textMuted)),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text('Visit OTP',
-                                style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: textMuted)),
-                          ],
-                        ),
-                      ),
+                          );
+                        } else {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Column(
+                                children: [
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: 50,
+                                    child: ElevatedButton(
+                                      onPressed: (isVisitDay && !_isGeneratingOtp) ? () async {
+                                        setState(() {
+                                          _isGeneratingOtp = true;
+                                        });
+                                        try {
+                                          final otp = await VisitApiService.generateOtp(widget.visit.refId);
+                                          if (mounted) {
+                                            setState(() {
+                                              _generatedOtp = otp;
+                                              _isOtpGenerated = true;
+                                              _isGeneratingOtp = false;
+                                            });
+                                          }
+                                        } catch (e) {
+                                          if (mounted) {
+                                            setState(() {
+                                              _isGeneratingOtp = false;
+                                            });
+                                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                              content: Text('Failed to generate OTP: $e', style: GoogleFonts.inter()),
+                                              backgroundColor: Colors.red.shade700,
+                                            ));
+                                          }
+                                        }
+                                      } : null,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: accentBlue,
+                                        disabledBackgroundColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE5E5E5),
+                                        foregroundColor: Colors.white,
+                                        disabledForegroundColor: textMuted,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: _isGeneratingOtp 
+                                          ? const SizedBox(
+                                              height: 20, 
+                                              width: 20, 
+                                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                            )
+                                          : Text('Generate OTP',
+                                              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
+                                    ),
+                                  ),
+                                  if (!isVisitDay) ...[
+                                    const SizedBox(height: 8),
+                                    Text('Button will activate on ${widget.visit.dateTime.split(' • ').first}',
+                                        style: GoogleFonts.inter(fontSize: 11, color: textMuted)),
+                                  ]
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -1005,7 +1093,7 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                   ),
                 ),
               )
-            else ...[
+            else if (upperStatus == 'ACCEPTED') ...[
               // ──────────────────────────────────────────────────────────────
               // 9. RESCHEDULE VISIT
               // ──────────────────────────────────────────────────────────────
@@ -1037,64 +1125,34 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
               const SizedBox(height: 12),
 
               // ──────────────────────────────────────────────────────────────
-              // 10. UPDATE STATUS (CONFIRM/COMPLETE)
+              // 10. COMPLETE VISIT
               // ──────────────────────────────────────────────────────────────
-              if (upperStatus != 'CANCELLED' && upperStatus != 'COMPLETED')
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED')
-                        Expanded(
-                          child: SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: _isUpdating ? null : () => _updateVisitStatus('CONFIRMED'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF16A34A),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                              ),
-                              child: _isUpdating 
-                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : Text('Confirm Visit',
-                                  style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
-                            ),
-                          ),
-                        ),
-                      if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED')
-                        const SizedBox(width: 12),
-                      
-                      Expanded(
-                        child: SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isUpdating ? null : () => _updateVisitStatus('COMPLETED'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: accentBlue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: _isUpdating 
-                                ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : Text('Complete Visit',
-                                style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
-                          ),
-                        ),
-                      ),
-                    ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isUpdating ? null : () => _updateVisitStatus('COMPLETED'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentBlue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isUpdating 
+                        ? const SizedBox(height: 16, width: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text('Complete Visit',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
                   ),
                 ),
+              ),
 
-              if (upperStatus != 'CANCELLED' && upperStatus != 'COMPLETED')
-                const SizedBox(height: 12),
+              const SizedBox(height: 12),
 
               // ──────────────────────────────────────────────────────────────
               // 11. CANCEL VISIT
               // ──────────────────────────────────────────────────────────────
-              if (upperStatus != 'CANCELLED' && upperStatus != 'COMPLETED')
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: SizedBox(

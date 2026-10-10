@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'services/visit_api_service.dart';
 import 'services/property_api_service.dart';
 import 'models/property_model.dart';
+import 'models/visit_model.dart';
 class VisitMock {
   final String imageUrl;
   final String title;
@@ -18,9 +19,14 @@ class VisitMock {
   final String refId;
   final String agentName;
   final String agentRole;
+  final String agentImageUrl;
+  final String agentPhone;
   final String otp;
   final double lat;
   final double lng;
+  final DateTime? parsedDateTime;
+  final Visit? rawVisit;
+  final String? partnerId;
 
   VisitMock({
     required this.imageUrl,
@@ -34,9 +40,14 @@ class VisitMock {
     required this.refId,
     required this.agentName,
     required this.agentRole,
+    required this.agentImageUrl,
+    required this.agentPhone,
     required this.otp,
     required this.lat,
     required this.lng,
+    this.parsedDateTime,
+    this.rawVisit,
+    this.partnerId,
   });
 }
 
@@ -54,9 +65,12 @@ final List<VisitMock> mockVisits = [
     refId: 'MECO-893011',
     agentName: 'Arjun Malhotra',
     agentRole: 'Assigned Property Agent',
+    agentImageUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop',
+    agentPhone: '',
     otp: '487476',
     lat: 28.4595,
     lng: 77.0266,
+    parsedDateTime: DateTime.now().add(const Duration(days: 1)),
   ),
   VisitMock(
     imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&auto=format&fit=crop',
@@ -70,9 +84,12 @@ final List<VisitMock> mockVisits = [
     refId: 'MECO-748392',
     agentName: 'Priya Sharma',
     agentRole: 'Senior Property Agent',
+    agentImageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop',
+    agentPhone: '',
     otp: '312859',
     lat: 28.5726,
     lng: 77.1659,
+    parsedDateTime: DateTime.now().subtract(const Duration(days: 1)),
   ),
   VisitMock(
     imageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&auto=format&fit=crop',
@@ -86,9 +103,12 @@ final List<VisitMock> mockVisits = [
     refId: 'MECO-229103',
     agentName: 'Rahul Desai',
     agentRole: 'Virtual Tour Expert',
+    agentImageUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=100&auto=format&fit=crop',
+    agentPhone: '',
     otp: '924167',
     lat: 19.0596,
     lng: 72.8295,
+    parsedDateTime: DateTime.now().subtract(const Duration(days: 2)),
   ),
 ];
 
@@ -137,6 +157,24 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           finalImageUrl = prop.imageUrl;
         }
 
+        DateTime? parsedDT;
+        try {
+          // Parse ISO date (YYYY-MM-DD)
+          parsedDT = DateTime.parse(v.date);
+        } catch (e) {
+          try {
+            // Fallback for "Saturday, 10 October 2026" format
+            parsedDT = DateFormat('EEEE, d MMMM yyyy').parse(v.date);
+          } catch (e2) {
+            try {
+              // Fallback for "10 October 2026" format
+              parsedDT = DateFormat('d MMMM yyyy').parse(v.date);
+            } catch (e3) {
+              // Ignore
+            }
+          }
+        }
+
         return VisitMock(
           imageUrl: finalImageUrl,
           title: v.property.title,
@@ -147,11 +185,16 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           price: (prop != null) ? prop.price : 'Price on Request',
           timeSlot: v.time,
           refId: v.id,
-          agentName: 'Assigned Agent',
-          agentRole: 'Property Agent',
+          agentName: prop?.partner?.fullName ?? 'Assigned Agent',
+          agentRole: prop?.partner?.companyName ?? 'Property Agent',
+          agentImageUrl: (prop?.partner?.profilePicture != null && prop!.partner!.profilePicture.isNotEmpty) ? prop.partner!.profilePicture : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop',
+          agentPhone: prop?.partner?.number ?? '',
           otp: '123456',
           lat: (prop != null && prop.lat != null) ? prop.lat! : 28.4595,
           lng: (prop != null && prop.lng != null) ? prop.lng! : 77.0266,
+          parsedDateTime: parsedDT,
+          rawVisit: v,
+          partnerId: prop?.partner?.id ?? '',
         );
       }).toList();
 
@@ -187,16 +230,16 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
 
     List<VisitMock> filteredVisits = _visits.where((v) {
       if (_selectedFilter == 'Upcoming') {
-        return v.status.toUpperCase() == 'PENDING' || v.status.toUpperCase() == 'SCHEDULED';
-      }
-      if (_selectedFilter == 'Confirmed') {
-        return v.status.toUpperCase() == 'CONFIRMED';
+        return v.status.toUpperCase() == 'PENDING' || 
+               v.status.toUpperCase() == 'RESCHEDULED' || 
+               v.status.toUpperCase() == 'CONFIRMED' || 
+               v.status.toUpperCase() == 'ACCEPTED';
       }
       if (_selectedFilter == 'Completed') {
         return v.status.toUpperCase() == 'COMPLETED';
       }
       if (_selectedFilter == 'Cancelled') {
-        return v.status.toUpperCase() == 'CANCELLED';
+        return v.status.toUpperCase() == 'CANCELLED' || v.status.toUpperCase() == 'REJECTED';
       }
       return true;
     }).toList();
@@ -212,8 +255,6 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
             child: Row(
               children: [
                 _buildFilterChip('Upcoming', isDark, chipBgUnselected, chipBorderUnselected),
-                const SizedBox(width: 8),
-                _buildFilterChip('Confirmed', isDark, chipBgUnselected, chipBorderUnselected),
                 const SizedBox(width: 8),
                 _buildFilterChip('Completed', isDark, chipBgUnselected, chipBorderUnselected),
                 const SizedBox(width: 8),
