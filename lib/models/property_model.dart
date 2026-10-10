@@ -68,6 +68,8 @@ class Property {
   bool isFavorite;
   final String constructionPhase;
   final String budgetRange;
+  final double rawPrice;
+  final double rawArea;
 
   Property({
     required this.id,
@@ -105,6 +107,8 @@ class Property {
     this.createdAt,
     this.partner,
     this.isFavorite = false,
+    this.rawPrice = 0.0,
+    this.rawArea = 0.0,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -214,6 +218,8 @@ class Property {
       lng: parseSafeDouble(json['lng']),
       createdAt: json['createdAt']?.toString(),
       partner: json['partner'] != null ? Partner.fromJson(json['partner']) : null,
+      rawPrice: priceVal,
+      rawArea: parseSafeDouble(json['area']) ?? parseSafeDouble(json['builtUpArea']) ?? parseSafeDouble(json['carpetArea']) ?? 0.0,
     );
   }
 }

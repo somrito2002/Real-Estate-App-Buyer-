@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_filters.dart';
 import 'location_bottom_sheet.dart';
+import 'services/property_api_service.dart';
 
 class FilterScreen extends StatefulWidget {
   final PropertyFilters? initialFilters;
@@ -26,6 +27,13 @@ class _FilterScreenState extends State<FilterScreen> {
   String? _parking;
   String? _furnishing;
   List<String> _amenities = [];
+
+  // Default limits (these will update dynamically)
+  double _minBudgetBound = 0;
+  double _maxBudgetBound = 100000000; 
+  double _minAreaBound = 0;
+  double _maxAreaBound = 10000; 
+  bool _isLoadingBounds = true;
 
   final List<String> _purposes = ['Sell', 'Rent', 'Lease'];
   final List<String> _categories = ['Residential', 'Commercial'];
@@ -66,6 +74,54 @@ class _FilterScreenState extends State<FilterScreen> {
       _purpose = 'Sell';
       _category = 'Residential';
     }
+    _fetchBounds();
+  }
+
+  Future<void> _fetchBounds() async {
+    try {
+      final properties = await PropertyApiService.getProperties(limit: 1000);
+      if (properties.isNotEmpty) {
+        double minPrice = properties.first.rawPrice;
+        double maxPrice = properties.first.rawPrice;
+        double minArea = properties.first.rawArea;
+        double maxArea = properties.first.rawArea;
+
+        for (var p in properties) {
+          if (p.rawPrice > 0 && p.rawPrice < minPrice) minPrice = p.rawPrice;
+          if (p.rawPrice > maxPrice) maxPrice = p.rawPrice;
+          if (p.rawArea > 0 && p.rawArea < minArea) minArea = p.rawArea;
+          if (p.rawArea > maxArea) maxArea = p.rawArea;
+        }
+
+        if (minPrice == maxPrice) maxPrice += 1000;
+        if (minArea == maxArea) maxArea += 100;
+
+        if (mounted) {
+          setState(() {
+            _minBudgetBound = minPrice;
+            _maxBudgetBound = maxPrice;
+            _minAreaBound = minArea;
+            _maxAreaBound = maxArea;
+
+            double currentMinB = _budgetRange.start.clamp(_minBudgetBound, _maxBudgetBound);
+            double currentMaxB = _budgetRange.end.clamp(_minBudgetBound, _maxBudgetBound);
+            if (currentMinB > currentMaxB) currentMaxB = currentMinB;
+            _budgetRange = RangeValues(currentMinB, currentMaxB);
+
+            double currentMinA = _areaRange.start.clamp(_minAreaBound, _maxAreaBound);
+            double currentMaxA = _areaRange.end.clamp(_minAreaBound, _maxAreaBound);
+            if (currentMinA > currentMaxA) currentMaxA = currentMinA;
+            _areaRange = RangeValues(currentMinA, currentMaxA);
+
+            _isLoadingBounds = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoadingBounds = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingBounds = false);
+    }
   }
 
   void _clearAll() {
@@ -73,11 +129,11 @@ class _FilterScreenState extends State<FilterScreen> {
       _purpose = 'Sell';
       _category = 'Residential';
       _type = null;
-      _budgetRange = const RangeValues(0, 100000000);
+      _budgetRange = RangeValues(_minBudgetBound, _maxBudgetBound);
       _bedrooms = null;
       _status = null;
       _constructionPhase = null;
-      _areaRange = const RangeValues(0, 10000);
+      _areaRange = RangeValues(_minAreaBound, _maxAreaBound);
       _bathrooms = null;
       _parking = null;
       _furnishing = null;
@@ -88,12 +144,12 @@ class _FilterScreenState extends State<FilterScreen> {
   String _formatBudget(double value) {
     if (value >= 10000000) {
       double cr = value / 10000000;
-      return '?${cr == cr.truncateToDouble() ? cr.toInt() : cr.toStringAsFixed(1)} Cr';
+      return '₹${cr == cr.truncateToDouble() ? cr.toInt() : cr.toStringAsFixed(1)} Cr';
     } else if (value >= 100000) {
       double l = value / 100000;
-      return '?${l == l.truncateToDouble() ? l.toInt() : l.toStringAsFixed(1)} L';
+      return '₹${l == l.truncateToDouble() ? l.toInt() : l.toStringAsFixed(1)} L';
     } else {
-      return '?${value.toInt()}';
+      return '₹${value.toInt()}';
     }
   }
 
@@ -281,10 +337,10 @@ class _FilterScreenState extends State<FilterScreen> {
                       rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 8.0),
                       overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
                     ),
-                    child: RangeSlider(
+                    child: _isLoadingBounds ? const Center(child: CircularProgressIndicator()) : RangeSlider(
                       values: _budgetRange,
-                      min: 0,
-                      max: 100000000,
+                      min: _minBudgetBound,
+                      max: _maxBudgetBound,
                       activeColor: accentBlue,
                       inactiveColor: Theme.of(context).colorScheme.outlineVariant,
                       onChanged: (values) {
@@ -325,7 +381,7 @@ class _FilterScreenState extends State<FilterScreen> {
                     children: [
                       _buildSectionHeader('Area (sqft)'),
                       Text(
-                        '${_areaRange.start.toInt()} - ${_areaRange.end.toInt() == 10000 ? '10000+' : _areaRange.end.toInt()}',
+                        '${_areaRange.start.toInt()} - ${_areaRange.end.toInt()}',
                         style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: accentBlue),
                       ),
                     ],
@@ -337,10 +393,10 @@ class _FilterScreenState extends State<FilterScreen> {
                       rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 8.0),
                       overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
                     ),
-                    child: RangeSlider(
+                    child: _isLoadingBounds ? const Center(child: CircularProgressIndicator()) : RangeSlider(
                       values: _areaRange,
-                      min: 0,
-                      max: 10000,
+                      min: _minAreaBound,
+                      max: _maxAreaBound,
                       divisions: 20,
                       activeColor: accentBlue,
                       inactiveColor: Theme.of(context).colorScheme.outlineVariant,
@@ -438,12 +494,12 @@ class _FilterScreenState extends State<FilterScreen> {
                       category: _category,
                       type: _type,
                       bedrooms: _bedrooms,
-                      minPrice: _budgetRange.start > 0 ? _budgetRange.start : null,
-                      maxPrice: _budgetRange.end < 100000000 ? _budgetRange.end : null,
+                      minPrice: _budgetRange.start > _minBudgetBound ? _budgetRange.start : null,
+                      maxPrice: _budgetRange.end < _maxBudgetBound ? _budgetRange.end : null,
                       status: _status,
                       constructionPhase: _constructionPhase,
-                      minArea: _areaRange.start > 0 ? _areaRange.start : null,
-                      maxArea: _areaRange.end < 10000 ? _areaRange.end : null,
+                      minArea: _areaRange.start > _minAreaBound ? _areaRange.start : null,
+                      maxArea: _areaRange.end < _maxAreaBound ? _areaRange.end : null,
                       bathrooms: _bathrooms,
                       parking: _parking,
                       furnishing: _furnishing,

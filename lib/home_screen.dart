@@ -11,6 +11,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'profile_screen.dart';
 import 'saved_screen.dart';
 import 'search_screen.dart' as import_search_screen;
+import 'filter_screen.dart';
 import 'models/property_model.dart';
 import 'property_details_screen.dart';
 import 'property_details_loader.dart';
@@ -542,6 +543,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: const EdgeInsets.all(6),
                           child: Icon(
                             Icons.mic_off_outlined,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 4, right: 8, top: 6, bottom: 6),
+                          child: Icon(
+                            Icons.tune,
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                             size: 22,
                           ),
