@@ -79,45 +79,30 @@ class _FilterScreenState extends State<FilterScreen> {
 
   Future<void> _fetchBounds() async {
     try {
-      final properties = await PropertyApiService.getProperties(limit: 1000);
-      if (properties.isNotEmpty) {
-        double minPrice = properties.first.rawPrice;
-        double maxPrice = properties.first.rawPrice;
-        double minArea = properties.first.rawArea;
-        double maxArea = properties.first.rawArea;
+      final ranges = await PropertyApiService.getPropertyRanges();
+      
+      if (mounted) {
+        setState(() {
+          _minBudgetBound = (ranges['minPrice'] as num?)?.toDouble() ?? 0;
+          _maxBudgetBound = (ranges['maxPrice'] as num?)?.toDouble() ?? 100000000;
+          _minAreaBound = (ranges['minArea'] as num?)?.toDouble() ?? 0;
+          _maxAreaBound = (ranges['maxArea'] as num?)?.toDouble() ?? 10000;
 
-        for (var p in properties) {
-          if (p.rawPrice > 0 && p.rawPrice < minPrice) minPrice = p.rawPrice;
-          if (p.rawPrice > maxPrice) maxPrice = p.rawPrice;
-          if (p.rawArea > 0 && p.rawArea < minArea) minArea = p.rawArea;
-          if (p.rawArea > maxArea) maxArea = p.rawArea;
-        }
+          if (_minBudgetBound >= _maxBudgetBound) _maxBudgetBound = _minBudgetBound + 1000;
+          if (_minAreaBound >= _maxAreaBound) _maxAreaBound = _minAreaBound + 100;
 
-        if (minPrice == maxPrice) maxPrice += 1000;
-        if (minArea == maxArea) maxArea += 100;
+          double currentMinB = _budgetRange.start.clamp(_minBudgetBound, _maxBudgetBound);
+          double currentMaxB = _budgetRange.end.clamp(_minBudgetBound, _maxBudgetBound);
+          if (currentMinB > currentMaxB) currentMaxB = currentMinB;
+          _budgetRange = RangeValues(currentMinB, currentMaxB);
 
-        if (mounted) {
-          setState(() {
-            _minBudgetBound = minPrice;
-            _maxBudgetBound = maxPrice;
-            _minAreaBound = minArea;
-            _maxAreaBound = maxArea;
+          double currentMinA = _areaRange.start.clamp(_minAreaBound, _maxAreaBound);
+          double currentMaxA = _areaRange.end.clamp(_minAreaBound, _maxAreaBound);
+          if (currentMinA > currentMaxA) currentMaxA = currentMinA;
+          _areaRange = RangeValues(currentMinA, currentMaxA);
 
-            double currentMinB = _budgetRange.start.clamp(_minBudgetBound, _maxBudgetBound);
-            double currentMaxB = _budgetRange.end.clamp(_minBudgetBound, _maxBudgetBound);
-            if (currentMinB > currentMaxB) currentMaxB = currentMinB;
-            _budgetRange = RangeValues(currentMinB, currentMaxB);
-
-            double currentMinA = _areaRange.start.clamp(_minAreaBound, _maxAreaBound);
-            double currentMaxA = _areaRange.end.clamp(_minAreaBound, _maxAreaBound);
-            if (currentMinA > currentMaxA) currentMaxA = currentMinA;
-            _areaRange = RangeValues(currentMinA, currentMaxA);
-
-            _isLoadingBounds = false;
-          });
-        }
-      } else {
-        if (mounted) setState(() => _isLoadingBounds = false);
+          _isLoadingBounds = false;
+        });
       }
     } catch (e) {
       if (mounted) setState(() => _isLoadingBounds = false);

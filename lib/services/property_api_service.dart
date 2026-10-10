@@ -91,4 +91,20 @@ class PropertyApiService {
       throw Exception('Unable to load property: $e');
     }
   }
+
+  static Future<Map<String, dynamic>> getPropertyRanges() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/properties/ranges'),
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception('Failed to fetch property ranges: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Network error while fetching ranges: $e');
+    }
+  }
 }
