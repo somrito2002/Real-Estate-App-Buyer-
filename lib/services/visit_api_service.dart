@@ -264,6 +264,78 @@ class VisitApiService {
     }
   }
 
+  static Future<void> updateReview({
+    required String reviewId,
+    required int rating,
+    required String comment,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    if (token.isEmpty) {
+      throw Exception('401:Authentication required. Please provide a valid token.');
+    }
+
+    final body = {
+      'rating': rating,
+      'comment': comment,
+    };
+
+    final response = await http.put(
+      Uri.parse('$_baseUrl/reviews/$reviewId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode(body),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String errorMessage = 'Failed to update review.';
+      try {
+        final data = json.decode(response.body);
+        if (data['error'] != null) {
+          errorMessage = data['error'].toString();
+        } else if (data['message'] != null) {
+          errorMessage = data['message'].toString();
+        }
+      } catch (_) {}
+      throw Exception('${response.statusCode}:$errorMessage');
+    }
+  }
+
+  static Future<void> deleteReview({
+    required String reviewId,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+
+    if (token.isEmpty) {
+      throw Exception('401:Authentication required. Please provide a valid token.');
+    }
+
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/reviews/$reviewId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      String errorMessage = 'Failed to delete review.';
+      try {
+        final data = json.decode(response.body);
+        if (data['error'] != null) {
+          errorMessage = data['error'].toString();
+        } else if (data['message'] != null) {
+          errorMessage = data['message'].toString();
+        }
+      } catch (_) {}
+      throw Exception('${response.statusCode}:$errorMessage');
+    }
+  }
+
   static Future<List<dynamic>> getReviews() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token') ?? '';

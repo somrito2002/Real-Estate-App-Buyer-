@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'reviews_screen.dart'; // To access ReviewItem
+import 'services/visit_api_service.dart';
 
 class EditReviewScreen extends StatefulWidget {
   final ReviewItem review;
@@ -14,6 +15,8 @@ class EditReviewScreen extends StatefulWidget {
 class _EditReviewScreenState extends State<EditReviewScreen> {
   late double _rating;
   late TextEditingController _reviewController;
+  bool _isUpdating = false;
+  bool _isDeleting = false;
 
   @override
   void initState() {
@@ -148,9 +151,31 @@ class _EditReviewScreenState extends State<EditReviewScreen> {
               width: double.infinity,
               height: 48,
               child: ElevatedButton(
-                onPressed: () {
-                  // Handle update review logic
-                  Navigator.pop(context);
+                onPressed: _isUpdating ? null : () async {
+                  setState(() => _isUpdating = true);
+                  try {
+                    await VisitApiService.updateReview(
+                      reviewId: widget.review.id,
+                      rating: _rating.toInt(),
+                      comment: _reviewController.text.trim(),
+                    );
+                    if (mounted) {
+                      setState(() => _isUpdating = false);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Review updated successfully!', style: GoogleFonts.inter()),
+                        backgroundColor: const Color(0xFF16A34A),
+                      ));
+                      Navigator.pop(context, true); // Pass true to signal a refresh is needed
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      setState(() => _isUpdating = false);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Failed to update: $e', style: GoogleFonts.inter()),
+                        backgroundColor: Colors.red.shade700,
+                      ));
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4A85F6),
@@ -159,14 +184,20 @@ class _EditReviewScreenState extends State<EditReviewScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  'Update Review',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.surface,
-                  ),
-                ),
+                child: _isUpdating 
+                  ? const SizedBox(
+                      height: 20, 
+                      width: 20, 
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    )
+                  : Text(
+                      'Update Review',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.surface,
+                      ),
+                    ),
               ),
             ),
             const SizedBox(height: 16),
@@ -188,18 +219,68 @@ class _EditReviewScreenState extends State<EditReviewScreen> {
             const SizedBox(height: 16),
             Center(
               child: TextButton(
-                onPressed: () {
-                  // Handle delete review logic
-                  Navigator.pop(context);
+                onPressed: (_isUpdating || _isDeleting) ? null : () async {
+                  // Show confirmation dialog before deleting
+                  final bool? confirm = await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        backgroundColor: Theme.of(context).colorScheme.surface,
+                        title: Text('Delete Review', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                        content: Text('Are you sure you want to delete this review?', style: GoogleFonts.inter()),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text('Cancel', style: GoogleFonts.inter(color: const Color(0xFF4A85F6))),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text('Delete', style: GoogleFonts.inter(color: const Color(0xFFEA4335), fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirm != true) return;
+
+                  setState(() => _isDeleting = true);
+                  try {
+                    await VisitApiService.deleteReview(
+                      reviewId: widget.review.id,
+                    );
+                    if (mounted) {
+                      setState(() => _isDeleting = false);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Review deleted successfully!', style: GoogleFonts.inter()),
+                        backgroundColor: const Color(0xFF16A34A),
+                      ));
+                      Navigator.pop(context, true); // Pass true to signal a refresh is needed
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      setState(() => _isDeleting = false);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Failed to delete review: $e', style: GoogleFonts.inter()),
+                        backgroundColor: Colors.red.shade700,
+                      ));
+                    }
+                  }
                 },
-                child: Text(
-                  'Delete Review',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFFEA4335), // Red color
-                  ),
-                ),
+                child: _isDeleting 
+                  ? const SizedBox(
+                      height: 16, 
+                      width: 16, 
+                      child: CircularProgressIndicator(color: Color(0xFFEA4335), strokeWidth: 2)
+                    )
+                  : Text(
+                      'Delete Review',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFEA4335), // Red color
+                      ),
+                    ),
               ),
             ),
           ],

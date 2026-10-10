@@ -5,6 +5,7 @@ import 'edit_review_screen.dart';
 import 'services/visit_api_service.dart';
 
 class ReviewItem {
+  final String id;
   final String propertyName;
   final String location;
   final String date;
@@ -12,6 +13,7 @@ class ReviewItem {
   final String reviewText;
 
   ReviewItem({
+    required this.id,
     required this.propertyName,
     required this.location,
     required this.date,
@@ -56,6 +58,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         }
 
         return ReviewItem(
+          id: r['id']?.toString() ?? r['_id']?.toString() ?? '',
           propertyName: propName,
           location: loc,
           date: DateFormat('dd MMM yyyy').format(dateObj),
@@ -359,10 +362,16 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => EditReviewScreen(review: review)),
-                ),
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => EditReviewScreen(review: review)),
+                  );
+                  if (result == true) {
+                    setState(() => _isLoading = true);
+                    _fetchReviews();
+                  }
+                },
                 child: Text(
                   'reviews.edit'.tr(),
                   style: GoogleFonts.inter(
