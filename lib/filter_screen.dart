@@ -45,7 +45,8 @@ class _FilterScreenState extends State<FilterScreen> {
   final List<String> _constructionPhases = ['READY TO MOVE', 'UNDER CONSTRUCTION', 'NEW LAUNCH'];
   final List<String> _parkingOptions = ['1 Covered', '2 Covered', 'Open'];
   final List<String> _furnishingOptions = ['Fully Furnished', 'Semi-Furnished', 'Unfurnished'];
-  final List<String> _amenityOptions = ['Gym', 'Pool', 'Parking', 'Security', 'Lift', 'Power Backup', 'Garden'];
+  List<String> _amenityOptions = [];
+  bool _isLoadingAmenities = true;
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -75,6 +76,29 @@ class _FilterScreenState extends State<FilterScreen> {
       _category = 'Residential';
     }
     _fetchBounds();
+    _fetchAmenities();
+  }
+
+  Future<void> _fetchAmenities() async {
+    try {
+      final properties = await PropertyApiService.getProperties(limit: 500);
+      final Set<String> uniqueAmenities = {};
+      for (var p in properties) {
+        if (p.amenities.isNotEmpty) {
+          uniqueAmenities.addAll(p.amenities.map((a) => a.trim()).where((a) => a.isNotEmpty));
+        }
+      }
+      if (mounted && uniqueAmenities.isNotEmpty) {
+        setState(() {
+          _amenityOptions = uniqueAmenities.toList()..sort();
+          _isLoadingAmenities = false;
+        });
+      } else {
+        if (mounted) setState(() => _isLoadingAmenities = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingAmenities = false);
+    }
   }
 
   Future<void> _fetchBounds() async {
@@ -129,12 +153,13 @@ class _FilterScreenState extends State<FilterScreen> {
   String _formatBudget(double value) {
     if (value >= 10000000) {
       double cr = value / 10000000;
-      return '₹${cr == cr.truncateToDouble() ? cr.toInt() : cr.toStringAsFixed(1)} Cr';
+      return '₹${cr == cr.truncateToDouble() ? cr.toInt() : cr.toStringAsFixed(2)} Cr';
     } else if (value >= 100000) {
       double l = value / 100000;
-      return '₹${l == l.truncateToDouble() ? l.toInt() : l.toStringAsFixed(1)} L';
+      return '₹${l == l.truncateToDouble() ? l.toInt() : l.toStringAsFixed(2)} L';
     } else {
-      return '₹${value.toInt()}';
+      // Add commas for smaller thousands amounts (e.g. 45,000)
+      return '₹${value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}';
     }
   }
 
@@ -440,19 +465,23 @@ class _FilterScreenState extends State<FilterScreen> {
 
                   _buildSectionHeader('Amenities'),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 12,
-                    children: _amenityOptions.map((a) => _buildPillChip(
-                      a, _amenities.contains(a), () => setState(() {
-                        if (_amenities.contains(a)) {
-                          _amenities.remove(a);
-                        } else {
-                          _amenities.add(a);
-                        }
-                      })
-                    )).toList(),
-                  ),
+                  _isLoadingAmenities 
+                      ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+                      : _amenityOptions.isEmpty
+                          ? Text('No amenities available', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.outlineVariant))
+                          : Wrap(
+                              spacing: 8,
+                              runSpacing: 12,
+                              children: _amenityOptions.map((a) => _buildPillChip(
+                                a, _amenities.contains(a), () => setState(() {
+                                  if (_amenities.contains(a)) {
+                                    _amenities.remove(a);
+                                  } else {
+                                    _amenities.add(a);
+                                  }
+                                })
+                              )).toList(),
+                            ),
 
                   const SizedBox(height: 32),
                 ],

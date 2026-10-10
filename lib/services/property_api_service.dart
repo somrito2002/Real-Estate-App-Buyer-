@@ -99,7 +99,14 @@ class PropertyApiService {
       ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        return json.decode(response.body) as Map<String, dynamic>;
+        final decoded = json.decode(response.body);
+        if (decoded is Map<String, dynamic>) {
+          if (decoded.containsKey('data') && decoded['data'] is Map<String, dynamic>) {
+            return decoded['data'] as Map<String, dynamic>;
+          }
+          return decoded;
+        }
+        return {};
       } else {
         throw Exception('Failed to fetch property ranges: ${response.statusCode}');
       }
