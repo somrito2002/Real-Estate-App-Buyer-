@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import 'my_visits_screen.dart';
 import 'reschedule_visit_screen.dart';
 import 'cancel_visit_screen.dart';
@@ -23,9 +24,40 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
   bool _isOtpGenerated = false;
   String? _generatedOtp;
   bool _isGeneratingOtp = false;
+  Timer? _pollingTimer;
+
+  int _reviewRating = 0;
+  final TextEditingController _reviewCommentController = TextEditingController();
+  bool _isSubmittingReview = false;
+  bool _reviewSubmitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startPolling();
+  }
+
+  void _startPolling() {
+    // Poll every 5 seconds to auto-update the status
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      try {
+        final visits = await VisitApiService.getVisits();
+        final updatedVisitRaw = visits.firstWhere((v) => v.id == widget.visit.refId);
+        if (mounted && widget.visit.status != updatedVisitRaw.status) {
+          setState(() {
+            widget.visit.status = updatedVisitRaw.status;
+            // The timeline will automatically rebuild with the new status
+          });
+        }
+      } catch (e) {
+        // Silently ignore polling errors so it doesn't spam the user
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _mapController?.dispose();
     super.dispose();
   }
@@ -688,9 +720,9 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                   ],
                 ),
               )
-            else if (widget.visit.status == 'Completed')
+            else if (upperStatus == 'COMPLETED')
               Container(
-                color: const Color(0xFF132920),
+                color: cardBg,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -698,18 +730,18 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Visit Verification',
+                        Text('Rate your Visit',
                             style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.surface)),
+                                color: titleColor)),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
+                            color: const Color(0xFF16A34A).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text('Verified',
+                          child: Text('Visit Completed',
                               style: GoogleFonts.inter(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -719,42 +751,126 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      'Visit verified successfully by ${widget.visit.agentName} on ${widget.visit.dateTime.split(' • ').first} at ${widget.visit.timeSlot}.',
-                      style: GoogleFonts.inter(fontSize: 12, color: Colors.white70, height: 1.5),
+                      'How was your experience visiting ${widget.visit.title}?',
+                      style: GoogleFonts.inter(fontSize: 12, color: textMuted, height: 1.5),
                     ),
                     const SizedBox(height: 18),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 24),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E352B),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.check, color: Colors.white, size: 18),
-                              const SizedBox(width: 6),
-                              Text(
-                                'VERIFIED',
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.surface,
+                    _reviewSubmitted 
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.check_circle, color: Color(0xFF16A34A), size: 48),
+                                const SizedBox(height: 12),
+                                Text('Thank you for your feedback!',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: titleColor,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(5, (index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _reviewRating = index + 1;
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    child: Icon(
+                                      index < _reviewRating ? Icons.star : Icons.star_border, 
+                                      color: Colors.orange, 
+                                      size: 36
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                            const SizedBox(height: 16),
+                            TextField(
+                              controller: _reviewCommentController,
+                              maxLines: 3,
+                              style: GoogleFonts.inter(fontSize: 14, color: titleColor),
+                              decoration: InputDecoration(
+                                hintText: 'Write a review...',
+                                hintStyle: GoogleFonts.inter(color: textMuted, fontSize: 13),
+                                filled: true,
+                                fillColor: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFF9F9F9),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: borderColor),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: borderColor),
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text('OTP VERIFIED - SUCCESS',
-                              style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  color: Colors.white54)),
-                        ],
-                      ),
-                    ),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: ElevatedButton(
+                                onPressed: _isSubmittingReview ? null : () async {
+                                  if (_reviewRating == 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                      content: Text('Please select a star rating.', style: GoogleFonts.inter()),
+                                      backgroundColor: Colors.red.shade700,
+                                    ));
+                                    return;
+                                  }
+
+                                  setState(() => _isSubmittingReview = true);
+                                  try {
+                                    await VisitApiService.submitReview(
+                                      propertyId: widget.visit.rawVisit!.property.id,
+                                      rating: _reviewRating,
+                                      comment: _reviewCommentController.text.trim(),
+                                    );
+                                    if (mounted) {
+                                      setState(() {
+                                        _isSubmittingReview = false;
+                                        _reviewSubmitted = true;
+                                      });
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      setState(() => _isSubmittingReview = false);
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                        content: Text('Failed to submit review: $e', style: GoogleFonts.inter()),
+                                        backgroundColor: Colors.red.shade700,
+                                      ));
+                                    }
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: accentBlue,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: _isSubmittingReview 
+                                    ? const SizedBox(
+                                        height: 20, 
+                                        width: 20, 
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                      )
+                                    : Text('Submit Review',
+                                        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15)),
+                              ),
+                            ),
+                          ],
+                        ),
                   ],
                 ),
               )

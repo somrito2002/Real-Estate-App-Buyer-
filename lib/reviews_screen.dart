@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'edit_review_screen.dart';
+import 'services/visit_api_service.dart';
 
 class ReviewItem {
   final String propertyName;
@@ -27,32 +28,72 @@ class ReviewsScreen extends StatefulWidget {
 }
 
 class _ReviewsScreenState extends State<ReviewsScreen> {
-  final List<ReviewItem> _reviews = [
-    ReviewItem(
-      propertyName: 'Green Valley Residency',
-      location: 'Raipur, Chhattisgarh',
-      date: '12 Sep 2026',
-      rating: 4.5,
-      reviewText: 'Good location and well-maintained property. The visit was arranged smoothly.',
-    ),
-    ReviewItem(
-      propertyName: 'Skyline Heights',
-      location: 'Bilaspur, Chhattisgarh',
-      date: '28 Aug 2026',
-      rating: 4.0,
-      reviewText: 'Nice apartment with good connectivity.',
-    ),
-    ReviewItem(
-      propertyName: 'Sunrise Towers',
-      location: 'Korba, Chhattisgarh',
-      date: '15 Aug 2026',
-      rating: 5.0,
-      reviewText: 'Excellent builder quality. Would highly recommend.',
-    ),
-  ];
+  List<ReviewItem> _reviews = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    try {
+      final rawReviews = await VisitApiService.getReviews();
+      
+      List<ReviewItem> mapped = rawReviews.map((r) {
+        String propName = 'Unknown Property';
+        String loc = 'Unknown Location';
+        
+        if (r['property'] != null) {
+          propName = r['property']['title'] ?? propName;
+          loc = r['property']['city'] ?? loc;
+        }
+
+        DateTime dateObj = DateTime.now();
+        if (r['createdAt'] != null) {
+          dateObj = DateTime.tryParse(r['createdAt'].toString()) ?? dateObj;
+        }
+
+        return ReviewItem(
+          propertyName: propName,
+          location: loc,
+          date: DateFormat('dd MMM yyyy').format(dateObj),
+          rating: (r['rating'] is num) ? (r['rating'] as num).toDouble() : 0.0,
+          reviewText: r['comment']?.toString() ?? '',
+        );
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          _reviews = mapped;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to load reviews: $e', style: GoogleFonts.inter()),
+          backgroundColor: Colors.red.shade700,
+        ));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    double avgRating = 0.0;
+    if (_reviews.isNotEmpty) {
+      double sum = 0;
+      for (var r in _reviews) {
+        sum += r.rating;
+      }
+      avgRating = sum / _reviews.length;
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFFAFAFA);
     final cardBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -118,7 +159,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '8', // Hardcoded for UI
+                            _reviews.isEmpty && _isLoading ? '-' : _reviews.length.toString(),
                             style: GoogleFonts.inter(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
@@ -140,14 +181,18 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.star, color: starColor, size: 14),
-                              Icon(Icons.star, color: starColor, size: 14),
-                              Icon(Icons.star, color: starColor, size: 14),
-                              Icon(Icons.star, color: starColor, size: 14),
-                              Icon(Icons.star_half, color: starColor, size: 14),
+                              ...List.generate(5, (index) {
+                                if (index < avgRating.floor()) {
+                                  return Icon(Icons.star, color: starColor, size: 14);
+                                } else if (index == avgRating.floor() && avgRating - avgRating.floor() >= 0.5) {
+                                  return Icon(Icons.star_half, color: starColor, size: 14);
+                                } else {
+                                  return Icon(Icons.star_border, color: starColor, size: 14);
+                                }
+                              }),
                               const SizedBox(width: 4),
                               Text(
-                                '4.5',
+                                _isLoading && _reviews.isEmpty ? '-' : avgRating.toStringAsFixed(1),
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -181,16 +226,32 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ..._reviews.map((review) => _buildReviewCard(
-                  review: review,
-                  cardBgColor: cardBgColor,
-                  borderColor: borderColor,
-                  titleColor: titleColor,
-                  subtitleColor: subtitleColor,
-                  dateColor: dateColor,
-                  starColor: starColor,
-                  accentBlue: accentBlue,
-                )),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 50),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else if (_reviews.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 50),
+                child: Center(
+                  child: Text(
+                    'No reviews found.',
+                    style: GoogleFonts.inter(color: subtitleColor),
+                  ),
+                ),
+              )
+            else
+              ..._reviews.map((review) => _buildReviewCard(
+                    review: review,
+                    cardBgColor: cardBgColor,
+                    borderColor: borderColor,
+                    titleColor: titleColor,
+                    subtitleColor: subtitleColor,
+                    dateColor: dateColor,
+                    starColor: starColor,
+                    accentBlue: accentBlue,
+                  )),
           ],
         ),
       ),

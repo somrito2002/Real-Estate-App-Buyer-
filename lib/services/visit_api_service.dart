@@ -220,4 +220,85 @@ class VisitApiService {
       throw Exception('${response.statusCode}:$errorMessage');
     }
   }
+
+  static Future<void> submitReview({
+    required String propertyId,
+    required int rating,
+    required String comment,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+    final userId = prefs.getString('cached_userId') ?? '';
+
+    if (token.isEmpty) {
+      throw Exception('401:Authentication required. Please provide a valid token.');
+    }
+
+    final body = {
+      'propertyId': propertyId,
+      'userId': userId,
+      'rating': rating,
+      'comment': comment,
+    };
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/reviews'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: json.encode(body),
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      String errorMessage = 'Failed to submit review.';
+      try {
+        final data = json.decode(response.body);
+        if (data['error'] != null) {
+          errorMessage = data['error'].toString();
+        } else if (data['message'] != null) {
+          errorMessage = data['message'].toString();
+        }
+      } catch (_) {}
+      throw Exception('${response.statusCode}:$errorMessage');
+    }
+  }
+
+  static Future<List<dynamic>> getReviews() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token') ?? '';
+    final userId = prefs.getString('cached_userId') ?? '';
+
+    if (token.isEmpty) {
+      throw Exception('401:Authentication required. Please provide a valid token.');
+    }
+
+    final response = await http.get(
+      Uri.parse('$_baseUrl/reviews?userId=$userId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded is List) {
+        return decoded;
+      } else if (decoded is Map) {
+        if (decoded.containsKey('data') && decoded['data'] is Map && decoded['data'].containsKey('reviews')) {
+          return decoded['data']['reviews'] as List<dynamic>;
+        } else if (decoded.containsKey('data') && decoded['data'] is List) {
+          return decoded['data'] as List<dynamic>;
+        } else if (decoded.containsKey('reviews') && decoded['reviews'] is List) {
+          return decoded['reviews'] as List<dynamic>;
+        }
+      }
+      throw Exception('Unexpected API response format');
+    } else if (response.statusCode == 401) {
+      throw Exception('401:Authentication required.');
+    } else {
+      throw Exception('Failed to fetch reviews: ${response.statusCode}');
+    }
+  }
 }

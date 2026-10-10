@@ -189,7 +189,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           agentRole: prop?.partner?.companyName ?? 'Property Agent',
           agentImageUrl: (prop?.partner?.profilePicture != null && prop!.partner!.profilePicture.isNotEmpty) ? prop.partner!.profilePicture : 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&auto=format&fit=crop',
           agentPhone: prop?.partner?.number ?? '',
-          otp: '123456',
+          otp: '',
           lat: (prop != null && prop.lat != null) ? prop.lat! : 28.4595,
           lng: (prop != null && prop.lng != null) ? prop.lng! : 77.0266,
           parsedDateTime: parsedDT,
