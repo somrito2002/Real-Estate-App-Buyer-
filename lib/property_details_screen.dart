@@ -924,52 +924,71 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       // Listed By
                       _buildSectionHeader('Listed By'),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundImage: (property.partner?.profilePicture.isNotEmpty == true)
-                                ? NetworkImage(property.partner!.profilePicture)
-                                : null,
-                            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            child: (property.partner?.profilePicture.isEmpty ?? true)
-                                ? Icon(Icons.person, color: Theme.of(context).colorScheme.onSurfaceVariant)
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  property.partner?.fullName ?? 'Property Owner',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
-                                Text(
-                                  property.partner?.companyName ?? 'Independent Agent',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
+                      InkWell(
+                        onTap: () {
+                          final pId = property.partner?.id ?? property.partnerId;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SellerProfileScreen(
+                                partnerId: pId,
+                                initialPartner: property.partner,
+                              ),
                             ),
-                          ),
-                        ],
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 24,
+                              backgroundImage: (property.partner?.profilePicture.isNotEmpty == true)
+                                  ? NetworkImage(property.partner!.profilePicture)
+                                  : null,
+                              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              child: (property.partner?.profilePicture.isEmpty ?? true)
+                                  ? Icon(Icons.person, color: Theme.of(context).colorScheme.onSurfaceVariant)
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    property.partner?.fullName ?? 'Property Owner',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  Text(
+                                    property.partner?.companyName ?? 'Independent Agent',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                       GestureDetector(
                         onTap: () {
+                          final pId = property.partner?.id ?? property.partnerId;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const SellerProfileScreen(),
+                              builder: (context) => SellerProfileScreen(
+                                partnerId: pId,
+                                initialPartner: property.partner,
+                              ),
                             ),
                           );
                         },

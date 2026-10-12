@@ -8,6 +8,7 @@ import 'my_visits_screen.dart';
 import 'reschedule_visit_screen.dart';
 import 'cancel_visit_screen.dart';
 import 'services/visit_api_service.dart';
+import 'seller_profile_screen.dart';
 
 class VisitDetailsScreen extends StatefulWidget {
   final VisitMock visit;
@@ -572,30 +573,48 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                           fontWeight: FontWeight.bold,
                           color: titleColor)),
                   const SizedBox(height: 14),
-                  Row(children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor:
-                          isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E4EE),
-                      backgroundImage: NetworkImage(widget.visit.agentImageUrl),
+                  InkWell(
+                    onTap: (widget.visit.partnerId?.isNotEmpty == true)
+                        ? () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SellerProfileScreen(partnerId: widget.visit.partnerId!),
+                              ),
+                            );
+                          }
+                        : null,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(children: [
+                        CircleAvatar(
+                          radius: 26,
+                          backgroundColor:
+                              isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE0E4EE),
+                          backgroundImage: NetworkImage(widget.visit.agentImageUrl),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(widget.visit.agentName,
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: titleColor)),
+                              const SizedBox(height: 3),
+                              Text(widget.visit.agentRole,
+                                  style: GoogleFonts.inter(fontSize: 12, color: textMuted)),
+                            ],
+                          ),
+                        ),
+                        if (widget.visit.partnerId?.isNotEmpty == true)
+                          Icon(Icons.chevron_right, size: 20, color: textMuted),
+                      ]),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(widget.visit.agentName,
-                              style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: titleColor)),
-                          const SizedBox(height: 3),
-                          Text(widget.visit.agentRole,
-                              style: GoogleFonts.inter(fontSize: 12, color: textMuted)),
-                        ],
-                      ),
-                    ),
-                  ]),
+                  ),
                   const SizedBox(height: 14),
                   Row(children: [
                     Expanded(

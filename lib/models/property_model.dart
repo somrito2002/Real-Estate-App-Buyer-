@@ -5,6 +5,8 @@ class Partner {
   final String number;
   final String email;
   final String profilePicture;
+  final String? partnerType;
+  final int profileViews;
 
   Partner({
     required this.id,
@@ -13,6 +15,8 @@ class Partner {
     required this.number,
     required this.email,
     required this.profilePicture,
+    this.partnerType,
+    this.profileViews = 0,
   });
 
   factory Partner.fromJson(Map<String, dynamic> json) {
@@ -21,13 +25,23 @@ class Partner {
       pfp = 'https://api.prodalal.com$pfp';
     }
 
+    final viewsRaw = json['profileViews'];
+    int views = 0;
+    if (viewsRaw is int) {
+      views = viewsRaw;
+    } else if (viewsRaw != null) {
+      views = int.tryParse(viewsRaw.toString()) ?? 0;
+    }
+
     return Partner(
       id: json['id']?.toString() ?? '',
       fullName: json['fullName']?.toString() ?? 'Unknown Agent',
       companyName: json['companyName']?.toString() ?? 'Agent',
-      number: json['number']?.toString() ?? '',
+      number: json['number']?.toString() ?? json['phone']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       profilePicture: pfp,
+      partnerType: json['partnerType']?.toString(),
+      profileViews: views,
     );
   }
 }
