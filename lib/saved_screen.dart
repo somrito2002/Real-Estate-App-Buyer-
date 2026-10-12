@@ -10,7 +10,6 @@ import 'register_screen.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'services/wishlist_api_service.dart';
-import 'property_details_screen.dart';
 import 'property_details_loader.dart';
 
 class SavedScreen extends StatefulWidget {

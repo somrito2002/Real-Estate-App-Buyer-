@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'services/wishlist_api_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'models/property_model.dart';
-import 'property_details_screen.dart';
 import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'change_password_screen.dart';
 import 'services/auth_api_service.dart';
 import 'models/user_profile.dart';
 

@@ -11,10 +11,10 @@ class EnquiryBottomSheet extends StatefulWidget {
   final bool isLoggedIn;
 
   const EnquiryBottomSheet({
-    Key? key,
+    super.key,
     required this.property,
     required this.isLoggedIn,
-  }) : super(key: key);
+  });
 
   @override
   State<EnquiryBottomSheet> createState() => _EnquiryBottomSheetState();
@@ -135,7 +135,7 @@ class _EnquiryBottomSheetState extends State<EnquiryBottomSheet> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: const Color(0xFF4B85F0)), // accentBlue
+              borderSide: const BorderSide(color: Color(0xFF4B85F0)), // accentBlue
             ),
           ),
         ),

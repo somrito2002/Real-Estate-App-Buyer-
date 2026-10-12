@@ -39,12 +39,6 @@ bool _isLoading = true;
     });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final userId = prefs.getString('cached_userId');
-      final partnerId = prefs.getString('cached_partnerId');
-
-      String? uId = (userId != null && userId.isNotEmpty) ? userId : null;
-
       final fetched = await EnquiryApiService.getEnquiries(
         userId: null, // Let backend rely purely on the Auth token
         partnerId: null, // Strictly fetch as user, not as partner
@@ -61,7 +55,7 @@ bool _isLoading = true;
       final Map<String, String> loadedImages = {};
       for (int i = 0; i < fetched.length; i++) {
         final propId = fetched[i].property?.id;
-        final Property? propDetails = propertiesList[i] as Property?;
+        final Property? propDetails = propertiesList[i];
         if (propId != null && propDetails != null && propDetails.imageUrl.isNotEmpty) {
           loadedImages[propId] = propDetails.imageUrl;
         }

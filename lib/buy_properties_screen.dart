@@ -5,7 +5,6 @@ import 'models/property_filters.dart';
 import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'property_details_screen.dart';
 import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 import 'services/property_api_service.dart';
@@ -28,7 +27,6 @@ class BuyPropertiesScreen extends StatefulWidget {
 class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   late TextEditingController _searchController;
   final List<Property> _properties = [];
-  String _selectedType = 'All Types';
   bool _isMapView = false;
   String _currentSortOption = 'Recommended';
   static const Color accentBlue = Color(0xFF4B85F0);
@@ -629,7 +627,6 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                     onPressed: () {
                       setState(() {
                         _searchController.clear();
-                        _selectedType = 'All Types';
                         _filters = null;
                       });
                       _fetchProperties(isRefresh: true);
