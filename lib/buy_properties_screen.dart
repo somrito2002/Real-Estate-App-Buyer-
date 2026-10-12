@@ -13,8 +13,13 @@ import 'services/property_api_service.dart';
 
 class BuyPropertiesScreen extends StatefulWidget {
   final String initialSearchQuery;
+  final PropertyFilters? initialFilters;
 
-  const BuyPropertiesScreen({super.key, this.initialSearchQuery = ''});
+  const BuyPropertiesScreen({
+    super.key,
+    this.initialSearchQuery = '',
+    this.initialFilters,
+  });
 
   @override
   State<BuyPropertiesScreen> createState() => _BuyPropertiesScreenState();
@@ -40,6 +45,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   @override
   void initState() {
     super.initState();
+    _filters = widget.initialFilters;
     _searchController = TextEditingController(text: widget.initialSearchQuery);
     _scrollController.addListener(_onScroll);
     _checkInternetConnection();
@@ -314,7 +320,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                           );
                           if (filters != null && filters is PropertyFilters) {
                             setState(() {
-                              _filters = filters;
+                              _filters = filters.isEmpty ? null : filters;
                             });
                             _fetchProperties(isRefresh: true);
                           }
@@ -362,7 +368,9 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                         ),
                       ),
                       // Filter Chips
-                      ...(_filters?.activeLabels ?? ['Residential', 'Any Budget', 'Any BHK']).map((type) {
+                      ...((_filters != null && !_filters!.isEmpty && _filters!.activeLabels.isNotEmpty)
+                          ? _filters!.activeLabels
+                          : ['Residential', 'Any Budget', 'Any BHK']).map((type) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: InkWell(
@@ -373,7 +381,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                               );
                               if (filters != null && filters is PropertyFilters) {
                                 setState(() {
-                                  _filters = filters;
+                                  _filters = filters.isEmpty ? null : filters;
                                 });
                                 _fetchProperties(isRefresh: true);
                               }
@@ -622,7 +630,9 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       setState(() {
                         _searchController.clear();
                         _selectedType = 'All Types';
+                        _filters = null;
                       });
+                      _fetchProperties(isRefresh: true);
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: accentBlue),
@@ -643,7 +653,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                       );
                       if (filters != null && filters is PropertyFilters) {
                         setState(() {
-                          _filters = filters;
+                          _filters = filters.isEmpty ? null : filters;
                         });
                         _fetchProperties(isRefresh: true);
                       }

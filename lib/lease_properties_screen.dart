@@ -291,7 +291,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                           );
                           if (filters != null && filters is PropertyFilters) {
                             setState(() {
-                              _filters = filters;
+                              _filters = filters.isEmpty ? null : filters;
                             });
                             _fetchProperties();
                           }
@@ -307,7 +307,9 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: (_filters?.activeLabels ?? ['Commercial', 'Any Budget']).map((type) {
+                    children: ((_filters != null && !_filters!.isEmpty && _filters!.activeLabels.isNotEmpty)
+                        ? _filters!.activeLabels
+                        : ['Commercial', 'Any Budget']).map((type) {
                       return Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: InkWell(
@@ -318,7 +320,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                             );
                             if (filters != null && filters is PropertyFilters) {
                               setState(() {
-                                _filters = filters;
+                                _filters = filters.isEmpty ? null : filters;
                               });
                               _fetchProperties();
                             }
@@ -561,8 +563,10 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                       setState(() {
                         _searchController.clear();
                         _selectedType = 'All Types';
+                        _filters = null;
                         _filterProperties();
                       });
+                      _fetchProperties();
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: accentBlue),
@@ -583,7 +587,7 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
                       );
                       if (filters != null && filters is PropertyFilters) {
                         setState(() {
-                          _filters = filters;
+                          _filters = filters.isEmpty ? null : filters;
                         });
                         _fetchProperties();
                       }

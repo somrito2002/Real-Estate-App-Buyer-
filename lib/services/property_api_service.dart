@@ -33,7 +33,10 @@ class PropertyApiService {
         'page': page.toString(),
       };
       if (search != null && search.isNotEmpty) params['search'] = search;
-      if (purpose != null && purpose.isNotEmpty) params['purpose'] = purpose;
+      if (purpose != null && purpose.isNotEmpty) {
+        // Backend stores for-sale properties with purpose 'Sell', while UI uses 'Buy'
+        params['purpose'] = purpose.toLowerCase() == 'buy' ? 'Sell' : purpose;
+      }
       if (category != null && category.isNotEmpty) params['category'] = category;
       if (type != null && type.isNotEmpty) params['type'] = type;
       if (city != null && city.isNotEmpty) params['city'] = city;

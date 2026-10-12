@@ -35,8 +35,8 @@ class _FilterScreenState extends State<FilterScreen> {
   double _maxAreaBound = 10000; 
   bool _isLoadingBounds = true;
 
-  final List<String> _purposes = ['Sell', 'Rent', 'Lease'];
-  List<String> _categories = ['Residential', 'Commercial'];
+  final List<String> _purposes = ['Buy', 'Rent', 'Lease'];
+  List<String> _categories = [];
   Map<String, List<String>> _typesByCategory = {};
 
   final List<String> _statuses = ['ACTIVE', 'SOLD', 'PAUSED', 'DRAFT'];
@@ -53,6 +53,9 @@ class _FilterScreenState extends State<FilterScreen> {
     super.initState();
     if (widget.initialFilters != null) {
       _purpose = widget.initialFilters!.purpose;
+      if (_purpose != null && _purpose!.toLowerCase() == 'sell') {
+        _purpose = 'Buy';
+      }
       _category = widget.initialFilters!.category;
       _type = widget.initialFilters!.type;
       _bedrooms = widget.initialFilters!.bedrooms;
@@ -70,8 +73,8 @@ class _FilterScreenState extends State<FilterScreen> {
       _furnishing = widget.initialFilters!.furnishing;
       _amenities = widget.initialFilters!.amenities != null ? List.from(widget.initialFilters!.amenities!) : [];
     } else {
-      _purpose = 'Sell';
-      _category = 'Residential';
+      _purpose = null;
+      _category = null;
     }
     _fetchBounds();
     _fetchFilterOptions();
@@ -105,12 +108,13 @@ class _FilterScreenState extends State<FilterScreen> {
           if (uniqueAmenities.isNotEmpty) _amenityOptions = uniqueAmenities.toList()..sort();
           
           _categories = uniqueCategories.toList()..sort();
+          _typesByCategory = {};
           for (var c in _categories) {
-             _typesByCategory[c] = typesMap[c]!.toList()..sort();
+            _typesByCategory[c] = (typesMap[c] ?? {}).toList()..sort();
           }
           
-          if (_category == null && _categories.isNotEmpty) {
-             _category = _categories.first;
+          if (_category != null && !_categories.contains(_category)) {
+            _category = null;
           }
           
           _isLoadingFilterOptions = false;
@@ -135,15 +139,23 @@ class _FilterScreenState extends State<FilterScreen> {
           if (_minBudgetBound >= _maxBudgetBound) _maxBudgetBound = _minBudgetBound + 1000;
           if (_minAreaBound >= _maxAreaBound) _maxAreaBound = _minAreaBound + 100;
 
-          double currentMinB = _budgetRange.start.clamp(_minBudgetBound, _maxBudgetBound);
-          double currentMaxB = _budgetRange.end.clamp(_minBudgetBound, _maxBudgetBound);
-          if (currentMinB > currentMaxB) currentMaxB = currentMinB;
-          _budgetRange = RangeValues(currentMinB, currentMaxB);
+          if (widget.initialFilters?.minPrice == null && widget.initialFilters?.maxPrice == null) {
+            _budgetRange = RangeValues(_minBudgetBound, _maxBudgetBound);
+          } else {
+            double currentMinB = _budgetRange.start.clamp(_minBudgetBound, _maxBudgetBound);
+            double currentMaxB = _budgetRange.end.clamp(_minBudgetBound, _maxBudgetBound);
+            if (currentMinB > currentMaxB) currentMaxB = currentMinB;
+            _budgetRange = RangeValues(currentMinB, currentMaxB);
+          }
 
-          double currentMinA = _areaRange.start.clamp(_minAreaBound, _maxAreaBound);
-          double currentMaxA = _areaRange.end.clamp(_minAreaBound, _maxAreaBound);
-          if (currentMinA > currentMaxA) currentMaxA = currentMinA;
-          _areaRange = RangeValues(currentMinA, currentMaxA);
+          if (widget.initialFilters?.minArea == null && widget.initialFilters?.maxArea == null) {
+            _areaRange = RangeValues(_minAreaBound, _maxAreaBound);
+          } else {
+            double currentMinA = _areaRange.start.clamp(_minAreaBound, _maxAreaBound);
+            double currentMaxA = _areaRange.end.clamp(_minAreaBound, _maxAreaBound);
+            if (currentMinA > currentMaxA) currentMaxA = currentMinA;
+            _areaRange = RangeValues(currentMinA, currentMaxA);
+          }
 
           _isLoadingBounds = false;
         });
@@ -155,8 +167,8 @@ class _FilterScreenState extends State<FilterScreen> {
 
   void _clearAll() {
     setState(() {
-      _purpose = 'Sell';
-      _category = 'Residential';
+      _purpose = null;
+      _category = null;
       _type = null;
       _budgetRange = RangeValues(_minBudgetBound, _maxBudgetBound);
       _bedrooms = null;
@@ -168,6 +180,16 @@ class _FilterScreenState extends State<FilterScreen> {
       _furnishing = null;
       _amenities = [];
     });
+    if (mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('All filters cleared', style: GoogleFonts.inter()),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   String _formatBudget(double value) {
@@ -251,7 +273,9 @@ class _FilterScreenState extends State<FilterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> currentTypes = _category != null ? (_typesByCategory[_category!] ?? []) : [];
+    List<String> currentTypes = _category != null
+        ? (_typesByCategory[_category!] ?? [])
+        : (_typesByCategory.values.expand((x) => x).toSet().toList()..sort());
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -318,25 +342,27 @@ class _FilterScreenState extends State<FilterScreen> {
                     spacing: 8,
                     runSpacing: 12,
                     children: _purposes.map((p) => _buildPillChip(
-                      p, _purpose == p, () => setState(() => _purpose = p)
+                      p, _purpose == p, () => setState(() => _purpose = _purpose == p ? null : p)
                     )).toList(),
                   ),
                   _buildDivider(),
                   
                   _buildSectionHeader('Category'),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 12,
-                    children: _categories.map((c) => _buildPillChip(
-                      c, _category == c, () => setState(() {
-                        _category = c;
-                        if (!currentTypes.contains(_type)) {
-                          _type = null;
-                        }
-                      })
-                    )).toList(),
-                  ),
+                  _isLoadingFilterOptions
+                      ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+                      : Wrap(
+                          spacing: 8,
+                          runSpacing: 12,
+                          children: _categories.map((c) => _buildPillChip(
+                            c, _category == c, () => setState(() {
+                              _category = _category == c ? null : c;
+                              if (_category != null && !(_typesByCategory[_category!] ?? []).contains(_type)) {
+                                _type = null;
+                              }
+                            })
+                          )).toList(),
+                        ),
                   _buildDivider(),
 
                   _buildSectionHeader('Property Type'),
@@ -344,12 +370,15 @@ class _FilterScreenState extends State<FilterScreen> {
                   _isLoadingFilterOptions
                       ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
                       : currentTypes.isEmpty
-                          ? Text('No types available for $_category', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.outlineVariant))
+                          ? Text(
+                              _category == null ? 'No types available' : 'No types available for $_category',
+                              style: GoogleFonts.inter(color: Theme.of(context).colorScheme.outlineVariant),
+                            )
                           : Wrap(
                               spacing: 8,
                               runSpacing: 12,
                               children: currentTypes.map((t) => _buildPillChip(
-                                t, _type == t, () => setState(() => _type = t)
+                                t, _type == t, () => setState(() => _type = _type == t ? null : t)
                               )).toList(),
                             ),
                   _buildDivider(),
@@ -527,22 +556,39 @@ class _FilterScreenState extends State<FilterScreen> {
                 height: 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    final filters = PropertyFilters(
-                      purpose: _purpose,
-                      category: _category,
-                      type: _type,
-                      bedrooms: _bedrooms,
-                      minPrice: _budgetRange.start > _minBudgetBound ? _budgetRange.start : null,
-                      maxPrice: _budgetRange.end < _maxBudgetBound ? _budgetRange.end : null,
-                      status: _status,
-                      constructionPhase: _constructionPhase,
-                      minArea: _areaRange.start > _minAreaBound ? _areaRange.start : null,
-                      maxArea: _areaRange.end < _maxAreaBound ? _areaRange.end : null,
-                      bathrooms: _bathrooms,
-                      parking: _parking,
-                      furnishing: _furnishing,
-                      amenities: _amenities,
-                    );
+                    final isCleared = _purpose == null &&
+                        _category == null &&
+                        _type == null &&
+                        _bedrooms == null &&
+                        _status == null &&
+                        _constructionPhase == null &&
+                        _bathrooms == null &&
+                        _parking == null &&
+                        _furnishing == null &&
+                        _amenities.isEmpty &&
+                        _budgetRange.start <= _minBudgetBound &&
+                        _budgetRange.end >= _maxBudgetBound &&
+                        _areaRange.start <= _minAreaBound &&
+                        _areaRange.end >= _maxAreaBound;
+
+                    final filters = isCleared
+                        ? const PropertyFilters()
+                        : PropertyFilters(
+                            purpose: _purpose,
+                            category: _category,
+                            type: _type,
+                            bedrooms: _bedrooms,
+                            minPrice: _budgetRange.start > _minBudgetBound ? _budgetRange.start : null,
+                            maxPrice: _budgetRange.end < _maxBudgetBound ? _budgetRange.end : null,
+                            status: _status,
+                            constructionPhase: _constructionPhase,
+                            minArea: _areaRange.start > _minAreaBound ? _areaRange.start : null,
+                            maxArea: _areaRange.end < _maxAreaBound ? _areaRange.end : null,
+                            bathrooms: _bathrooms,
+                            parking: _parking,
+                            furnishing: _furnishing,
+                            amenities: _amenities.isNotEmpty ? _amenities : null,
+                          );
                     Navigator.pop(context, filters);
                   },
                   style: ElevatedButton.styleFrom(

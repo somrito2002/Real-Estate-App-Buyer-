@@ -12,8 +12,9 @@ import 'profile_screen.dart';
 import 'saved_screen.dart';
 import 'search_screen.dart' as import_search_screen;
 import 'filter_screen.dart';
+import 'buy_properties_screen.dart';
 import 'models/property_model.dart';
-import 'property_details_screen.dart';
+import 'models/property_filters.dart';
 import 'property_details_loader.dart';
 import 'tilt_property_card.dart';
 import 'notifications_screen.dart';
@@ -549,8 +550,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                        onTap: () async {
+                          final filters = await Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                          if (filters != null && mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BuyPropertiesScreen(
+                                  initialFilters: (filters is PropertyFilters && filters.isEmpty) ? null : filters,
+                                ),
+                              ),
+                            );
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.only(left: 4, right: 8, top: 6, bottom: 6),
@@ -767,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'Commercial':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatComm, onLoadMore: () => setState(() => _visibleItemCounts['comm_feat'] = (_visibleItemCounts['comm_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewOffice, onLoadMore: () => setState(() => _visibleItemCounts['comm_new'] = (_visibleItemCounts['comm_new'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
@@ -793,7 +804,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'Plots':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_feat'] = (_visibleItemCounts['plots_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_new'] = (_visibleItemCounts['plots_new'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
@@ -819,7 +830,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'PG/Co-living':
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_feat'] = (_visibleItemCounts['pg_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_new'] = (_visibleItemCounts['pg_new'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
@@ -846,7 +857,7 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return [
           _buildSectionHeader(AppLocalizations.of(context)!.homeFeatProp, onLoadMore: () => setState(() => _visibleItemCounts['res_feat'] = (_visibleItemCounts['res_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By Partner', p.location, p.price, property: p)).toList()),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeNewProp, onLoadMore: () => setState(() => _visibleItemCounts['res_new'] = (_visibleItemCounts['res_new'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
@@ -923,6 +934,7 @@ class _HomeScreenState extends State<HomeScreen> {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: queueItems,
       ),
     );
@@ -957,7 +969,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildFeaturedPropertyCard(String title, String builder, String location, String price, {Property? property}) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double cardWidth = screenWidth > 600 ? screenWidth * 0.4 : 260;
+    const double cardHeight = 310;
     
+    final String partnerLabel = (property != null && property.partnerName.isNotEmpty && property.partnerName != 'Partner')
+        ? 'By ${property.partnerName}'
+        : (builder.isNotEmpty ? (builder.startsWith('By ') ? builder : 'By $builder') : 'By Partner');
+
     return Padding(
       padding: const EdgeInsets.only(right: 16),
       child: TiltPropertyCard(
@@ -968,12 +985,13 @@ class _HomeScreenState extends State<HomeScreen> {
             : null,
         child: Container(
           width: cardWidth,
+          height: cardHeight,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
             boxShadow: [
-              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 12, offset: Offset(0, 4)),
+              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4)),
             ],
           ),
           child: Column(
@@ -987,48 +1005,70 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 140,
                         width: double.infinity,
                         fit: BoxFit.cover,
-                        errorWidget: (context, url, error) => Container(height: 140, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                        errorWidget: (context, url, error) => Container(height: 140, color: Theme.of(context).colorScheme.outline, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                       )
-                    : Container(height: 140, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                    : Container(height: 140, color: Theme.of(context).colorScheme.outline, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
               ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.onSurface)),
-                    const SizedBox(height: 4),
-                    Text(builder, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF0F5FF),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            price,
-                            style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 13),
-                          ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 38,
+                        child: Text(
+                          title,
+                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        if (property != null) AqiBadge(property: property),
-                      ],
-                    ),
-                  ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        partnerLabel,
+                        style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on, size: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              location,
+                              style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF0F5FF),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              price,
+                              style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
+                          ),
+                          if (property != null) AqiBadge(property: property),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -1039,6 +1079,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNewProjectCard(String title, String price, {Property? property}) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double cardWidth = screenWidth > 600 ? screenWidth * 0.35 : 220;
+    const double cardHeight = 220;
 
     return Padding(
       padding: const EdgeInsets.only(right: 16),
@@ -1050,12 +1091,13 @@ class _HomeScreenState extends State<HomeScreen> {
             : null,
         child: Container(
           width: cardWidth,
+          height: cardHeight,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
             boxShadow: [
-              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 8, offset: Offset(0, 2)),
+              BoxShadow(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -1071,9 +1113,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorWidget: (context, url, error) => Container(height: 160, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                            errorWidget: (context, url, error) => Container(height: 160, color: Theme.of(context).colorScheme.outline, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                           )
-                        : Container(height: 160, color: Theme.of(context).colorScheme.outline, child: Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
+                        : Container(height: 160, color: Theme.of(context).colorScheme.outline, child: const Center(child: Icon(Icons.apartment, size: 50, color: Colors.white54))),
                   ),
                   Positioned(
                     top: 8,
@@ -1101,38 +1143,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 15, color: Theme.of(context).colorScheme.onSurface),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'VERIFIED',
-                        style: GoogleFonts.inter(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 9),
-                      ),
-                    ),
-                    if (property != null) ...[
                       const SizedBox(width: 4),
-                      AqiBadge(property: property),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'VERIFIED',
+                          style: GoogleFonts.inter(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 9),
+                        ),
+                      ),
+                      if (property != null) ...[
+                        const SizedBox(width: 4),
+                        AqiBadge(property: property),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -1162,6 +1206,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildRecentlyViewedCard(String title, String location, String price, {Property? property}) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double cardWidth = screenWidth > 600 ? screenWidth * 0.3 : 180;
+    const double cardHeight = 210;
 
     return Padding(
       padding: const EdgeInsets.only(right: 16),
@@ -1172,87 +1217,101 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             : null,
         child: Container(
-        width: cardWidth,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
-        boxShadow: Theme.of(context).brightness == Brightness.dark
-            ? [
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : [
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
-            child: (property != null && property.imageUrl.isNotEmpty)
-                ? CachedNetworkImage(
-                    imageUrl: property.imageUrl,
-                    height: 100,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Container(
-                      height: 100,
-                      color: Theme.of(context).colorScheme.outline,
-                      child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
+          width: cardWidth,
+          height: cardHeight,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+            boxShadow: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.04),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                      offset: const Offset(0, 4),
                     ),
-                  )
-                : Container(
-                    height: 100,
-                    color: Theme.of(context).colorScheme.outline,
-                    child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
-                  ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(price, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 12)),
-                    if (property != null) AqiBadge(property: property),
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                    BoxShadow(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
                   ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+                child: (property != null && property.imageUrl.isNotEmpty)
+                    ? CachedNetworkImage(
+                        imageUrl: property.imageUrl,
+                        height: 100,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) => Container(
+                          height: 100,
+                          color: Theme.of(context).colorScheme.outline,
+                          child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
+                        ),
+                      )
+                    : Container(
+                        height: 100,
+                        color: Theme.of(context).colorScheme.outline,
+                        child: const Center(child: Icon(Icons.home, size: 40, color: Colors.white54)),
+                      ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(price, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: 12)),
+                          if (property != null) AqiBadge(property: property),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        title,
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        location,
+                        style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13)),
-                const SizedBox(height: 2),
-                Text(location, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 10)),
-              ],
-            ),
-          )
-        ],
+              ),
+            ],
+          ),
+        ),
       ),
-    ),
-    ),
     );
   }
+
   // ── Shimmer Skeleton Builder ──────────────────────────────────────────────
   Widget _buildShimmerSkeleton() {
     return SingleChildScrollView(
@@ -1262,10 +1321,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: List.generate(3, (index) {
           return Container(
             width: 260,
+            height: 310,
             margin: const EdgeInsets.only(right: 16),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Theme.of(context).colorScheme.outlineVariant, width: 1),
             ),
             child: Shimmer.fromColors(
@@ -1278,20 +1338,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 140,
                     decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(height: 16, width: double.infinity, color: Colors.white),
-                        const SizedBox(height: 8),
-                        Container(height: 14, width: 150, color: Colors.white),
-                        const SizedBox(height: 12),
-                        Container(height: 16, width: 100, color: Colors.white),
-                      ],
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(height: 16, width: double.infinity, color: Colors.white),
+                          const SizedBox(height: 8),
+                          Container(height: 14, width: 150, color: Colors.white),
+                          const SizedBox(height: 8),
+                          Container(height: 14, width: 100, color: Colors.white),
+                          const Spacer(),
+                          Container(height: 24, width: 90, color: Colors.white),
+                        ],
+                      ),
                     ),
                   ),
                 ],

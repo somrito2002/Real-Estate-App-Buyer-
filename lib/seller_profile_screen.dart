@@ -25,7 +25,10 @@ class SellerProfileScreen extends StatefulWidget {
 class _SellerProfileScreenState extends State<SellerProfileScreen> {
   Partner? _partner;
   List<Property> _properties = [];
+  List<SellerReview> _sellerReviews = [];
+  double? _averageRating;
   bool _isLoading = true;
+  bool _isLoadingReviews = true;
   String? _errorMessage;
 
   @override
@@ -52,6 +55,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
       // If no partner ID provided, provide default display
       setState(() {
         _isLoading = false;
+        _isLoadingReviews = false;
         _partner ??= Partner(
           id: 'demo-partner',
           fullName: 'Rajesh Kumar',
@@ -62,28 +66,69 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           partnerType: 'Senior Property Consultant',
           profileViews: 42,
         );
+        _averageRating = 4.9;
+        _sellerReviews = [
+          SellerReview(
+            id: 'mock-1',
+            rating: 5,
+            comment: 'Highly professional service. Helped me seal the property deal smoothly with absolute transparency.',
+            propertyId: '',
+            propertyTitle: 'Client Review',
+            userId: '',
+          ),
+          SellerReview(
+            id: 'mock-2',
+            rating: 4,
+            comment: 'Prompt responses. Clear verified background checks provided. Highly recommended!',
+            propertyId: '',
+            propertyTitle: 'Client Review',
+            userId: '',
+          ),
+        ];
       });
       return;
     }
 
     setState(() {
       _isLoading = true;
+      _isLoadingReviews = true;
       _errorMessage = null;
     });
 
     try {
       final profile = await PartnerApiService.getPublicProfile(id);
+      final partnerIdToUse = profile.partner.id.isNotEmpty ? profile.partner.id : id;
+      final propIds = profile.properties.map((p) => p.id).toList();
+
+      List<SellerReview> reviews = [];
+      try {
+        reviews = await PartnerApiService.getReviewsForSeller(
+          partnerId: partnerIdToUse,
+          propertyIds: propIds,
+        );
+      } catch (_) {}
+
+      double? avgRating;
+      if (reviews.isNotEmpty) {
+        final total = reviews.fold<double>(0.0, (acc, r) => acc + r.rating);
+        avgRating = total / reviews.length;
+      }
+
       if (mounted) {
         setState(() {
           _partner = profile.partner;
           _properties = profile.properties;
+          _sellerReviews = reviews;
+          _averageRating = avgRating;
           _isLoading = false;
+          _isLoadingReviews = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _isLoadingReviews = false;
           _errorMessage = e.toString().replaceFirst('Exception: ', '');
         });
       }
@@ -464,6 +509,14 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   Widget _buildStatsRow(BuildContext context) {
     final views = _partner?.profileViews ?? 0;
     final listingsCount = _properties.isNotEmpty ? _properties.length : (_isLoading ? '-' : 0);
+    final String ratingDisplay;
+    if (_isLoading || _isLoadingReviews) {
+      ratingDisplay = '-';
+    } else if (_averageRating != null && _sellerReviews.isNotEmpty) {
+      ratingDisplay = '${_averageRating!.toStringAsFixed(1)} ★';
+    } else {
+      ratingDisplay = '0.0 ★';
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -486,7 +539,7 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           ),
           _buildStatItem(
             context,
-            '4.9 ★',
+            ratingDisplay,
             'Seller Rating',
             icon: Icons.star_border_rounded,
           ),
@@ -810,24 +863,82 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   }
 
   Widget _buildReviewsSection(BuildContext context) {
+    final count = _sellerReviews.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionHeader(context, 'Client Reviews (24)'),
+        _buildSectionHeader(context, 'Client Reviews ($count)'),
         const SizedBox(height: 12),
-        _buildReviewCard(
-          context,
-          'Ankit Sharma',
-          5,
-          '"Highly professional service. Helped me seal the property deal smoothly with absolute transparency."',
-        ),
-        const SizedBox(height: 12),
-        _buildReviewCard(
-          context,
-          'Meera Nair',
-          4,
-          '"Prompt responses. Clear verified background checks provided. Highly recommended!"',
-        ),
+        if (_isLoadingReviews && _sellerReviews.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2, color: accentBlue),
+              ),
+            ),
+          )
+        else if (_sellerReviews.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.rate_review_outlined,
+                    size: 36,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No reviews yet for this seller.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...List.generate(_sellerReviews.length, (index) {
+            final review = _sellerReviews[index];
+            final title = review.propertyTitle.isNotEmpty
+                ? review.propertyTitle
+                : 'Verified Client';
+            final comment = review.comment.isNotEmpty
+                ? '"${review.comment}"'
+                : '"No written comment provided."';
+            final formattedDate = review.createdAt != null
+                ? '${review.createdAt!.day.toString().padLeft(2, '0')}/${review.createdAt!.month.toString().padLeft(2, '0')}/${review.createdAt!.year}'
+                : null;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index < _sellerReviews.length - 1 ? 12 : 0,
+              ),
+              child: _buildReviewCard(
+                context,
+                title,
+                review.rating.round().clamp(1, 5),
+                comment,
+                date: formattedDate,
+              ),
+            );
+          }),
       ],
     );
   }
@@ -860,7 +971,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
     );
   }
 
-  Widget _buildReviewCard(BuildContext context, String name, int stars, String review) {
+  Widget _buildReviewCard(
+    BuildContext context,
+    String name,
+    int stars,
+    String review, {
+    String? date,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -876,14 +993,34 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  name,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (date != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          date,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
+                const SizedBox(width: 8),
                 Row(
                   children: List.generate(5, (index) {
                     return Icon(

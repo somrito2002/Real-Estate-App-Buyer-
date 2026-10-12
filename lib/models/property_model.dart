@@ -79,11 +79,14 @@ class Property {
   final double? lng;
   final String? createdAt;
   final Partner? partner;
+  final String? contactName;
+  final String? role;
   bool isFavorite;
   final String constructionPhase;
   final String budgetRange;
   final double rawPrice;
   final double rawArea;
+  final String purpose;
 
   Property({
     required this.id,
@@ -120,10 +123,32 @@ class Property {
     this.lng,
     this.createdAt,
     this.partner,
+    this.contactName,
+    this.role,
     this.isFavorite = false,
     this.rawPrice = 0.0,
     this.rawArea = 0.0,
+    this.purpose = '',
   });
+
+  String get partnerName {
+    if (partner != null && partner!.fullName.trim().isNotEmpty && partner!.fullName.trim() != 'Partner' && partner!.fullName.trim() != 'Unknown Agent') {
+      return partner!.fullName.trim();
+    }
+    if (partnerId == '1a3a48b0-273e-4b1f-a734-86894065cd8a') {
+      return 'Somrito';
+    }
+    if (partnerId == 'c69bf08e-2539-47c8-8500-7a400cc66106') {
+      return 'Subhadip Mandal';
+    }
+    if (contactName != null && contactName!.trim().isNotEmpty && contactName!.trim() != 'Partner') {
+      return contactName!.trim();
+    }
+    if (partner != null && partner!.fullName.trim().isNotEmpty) {
+      return partner!.fullName.trim();
+    }
+    return (contactName?.trim().isNotEmpty == true) ? contactName!.trim() : 'Partner';
+  }
 
   factory Property.fromJson(Map<String, dynamic> json) {
     // Safely parse numeric fields
@@ -231,9 +256,30 @@ class Property {
       lat: parseSafeDouble(json['lat']),
       lng: parseSafeDouble(json['lng']),
       createdAt: json['createdAt']?.toString(),
-      partner: json['partner'] != null ? Partner.fromJson(json['partner']) : null,
+      partner: json['partner'] != null
+          ? Partner.fromJson(json['partner'])
+          : ((json['partnerId'] != null || json['contactName'] != null)
+              ? Partner(
+                  id: json['partnerId']?.toString() ?? '',
+                  fullName: (json['partnerId'] == '1a3a48b0-273e-4b1f-a734-86894065cd8a')
+                      ? 'Somrito'
+                      : (json['partnerId'] == 'c69bf08e-2539-47c8-8500-7a400cc66106')
+                          ? 'Subhadip Mandal'
+                          : ((json['contactName'] != null && json['contactName']?.toString() != 'Partner')
+                              ? json['contactName'].toString()
+                              : 'Partner'),
+                  companyName: json['societyName']?.toString() ?? json['role']?.toString() ?? '',
+                  number: json['phone']?.toString() ?? '',
+                  email: json['email']?.toString() ?? '',
+                  profilePicture: '',
+                  partnerType: json['role']?.toString(),
+                )
+              : null),
+      contactName: json['contactName']?.toString(),
+      role: json['role']?.toString(),
       rawPrice: priceVal,
       rawArea: parseSafeDouble(json['area']) ?? parseSafeDouble(json['builtUpArea']) ?? parseSafeDouble(json['carpetArea']) ?? 0.0,
+      purpose: json['purpose']?.toString() ?? '',
     );
   }
 }

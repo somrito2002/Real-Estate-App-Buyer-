@@ -57,6 +57,26 @@ void main() {
       expect(profile.properties.first.imageUrl, 'https://api.prodalal.com/Upload/Property/img1.png');
     });
 
+    test('Property resolves partner name correctly from contactName or partner', () {
+      final prop1 = Property.fromJson({
+        'id': 'p1',
+        'partnerId': 'c69bf08e-2539-47c8-8500-7a400cc66106',
+        'contactName': 'Subhadip Mandal',
+        'title': '10 Acres Land',
+        'price': '50000000',
+      });
+      expect(prop1.partnerName, 'Subhadip Mandal');
+
+      final prop2 = Property.fromJson({
+        'id': 'p2',
+        'partnerId': '1a3a48b0-273e-4b1f-a734-86894065cd8a',
+        'contactName': 'Partner',
+        'title': 'Et in ullamco quod v',
+        'price': '790000',
+      });
+      expect(prop2.partnerName, 'Somrito');
+    });
+
     test('Live API call test for PartnerApiService', () async {
       final profile = await PartnerApiService.getPublicProfile('c69bf08e-2539-47c8-8500-7a400cc66106');
       expect(profile.partner.id, 'c69bf08e-2539-47c8-8500-7a400cc66106');
