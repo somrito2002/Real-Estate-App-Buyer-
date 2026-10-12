@@ -171,8 +171,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           
           Expanded(
-            child: ListView.separated(
-              itemCount: notifications.length,
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await Future.delayed(const Duration(milliseconds: 600));
+                if (mounted) setState(() {});
+              },
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: notifications.length,
               separatorBuilder: (context, index) => Divider(height: 1, color: dividerColor),
               itemBuilder: (context, index) {
                 final notification = notifications[index];
@@ -257,7 +263,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               },
             ),
           ),
-        ],
+        ),
+      ],
       ),
     );
   }

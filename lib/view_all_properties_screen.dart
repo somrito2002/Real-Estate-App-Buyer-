@@ -6,6 +6,8 @@ import 'models/property_model.dart';
 import 'property_details_loader.dart';
 import 'widgets/remove_shortlist_dialog.dart';
 
+import 'services/property_api_service.dart';
+
 class ViewAllPropertiesScreen extends StatefulWidget {
   final String title;
   final List<Property> properties;
@@ -22,6 +24,24 @@ class ViewAllPropertiesScreen extends StatefulWidget {
 
 class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
   static const Color accentBlue = Color(0xFF4B85F0);
+  late List<Property> _properties;
+
+  @override
+  void initState() {
+    super.initState();
+    _properties = List.from(widget.properties);
+  }
+
+  Future<void> _refreshProperties() async {
+    try {
+      final fetched = await PropertyApiService.getProperties(limit: 20, status: 'ACTIVE');
+      if (mounted && fetched.isNotEmpty) {
+        setState(() {
+          _properties = fetched;
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,24 +53,36 @@ class _ViewAllPropertiesScreenState extends State<ViewAllPropertiesScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
       ),
-      body: widget.properties.isEmpty
-          ? Center(
-              child: Text(
-                'No properties available.',
-                style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
+      body: RefreshIndicator(
+        onRefresh: _refreshProperties,
+        child: _properties.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.4,
+                    child: Center(
+                      child: Text(
+                        'No properties available.',
+                        style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                itemCount: _properties.length,
+                itemBuilder: (context, index) {
+                  final property = _properties[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: _buildPropertyCard(property),
+                  );
+                },
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: widget.properties.length,
-              itemBuilder: (context, index) {
-                final property = widget.properties[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: _buildPropertyCard(property),
-                );
-              },
-            ),
+      ),
     );
   }
 

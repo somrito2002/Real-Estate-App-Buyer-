@@ -57,6 +57,18 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
     });
   }
 
+  Future<void> _refreshVisitDetails() async {
+    try {
+      final visits = await VisitApiService.getVisits();
+      final updatedVisitRaw = visits.firstWhere((v) => v.id == widget.visit.refId);
+      if (mounted) {
+        setState(() {
+          widget.visit.status = updatedVisitRaw.status;
+        });
+      }
+    } catch (_) {}
+  }
+
   @override
   void dispose() {
     _pollingTimer?.cancel();
@@ -258,8 +270,11 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                 fontSize: 18, fontWeight: FontWeight.bold, color: titleColor)),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: _refreshVisitDetails,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ──────────────────────────────────────────────────────────────
@@ -1337,8 +1352,9 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── HELPER: icon box for in-person visit section ────────────────────────
   Widget _iconBox(IconData icon, bool isDark) {

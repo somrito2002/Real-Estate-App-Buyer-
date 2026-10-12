@@ -124,6 +124,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     }
   }
 
+  Future<void> _refreshPropertyDetails() async {
+    await Future.wait([
+      _fetchSimilarProperties(),
+      _fetchAqi(),
+      _checkLoginStatus(),
+    ]);
+  }
+
   @override
   void dispose() {
     _visitNameController.dispose();
@@ -337,8 +345,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-          SingleChildScrollView(
-            child: Column(
+          RefreshIndicator(
+            onRefresh: _refreshPropertyDetails,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Image Header
@@ -1185,6 +1196,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               ],
             ),
           ),
+        ),
 
           // Fixed Bottom Nav
           Align(

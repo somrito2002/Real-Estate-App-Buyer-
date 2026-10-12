@@ -410,13 +410,17 @@ class _LeasePropertiesScreenState extends State<LeasePropertiesScreen> {
           
           // Property List
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              itemCount: _filteredProperties.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                return _buildPropertyCard(_filteredProperties[index]);
-              },
+            child: RefreshIndicator(
+              onRefresh: _fetchProperties,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                itemCount: _filteredProperties.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  return _buildPropertyCard(_filteredProperties[index]);
+                },
+              ),
             ),
           ),
         ],

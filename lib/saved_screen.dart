@@ -254,8 +254,12 @@ class _SavedScreenState extends State<SavedScreen> {
     final saved = _savedProperties;
 
     if (saved.isEmpty) {
-      return Center(
+      return RefreshIndicator(
+        onRefresh: () async {
+          await _checkLoginStatus();
+        },
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
@@ -335,9 +339,9 @@ class _SavedScreenState extends State<SavedScreen> {
             ],
           ),
         ),
-        ),
-      );
-    }
+      ),
+    );
+  }
 
     return Column(
       children: [
@@ -345,11 +349,16 @@ class _SavedScreenState extends State<SavedScreen> {
 
         // ── PROPERTY LIST ──
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            itemCount: saved.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
+          child: RefreshIndicator(
+            onRefresh: () async {
+              await _checkLoginStatus();
+            },
+            child: ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              itemCount: saved.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
               final property = saved[index];
               return GestureDetector(
                 onTap: () {
@@ -375,6 +384,7 @@ class _SavedScreenState extends State<SavedScreen> {
             },
           ),
         ),
+      ),
         
         // Bottom Action Bar
         Container(

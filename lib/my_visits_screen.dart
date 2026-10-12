@@ -279,17 +279,29 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           Expanded(
             child: _isLoading 
               ? const Center(child: CircularProgressIndicator()) 
-              : (_visits.isEmpty 
-                  ? const Center(child: Text("No visits found.")) 
-                  : ListView.separated(
-                      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
-                      itemCount: filteredVisits.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        final visit = filteredVisits[index];
-                        return _buildVisitCard(visit, cardBgColor, cardBorderColor, titleColor, textMuted, dividerColor, isDark);
-                      },
-                    )),
+              : RefreshIndicator(
+                  onRefresh: _fetchVisits,
+                  child: filteredVisits.isEmpty 
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.4,
+                              child: const Center(child: Text("No visits found.")),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
+                          itemCount: filteredVisits.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final visit = filteredVisits[index];
+                            return _buildVisitCard(visit, cardBgColor, cardBorderColor, titleColor, textMuted, dividerColor, isDark);
+                          },
+                        ),
+                ),
           ),
         ],
       );

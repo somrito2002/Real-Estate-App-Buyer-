@@ -500,8 +500,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeTab() {
-    return SingleChildScrollView(
-      child: Column(
+    return RefreshIndicator(
+      onRefresh: () => _initializeData(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
@@ -666,7 +669,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 110),
           ],
         ),
-      );
+      ),
+    );
   }
 
   PreferredSizeWidget _buildAppBar() {
