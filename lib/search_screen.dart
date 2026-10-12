@@ -5,7 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'buy_properties_screen.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'services/search_history_service.dart';
-import 'services/google_places_service.dart';
+import 'services/property_api_service.dart';
+import 'models/property_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -29,7 +30,8 @@ class _SearchScreenState extends State<SearchScreen> {
   String _searchQuery = '';
   
   Timer? _debounce;
-  List<PlaceSuggestion> _suggestions = [];
+  List<Property> _allProperties = [];
+  List<Property> _suggestions = [];
 
   // Voice search
   late stt.SpeechToText _speech;
@@ -41,6 +43,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    _fetchProperties();
     
     if (widget.startVoiceSearchAutomatically) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,6 +59,17 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  Future<void> _fetchProperties() async {
+    try {
+      final properties = await PropertyApiService.getProperties(limit: 500);
+      if (mounted) {
+        setState(() {
+          _allProperties = properties;
+        });
+      }
+    } catch (_) {}
+  }
+
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     
@@ -66,11 +80,17 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    _debounce = Timer(const Duration(milliseconds: 300), () async {
-      final suggestions = await GooglePlacesService.getAutocompleteSuggestions(query);
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final lowerQuery = query.toLowerCase();
+      final filtered = _allProperties.where((p) {
+        return p.title.toLowerCase().contains(lowerQuery) ||
+               p.location.toLowerCase().contains(lowerQuery) ||
+               p.city.toLowerCase().contains(lowerQuery);
+      }).toList();
+
       if (mounted) {
         setState(() {
-          _suggestions = suggestions;
+          _suggestions = filtered.take(10).toList();
         });
       }
     });
@@ -206,41 +226,39 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  Widget _buildSuggestionItem(PlaceSuggestion suggestion) {
+  Widget _buildSuggestionItem(Property suggestion) {
     return InkWell(
       onTap: () {
-        _searchController.text = suggestion.description;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: suggestion.description)));
+        _searchController.text = suggestion.title;
+        Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: suggestion.title)));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
         child: Row(
           children: [
-            Icon(Icons.location_on_outlined, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+            Icon(Icons.house_outlined, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    suggestion.mainText.isNotEmpty ? suggestion.mainText : suggestion.description,
+                    suggestion.title,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  if (suggestion.secondaryText.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      suggestion.secondaryText,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        color: accentBlue,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${suggestion.location}${suggestion.city.isNotEmpty ? ', ${suggestion.city}' : ''}',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: accentBlue,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),

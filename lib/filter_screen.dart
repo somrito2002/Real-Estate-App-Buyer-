@@ -36,17 +36,15 @@ class _FilterScreenState extends State<FilterScreen> {
   bool _isLoadingBounds = true;
 
   final List<String> _purposes = ['Sell', 'Rent', 'Lease'];
-  final List<String> _categories = ['Residential', 'Commercial'];
-  
-  final List<String> _residentialTypes = ['Apartment', 'Villa', 'Independent House', 'Plot'];
-  final List<String> _commercialTypes = ['Office Space', 'Shop & Retail', 'Warehouse / Godown'];
+  List<String> _categories = ['Residential', 'Commercial'];
+  Map<String, List<String>> _typesByCategory = {};
 
   final List<String> _statuses = ['ACTIVE', 'SOLD', 'PAUSED', 'DRAFT'];
   final List<String> _constructionPhases = ['READY TO MOVE', 'UNDER CONSTRUCTION', 'NEW LAUNCH'];
   final List<String> _parkingOptions = ['1 Covered', '2 Covered', 'Open'];
   final List<String> _furnishingOptions = ['Fully Furnished', 'Semi-Furnished', 'Unfurnished'];
   List<String> _amenityOptions = [];
-  bool _isLoadingAmenities = true;
+  bool _isLoadingFilterOptions = true;
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
@@ -76,28 +74,50 @@ class _FilterScreenState extends State<FilterScreen> {
       _category = 'Residential';
     }
     _fetchBounds();
-    _fetchAmenities();
+    _fetchFilterOptions();
   }
 
-  Future<void> _fetchAmenities() async {
+  Future<void> _fetchFilterOptions() async {
     try {
       final properties = await PropertyApiService.getProperties(limit: 500);
+      final Set<String> uniqueCategories = {};
       final Set<String> uniqueAmenities = {};
+      final Map<String, Set<String>> typesMap = {};
+      
       for (var p in properties) {
         if (p.amenities.isNotEmpty) {
           uniqueAmenities.addAll(p.amenities.map((a) => a.trim()).where((a) => a.isNotEmpty));
         }
+        
+        String cat = p.category.trim();
+        if (cat.isEmpty || cat.toLowerCase() == 'buy') cat = 'Residential'; // Fallback
+        
+        uniqueCategories.add(cat);
+        typesMap.putIfAbsent(cat, () => {});
+        
+        if (p.type.isNotEmpty) {
+          typesMap[cat]!.add(p.type.trim());
+        }
       }
-      if (mounted && uniqueAmenities.isNotEmpty) {
+      
+      if (mounted) {
         setState(() {
-          _amenityOptions = uniqueAmenities.toList()..sort();
-          _isLoadingAmenities = false;
+          if (uniqueAmenities.isNotEmpty) _amenityOptions = uniqueAmenities.toList()..sort();
+          
+          _categories = uniqueCategories.toList()..sort();
+          for (var c in _categories) {
+             _typesByCategory[c] = typesMap[c]!.toList()..sort();
+          }
+          
+          if (_category == null && _categories.isNotEmpty) {
+             _category = _categories.first;
+          }
+          
+          _isLoadingFilterOptions = false;
         });
-      } else {
-        if (mounted) setState(() => _isLoadingAmenities = false);
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingAmenities = false);
+      if (mounted) setState(() => _isLoadingFilterOptions = false);
     }
   }
 
@@ -231,7 +251,7 @@ class _FilterScreenState extends State<FilterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> currentTypes = _category == 'Commercial' ? _commercialTypes : _residentialTypes;
+    List<String> currentTypes = _category != null ? (_typesByCategory[_category!] ?? []) : [];
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -321,13 +341,17 @@ class _FilterScreenState extends State<FilterScreen> {
 
                   _buildSectionHeader('Property Type'),
                   const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 12,
-                    children: currentTypes.map((t) => _buildPillChip(
-                      t, _type == t, () => setState(() => _type = t)
-                    )).toList(),
-                  ),
+                  _isLoadingFilterOptions
+                      ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+                      : currentTypes.isEmpty
+                          ? Text('No types available for $_category', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.outlineVariant))
+                          : Wrap(
+                              spacing: 8,
+                              runSpacing: 12,
+                              children: currentTypes.map((t) => _buildPillChip(
+                                t, _type == t, () => setState(() => _type = t)
+                              )).toList(),
+                            ),
                   _buildDivider(),
 
                   Row(
@@ -465,7 +489,7 @@ class _FilterScreenState extends State<FilterScreen> {
 
                   _buildSectionHeader('Amenities'),
                   const SizedBox(height: 16),
-                  _isLoadingAmenities 
+                  _isLoadingFilterOptions 
                       ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
                       : _amenityOptions.isEmpty
                           ? Text('No amenities available', style: GoogleFonts.inter(color: Theme.of(context).colorScheme.outlineVariant))

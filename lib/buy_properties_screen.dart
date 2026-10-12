@@ -91,7 +91,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
         purpose: _filters?.purpose,
         category: _filters?.category,
         type: _filters?.type,
-        city: _filters?.city,
+        city: _searchController.text.trim().isNotEmpty ? _searchController.text.trim() : _filters?.city,
         state: _filters?.state,
         bedrooms: _filters?.bedrooms,
         minPrice: _filters?.minPrice,
@@ -293,6 +293,9 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                         child: TextField(
                           controller: _searchController,
                           onChanged: (val) { setState(() {}); },
+                          onSubmitted: (val) {
+                            _fetchProperties(isRefresh: true);
+                          },
                           decoration: InputDecoration(
                             hintText: 'Search location, project...',
                             hintStyle: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 14),

@@ -9,6 +9,7 @@ class PropertyApiService {
     String status = 'ACTIVE',
     int limit = 10,
     int page = 1,
+    String? search,
     String? purpose,
     String? category,
     String? type,
@@ -31,6 +32,7 @@ class PropertyApiService {
         'limit': limit.toString(),
         'page': page.toString(),
       };
+      if (search != null && search.isNotEmpty) params['search'] = search;
       if (purpose != null && purpose.isNotEmpty) params['purpose'] = purpose;
       if (category != null && category.isNotEmpty) params['category'] = category;
       if (type != null && type.isNotEmpty) params['type'] = type;
