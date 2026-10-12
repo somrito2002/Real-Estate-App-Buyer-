@@ -1,3 +1,5 @@
+import '../config/api_config.dart';
+
 class Visit {
   final String id;
   final String name;
@@ -73,7 +75,7 @@ class VisitProperty {
     }
 
     if (parsedImage.startsWith('/')) {
-      parsedImage = 'https://api.prodalal.com$parsedImage';
+      parsedImage = '${ApiConfig.baseUrl}$parsedImage';
     }
 
     return VisitProperty(

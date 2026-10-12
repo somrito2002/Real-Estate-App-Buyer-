@@ -4,10 +4,11 @@ import 'package:http/http.dart' as http;
 import 'auth_api_service.dart';
 import '../login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 import '../models/property_model.dart';
 
 class WishlistApiService {
-  static const String _baseUrl = 'https://api.prodalal.com/api';
+  static const String _baseUrl = ApiConfig.apiBaseUrl;
   
   // Local cache of wishlisted property IDs
   static final Set<String> _wishlistedIds = {};

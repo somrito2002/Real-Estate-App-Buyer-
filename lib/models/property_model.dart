@@ -1,3 +1,5 @@
+import '../config/api_config.dart';
+
 class Partner {
   final String id;
   final String fullName;
@@ -22,7 +24,7 @@ class Partner {
   factory Partner.fromJson(Map<String, dynamic> json) {
     String pfp = json['profilePicture']?.toString() ?? '';
     if (pfp.startsWith('/')) {
-      pfp = 'https://api.prodalal.com$pfp';
+      pfp = '${ApiConfig.baseUrl}$pfp';
     }
 
     final viewsRaw = json['profileViews'];
@@ -185,7 +187,7 @@ class Property {
     if (json['images'] is List) {
       imagesList = (json['images'] as List).map((e) {
         String img = e.toString();
-        return img.startsWith('/') ? 'https://api.prodalal.com$img' : img;
+        return img.startsWith('/') ? '${ApiConfig.baseUrl}$img' : img;
       }).toList();
     }
     

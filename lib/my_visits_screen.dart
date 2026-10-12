@@ -175,13 +175,23 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
           }
         }
 
+        final propertyTitle = (prop != null && prop.title.isNotEmpty && prop.title != 'Unknown Title')
+            ? prop.title
+            : (v.property.title.isNotEmpty ? v.property.title : 'Property Visit');
+
+        final propertyLocation = (prop != null && prop.address.isNotEmpty)
+            ? prop.address
+            : ((prop != null && prop.location.isNotEmpty && prop.location != 'Location not specified')
+                ? prop.location
+                : (v.property.city.isNotEmpty ? v.property.city : 'Location on Request'));
+
         return VisitMock(
           imageUrl: finalImageUrl,
-          title: v.property.title,
+          title: propertyTitle,
           visitType: 'In-Person Visit',
           status: v.status, // Strictly fetch status from backend API
           dateTime: '${v.date} • ${v.time}',
-          location: (prop != null && prop.address.isNotEmpty) ? prop.address : v.property.city,
+          location: propertyLocation,
           price: (prop != null) ? prop.price : 'Price on Request',
           timeSlot: v.time,
           refId: v.id,
@@ -229,17 +239,19 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     final dividerColor = isDark ? Colors.white12 : const Color(0xFFEEEEEE);
 
     List<VisitMock> filteredVisits = _visits.where((v) {
-      if (_selectedFilter == 'Upcoming') {
-        return v.status.toUpperCase() == 'PENDING' || 
-               v.status.toUpperCase() == 'RESCHEDULED' || 
-               v.status.toUpperCase() == 'CONFIRMED' || 
-               v.status.toUpperCase() == 'ACCEPTED';
-      }
+      final status = v.status.trim().toUpperCase();
+      final isCompleted = status == 'COMPLETED';
+      final isCancelled = status == 'CANCELLED' || status == 'REJECTED';
+
       if (_selectedFilter == 'Completed') {
-        return v.status.toUpperCase() == 'COMPLETED';
+        return isCompleted;
       }
       if (_selectedFilter == 'Cancelled') {
-        return v.status.toUpperCase() == 'CANCELLED' || v.status.toUpperCase() == 'REJECTED';
+        return isCancelled;
+      }
+      if (_selectedFilter == 'Upcoming') {
+        // Anything except Cancelled and Completed comes under Upcoming
+        return !isCompleted && !isCancelled;
       }
       return true;
     }).toList();
@@ -362,16 +374,17 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     Color badgeBg;
     Color badgeText;
     
-    final upperStatus = visit.status.toUpperCase();
-    if (upperStatus == 'PENDING' || upperStatus == 'SCHEDULED' || upperStatus == 'CONFIRMED') {
-      badgeBg = isDark ? const Color(0xFF1A2A4A) : const Color(0xFFE8F0FE);
-      badgeText = const Color(0xFF4B85F0);
-    } else if (upperStatus == 'COMPLETED') {
+    final upperStatus = visit.status.trim().toUpperCase();
+    if (upperStatus == 'COMPLETED') {
       badgeBg = isDark ? const Color(0xFF1A3320) : const Color(0xFFE8F8F0);
       badgeText = isDark ? const Color(0xFF4ADE80) : const Color(0xFF22C55E);
-    } else {
+    } else if (upperStatus == 'CANCELLED' || upperStatus == 'REJECTED') {
       badgeBg = isDark ? const Color(0xFF3A1A1A) : const Color(0xFFFEE8E8);
       badgeText = isDark ? const Color(0xFFF87171) : const Color(0xFFEF4444);
+    } else {
+      // Any upcoming / pending / accepted / confirmed / rescheduled / approved status
+      badgeBg = isDark ? const Color(0xFF1A2A4A) : const Color(0xFFE8F0FE);
+      badgeText = const Color(0xFF4B85F0);
     }
 
     return Container(

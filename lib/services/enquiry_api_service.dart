@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 import '../models/enquiry_model.dart';
 class EnquiryApiService {
-  static const String _baseUrl = 'https://api.prodalal.com/api';
+  static const String _baseUrl = ApiConfig.apiBaseUrl;
 
   static Future<Map<String, dynamic>> submitEnquiry({
     required String propertyId,

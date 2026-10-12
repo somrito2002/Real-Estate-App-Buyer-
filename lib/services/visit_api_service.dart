@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
 import '../models/visit_model.dart';
 
 class VisitApiService {
-  static const String _baseUrl = 'https://api.prodalal.com/api';
+  static const String _baseUrl = ApiConfig.apiBaseUrl;
 
   static Future<List<Visit>> getVisits({
     String? partnerId,

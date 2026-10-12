@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 import 'dart:async';
 import 'my_visits_screen.dart';
 import 'reschedule_visit_screen.dart';
@@ -893,7 +894,10 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                   ],
                 ),
               )
-            else if (upperStatus == 'ACCEPTED')
+            else if (upperStatus == 'ACCEPTED' ||
+                upperStatus == 'CONFIRMED' ||
+                upperStatus == 'APPROVED' ||
+                upperStatus == 'SCHEDULED')
               Container(
                 color: cardBg,
                 padding: const EdgeInsets.all(16),
@@ -936,9 +940,24 @@ class _VisitDetailsScreenState extends State<VisitDetailsScreen> {
                     Builder(
                       builder: (context) {
                         bool isVisitDay = false;
-                        if (widget.visit.parsedDateTime != null) {
+                        DateTime? vDate = widget.visit.parsedDateTime;
+                        if (vDate == null && widget.visit.dateTime.isNotEmpty) {
+                          final datePart = widget.visit.dateTime.split(' • ').first.trim();
+                          try {
+                            vDate = DateTime.parse(datePart);
+                          } catch (_) {
+                            try {
+                              vDate = DateFormat('EEEE, d MMMM yyyy').parse(datePart);
+                            } catch (_) {
+                              try {
+                                vDate = DateFormat('d MMMM yyyy').parse(datePart);
+                              } catch (_) {}
+                            }
+                          }
+                        }
+
+                        if (vDate != null) {
                           final now = DateTime.now();
-                          final vDate = widget.visit.parsedDateTime!;
                           isVisitDay = now.year == vDate.year && now.month == vDate.month && now.day == vDate.day;
                         }
                         

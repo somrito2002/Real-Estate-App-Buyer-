@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/property_model.dart';
 
 class PropertyApiService {
-  static const String _baseUrl = 'https://api.prodalal.com/api';
+  static const String _baseUrl = ApiConfig.apiBaseUrl;
 
   static Future<List<Property>> getProperties({
     String status = 'ACTIVE',

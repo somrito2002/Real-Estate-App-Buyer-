@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../models/property_model.dart';
 
 class PartnerPublicProfile {
@@ -59,7 +60,7 @@ class PartnerPublicProfile {
 }
 
 class PartnerApiService {
-  static const String _baseUrl = 'https://api.prodalal.com/api';
+  static const String _baseUrl = ApiConfig.apiBaseUrl;
 
   /// Fetches public partner details and their active property listings.
   /// Automatically increments the partner's profileViews on the server side.

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import '../config/api_config.dart';
 import 'wishlist_api_service.dart';
 import '../models/user_profile.dart';
 
@@ -13,11 +14,11 @@ import '../models/user_profile.dart';
 ///
 /// SECURITY: Never log password, OTP, or JWT from this class.
 class AuthApiService {
-  static const String _baseUrl = 'https://api.prodalal.com/api/auth';
+  static const String _baseUrl = ApiConfig.authBaseUrl;
 
   /// The backend base URL (without /auth), used for constructing asset URLs
   /// such as profile pictures returned as relative paths.
-  static const String backendBaseUrl = 'https://api.prodalal.com';
+  static const String backendBaseUrl = ApiConfig.baseUrl;
 
   // ─── Device & Headers ───────────────────────────────────────────────────
 
