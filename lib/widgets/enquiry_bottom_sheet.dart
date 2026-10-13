@@ -106,6 +106,9 @@ class _EnquiryBottomSheetState extends State<EnquiryBottomSheet> {
   }
 
   Widget _buildEnquiryTextField(String label, String hintText, TextEditingController controller, {int maxLines = 1, bool enabled = true}) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -114,24 +117,48 @@ class _EnquiryBottomSheetState extends State<EnquiryBottomSheet> {
           style: GoogleFonts.inter(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           maxLines: maxLines,
-          enabled: enabled,
-          style: GoogleFonts.inter(fontSize: 14),
+          readOnly: !enabled,
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: enabled 
+                ? colorScheme.onSurface 
+                : (isDark ? Colors.white38 : const Color(0xFF9E9E9E)),
+          ),
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: GoogleFonts.inter(
-              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              color: isDark ? Colors.white30 : const Color(0xFFBDBDBD),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: enabled 
+                    ? colorScheme.outlineVariant 
+                    : (isDark ? Colors.white12 : const Color(0xFFE0E0E0)),
+              ),
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+              borderSide: BorderSide(
+                color: enabled 
+                    ? colorScheme.outlineVariant 
+                    : (isDark ? Colors.white12 : const Color(0xFFE0E0E0)),
+              ),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                color: isDark ? Colors.white12 : const Color(0xFFE0E0E0),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

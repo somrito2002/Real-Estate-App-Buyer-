@@ -572,11 +572,16 @@ class _FilterScreenState extends State<FilterScreen> {
                         _areaRange.end >= _maxAreaBound;
 
                     final filters = isCleared
-                        ? const PropertyFilters()
+                        ? PropertyFilters(
+                            city: widget.initialFilters?.city,
+                            state: widget.initialFilters?.state,
+                          )
                         : PropertyFilters(
                             purpose: _purpose,
                             category: _category,
                             type: _type,
+                            city: widget.initialFilters?.city,
+                            state: widget.initialFilters?.state,
                             bedrooms: _bedrooms,
                             minPrice: _budgetRange.start > _minBudgetBound ? _budgetRange.start : null,
                             maxPrice: _budgetRange.end < _maxBudgetBound ? _budgetRange.end : null,

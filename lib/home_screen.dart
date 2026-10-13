@@ -831,7 +831,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       GestureDetector(
                         onTap: () async {
-                          final filters = await Navigator.push(context, MaterialPageRoute(builder: (_) => const FilterScreen()));
+                          final currentFilters = PropertyFilters(
+                            state: _currentState.isNotEmpty && _currentState != 'Unknown' ? _currentState : null,
+                            city: (_currentLocation.isNotEmpty && _currentLocation != 'Locating...' && _currentLocation != 'Unknown') ? _currentLocation : null,
+                          );
+                          final filters = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => FilterScreen(initialFilters: currentFilters),
+                            ),
+                          );
                           if (filters != null && mounted) {
                             Navigator.push(
                               context,

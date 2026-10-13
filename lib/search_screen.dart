@@ -45,6 +45,184 @@ class _SearchScreenState extends State<SearchScreen> {
   String _existingVoiceText = '';
 
   List<String> _recentSearches = [];
+  String? _detectedState;
+  List<Property> _stateSuggestions = [];
+  bool _isLoadingStateSuggestions = false;
+
+  static const Map<String, String> _cityToStateMap = {
+    // Maharashtra
+    'mumbai': 'Maharashtra',
+    'bombay': 'Maharashtra',
+    'pune': 'Maharashtra',
+    'nagpur': 'Maharashtra',
+    'nashik': 'Maharashtra',
+    'thane': 'Maharashtra',
+    'aurangabad': 'Maharashtra',
+    'navi mumbai': 'Maharashtra',
+    'solapur': 'Maharashtra',
+    'amravati': 'Maharashtra',
+    'kolhapur': 'Maharashtra',
+
+    // Karnataka
+    'bengaluru': 'Karnataka',
+    'bangalore': 'Karnataka',
+    'mysuru': 'Karnataka',
+    'mysore': 'Karnataka',
+    'hubli': 'Karnataka',
+    'mangalore': 'Karnataka',
+    'belgaum': 'Karnataka',
+
+    // Delhi NCR
+    'delhi': 'Delhi',
+    'new delhi': 'Delhi',
+    'noida': 'Uttar Pradesh',
+    'greater noida': 'Uttar Pradesh',
+    'gurugram': 'Haryana',
+    'gurgaon': 'Haryana',
+    'dlf phase 5': 'Haryana',
+    'faridabad': 'Haryana',
+    'ghaziabad': 'Uttar Pradesh',
+
+    // Gujarat
+    'ahmedabad': 'Gujarat',
+    'surat': 'Gujarat',
+    'vadodara': 'Gujarat',
+    'baroda': 'Gujarat',
+    'rajkot': 'Gujarat',
+    'gandhinagar': 'Gujarat',
+
+    // Punjab
+    'ludhiana': 'Punjab',
+    'amritsar': 'Punjab',
+    'jalandhar': 'Punjab',
+    'patiala': 'Punjab',
+    'mohali': 'Punjab',
+    'chandigarh': 'Punjab',
+
+    // Goa
+    'goa': 'Goa',
+    'north goa': 'Goa',
+    'south goa': 'Goa',
+    'panaji': 'Goa',
+    'margao': 'Goa',
+
+    // Tamil Nadu
+    'chennai': 'Tamil Nadu',
+    'madras': 'Tamil Nadu',
+    'coimbatore': 'Tamil Nadu',
+    'madurai': 'Tamil Nadu',
+    'tiruchirappalli': 'Tamil Nadu',
+    'salem': 'Tamil Nadu',
+    'veeravanallur': 'Tamil Nadu',
+
+    // Telangana
+    'hyderabad': 'Telangana',
+    'secunderabad': 'Telangana',
+    'warangal': 'Telangana',
+
+    // Andhra Pradesh
+    'visakhapatnam': 'Andhra Pradesh',
+    'vijayawada': 'Andhra Pradesh',
+    'guntur': 'Andhra Pradesh',
+
+    // West Bengal
+    'kolkata': 'West Bengal',
+    'calcutta': 'West Bengal',
+    'howrah': 'West Bengal',
+    'durgapur': 'West Bengal',
+    'siliguri': 'West Bengal',
+
+    // Rajasthan
+    'jaipur': 'Rajasthan',
+    'udaipur': 'Rajasthan',
+    'jodhpur': 'Rajasthan',
+    'kota': 'Rajasthan',
+
+    // Uttar Pradesh
+    'lucknow': 'Uttar Pradesh',
+    'kanpur': 'Uttar Pradesh',
+    'varanasi': 'Uttar Pradesh',
+    'agra': 'Uttar Pradesh',
+    'prayagraj': 'Uttar Pradesh',
+
+    // Madhya Pradesh
+    'indore': 'Madhya Pradesh',
+    'bhopal': 'Madhya Pradesh',
+    'gwalior': 'Madhya Pradesh',
+    'jabalpur': 'Madhya Pradesh',
+
+    // Kerala
+    'kochi': 'Kerala',
+    'cochin': 'Kerala',
+    'thiruvananthapuram': 'Kerala',
+    'trivandrum': 'Kerala',
+    'kozhikode': 'Kerala',
+
+    // Chhattisgarh
+    'bilaspur': 'Chhattisgarh',
+    'raipur': 'Chhattisgarh',
+    'bhilai': 'Chhattisgarh',
+    'durg': 'Chhattisgarh',
+    'deori': 'Chhattisgarh',
+
+    // Bihar
+    'patna': 'Bihar',
+    'gaya': 'Bihar',
+
+    // Odisha
+    'bhubaneswar': 'Odisha',
+    'cuttack': 'Odisha',
+
+    // Assam
+    'guwahati': 'Assam',
+
+    // Uttarakhand
+    'dehradun': 'Uttarakhand',
+    'haridwar': 'Uttarakhand',
+
+    // Himachal Pradesh
+    'shimla': 'Himachal Pradesh',
+    'manali': 'Himachal Pradesh',
+    'dharamshala': 'Himachal Pradesh',
+
+    // Jammu & Kashmir
+    'srinagar': 'Jammu & Kashmir',
+    'jammu': 'Jammu & Kashmir',
+
+    // Jharkhand
+    'ranchi': 'Jharkhand',
+    'jamshedpur': 'Jharkhand',
+  };
+
+  String? _resolveState(String locationName) {
+    if (locationName.isEmpty) return null;
+    final clean = locationName.trim().toLowerCase();
+
+    const knownStates = [
+      'karnataka', 'maharashtra', 'delhi', 'gujarat', 'punjab', 'goa',
+      'tamil nadu', 'telangana', 'andhra pradesh', 'west bengal', 'rajasthan',
+      'uttar pradesh', 'madhya pradesh', 'kerala', 'chhattisgarh', 'bihar',
+      'odisha', 'assam', 'uttarakhand', 'himachal pradesh', 'haryana',
+      'jharkhand', 'jammu & kashmir'
+    ];
+    for (final s in knownStates) {
+      if (clean == s || clean.contains(s)) {
+        return s.split(' ').map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
+      }
+    }
+
+    if (_cityToStateMap.containsKey(clean)) {
+      return _cityToStateMap[clean];
+    }
+
+    for (final entry in _cityToStateMap.entries) {
+      if (clean.contains(entry.key) || entry.key.contains(clean)) {
+        return entry.value;
+      }
+    }
+
+    return null;
+  }
 
   @override
   void initState() {
@@ -83,12 +261,18 @@ class _SearchScreenState extends State<SearchScreen> {
         _suggestions = [];
         _parsedQuery = null;
         _isLoadingSuggestions = false;
+        _detectedState = null;
+        _stateSuggestions = [];
+        _isLoadingStateSuggestions = false;
       });
       return;
     }
 
     setState(() {
       _isLoadingSuggestions = true;
+      _detectedState = null;
+      _stateSuggestions = [];
+      _isLoadingStateSuggestions = false;
     });
 
     _debounce = Timer(const Duration(milliseconds: 300), () async {
@@ -103,6 +287,36 @@ class _SearchScreenState extends State<SearchScreen> {
             _parsedQuery = result.parsedQuery;
             _isLoadingSuggestions = false;
           });
+
+          // If no direct properties found, detect the state and fetch state suggestions
+          if (result.properties.isEmpty) {
+            final state = _resolveState(query);
+            if (state != null && state.isNotEmpty) {
+              setState(() {
+                _detectedState = state;
+                _isLoadingStateSuggestions = true;
+              });
+              try {
+                final stateResult = await PropertyApiService.searchProperties(
+                  state: state,
+                  status: 'ACTIVE',
+                  limit: 10,
+                );
+                if (mounted && _searchController.text.trim() == query) {
+                  setState(() {
+                    _stateSuggestions = stateResult.properties;
+                    _isLoadingStateSuggestions = false;
+                  });
+                }
+              } catch (_) {
+                if (mounted && _searchController.text.trim() == query) {
+                  setState(() {
+                    _isLoadingStateSuggestions = false;
+                  });
+                }
+              }
+            }
+          }
         }
       } catch (_) {
         if (mounted && _searchController.text.trim() == query) {
@@ -612,16 +826,74 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ),
                       )
-                    else if (_suggestions.isEmpty)
+                    else if (_suggestions.isEmpty) ...[
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24.0),
                         child: Center(
-                          child: Text(
-                            'No properties found matching "$_searchQuery"',
-                            style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.search_off_rounded,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.outlineVariant,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'No properties found matching "$_searchQuery"',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              if (_detectedState != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Showing available properties in $_detectedState',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: accentBlue,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                      )
+                      ),
+                      if (_isLoadingStateSuggestions)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: accentBlue,
+                            ),
+                          ),
+                        )
+                      else if (_stateSuggestions.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 12),
+                          child: Row(
+                            children: [
+                              Icon(Icons.location_on, size: 16, color: accentBlue),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Properties in $_detectedState',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        ..._stateSuggestions.map((suggestion) => _buildSuggestionItem(suggestion)),
+                      ],
+                    ]
                     else
                       ..._suggestions.map((suggestion) => _buildSuggestionItem(suggestion)),
                   ] else ...[
