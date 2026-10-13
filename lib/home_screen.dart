@@ -22,6 +22,8 @@ import 'location_bottom_sheet.dart';
 import 'my_visits_screen.dart';
 import 'widgets/ad_popup_widget.dart';
 import 'services/property_api_service.dart';
+import 'services/location_api_service.dart';
+import 'models/location_model.dart';
 import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -41,6 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
   
   bool _isLoading = true;
   List<Property> _properties = [];
+  bool _isLoadingLocations = true;
+  List<LocationModel> _backendLocations = [];
 
   // Ad popup — shows every time the user opens the home screen
   bool _showAdPopup = false;
@@ -102,20 +106,33 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initializeData() async {
-    // 1. Run location and property fetching in parallel to reduce load time
+    // 1. Run location, property, and popular backend locations fetching in parallel
     await Future.wait([
       _fetchLocation().catchError((e) {
         print('Location fetch error: $e');
       }),
       _fetchProperties(),
+      _fetchLocations(),
     ]);
+  }
 
-    // 2. Show ad popup after first frame each time the home screen is initialized
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   if (mounted) {
-    //     setState(() => _showAdPopup = true);
-    //   }
-    // });
+  Future<void> _fetchLocations() async {
+    try {
+      final locs = await LocationApiService.getLocations(popular: true);
+      if (mounted) {
+        setState(() {
+          _backendLocations = locs;
+          _isLoadingLocations = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching popular locations: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingLocations = false;
+        });
+      }
+    }
   }
 
   Future<void> _fetchProperties() async {
@@ -788,18 +805,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _buildLocationAvatar('Gurgaon', '2.1k+ Offices', Icons.business),
-                _buildLocationAvatar('BKC Mumbai', '1.8k+ Offices', Icons.location_city),
-                _buildLocationAvatar('Whitefield', '1.5k+ Offices', Icons.business_center),
-                _buildLocationAvatar('HITEC City', '1.2k+ Offices', Icons.computer),
-              ],
-            ),
-          ),
+          _buildPopularLocationsSection(),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['comm_recent'] = (_visibleItemCounts['comm_recent'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
@@ -814,18 +820,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _buildLocationAvatar('Pune', '3.2k+ Plots', Icons.landscape),
-                _buildLocationAvatar('Hyderabad', '2.8k+ Plots', Icons.grass),
-                _buildLocationAvatar('Bangalore', '2.1k+ Plots', Icons.park),
-                _buildLocationAvatar('Chennai', '1.9k+ Plots', Icons.terrain),
-              ],
-            ),
-          ),
+          _buildPopularLocationsSection(),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['plots_recent'] = (_visibleItemCounts['plots_recent'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
@@ -840,18 +835,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _buildLocationAvatar('Bangalore', '5.5k+ PGs', Icons.business),
-                _buildLocationAvatar('Pune', '3.8k+ PGs', Icons.home),
-                _buildLocationAvatar('Hyderabad', '2.6k+ PGs', Icons.apartment),
-                _buildLocationAvatar('Delhi', '4.1k+ PGs', Icons.location_city),
-              ],
-            ),
-          ),
+          _buildPopularLocationsSection(),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['pg_recent'] = (_visibleItemCounts['pg_recent'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
@@ -867,21 +851,64 @@ class _HomeScreenState extends State<HomeScreen> {
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
           _buildSectionHeader('Popular Locations'),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: (_statePopularLocations[_currentState] ?? _defaultPopularLocations).map((loc) {
-                return _buildLocationAvatar(loc['name'], '${loc['count']} Properties', loc['icon']);
-              }).toList(),
-            ),
-          ),
+          _buildPopularLocationsSection(),
           const SizedBox(height: 24),
           _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['res_recent'] = (_visibleItemCounts['res_recent'] ?? 3) + 2)),
           _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
         ];
     }
+  }
+  Widget _buildPopularLocationsSection() {
+    if (_isLoadingLocations) {
+      return Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: _buildShimmerSkeleton(),
+      );
+    }
+
+    if (_backendLocations.isNotEmpty) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: _backendLocations.map((loc) {
+            final displayName = loc.cities.isNotEmpty ? loc.cities.first : loc.state;
+            final subtitle = '${loc.propertiesCount} Properties';
+            return _buildLocationAvatar(
+              displayName,
+              subtitle,
+              Icons.location_city,
+              imageUrl: loc.image,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BuyPropertiesScreen(
+                      initialFilters: PropertyFilters(
+                        city: loc.cities.isNotEmpty ? loc.cities.first : null,
+                        state: loc.state,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    // Fallback to state / default local popular locations if backend list is empty
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: (_statePopularLocations[_currentState] ?? _defaultPopularLocations).map((loc) {
+          return _buildLocationAvatar(loc['name'], '${loc['count']} Properties', loc['icon']);
+        }).toList(),
+      ),
+    );
   }
 
 
@@ -1188,21 +1215,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLocationAvatar(String city, String subtitle, IconData icon) {
+  Widget _buildLocationAvatar(String city, String subtitle, IconData icon, {String? imageUrl, VoidCallback? onTap}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 32,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            child: Icon(icon, size: 30, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 8),
-          Text(city, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
-          const SizedBox(height: 2),
-          Text(subtitle, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 9)),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: GestureDetector(
+        onTap: onTap ?? () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BuyPropertiesScreen(
+                initialFilters: PropertyFilters(city: city),
+              ),
+            ),
+          );
+        },
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 32,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+                  ? CachedNetworkImageProvider(imageUrl)
+                  : null,
+              child: (imageUrl == null || imageUrl.isEmpty)
+                  ? Icon(icon, size: 28, color: Theme.of(context).colorScheme.onSurfaceVariant)
+                  : null,
+            ),
+            const SizedBox(height: 8),
+            Text(city, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+            const SizedBox(height: 2),
+            Text(subtitle, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 9)),
+          ],
+        ),
       ),
     );
   }

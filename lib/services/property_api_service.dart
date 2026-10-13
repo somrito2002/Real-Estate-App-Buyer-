@@ -2,9 +2,76 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/property_model.dart';
+import '../models/property_search_result.dart';
 
 class PropertyApiService {
   static const String _baseUrl = ApiConfig.apiBaseUrl;
+
+  /// Search properties using smart query `q` and specific filters via `/api/properties/search`
+  static Future<PropertySearchResult> searchProperties({
+    String? q,
+    String? location,
+    String? city,
+    String? state,
+    String? propertyName,
+    String? type,
+    String? category,
+    String? bedrooms,
+    String? purpose,
+    dynamic minPrice,
+    dynamic maxPrice,
+    dynamic minArea,
+    dynamic maxArea,
+    String? furnishing,
+    String? possessionStatus,
+    String status = 'ACTIVE',
+    String? sortBy,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    try {
+      final params = <String, String>{
+        'status': status,
+        'page': page.toString(),
+        'limit': limit.toString(),
+      };
+
+      if (q != null && q.trim().isNotEmpty) params['q'] = q.trim();
+      if (location != null && location.trim().isNotEmpty) params['location'] = location.trim();
+      if (city != null && city.trim().isNotEmpty) params['city'] = city.trim();
+      if (state != null && state.trim().isNotEmpty) params['state'] = state.trim();
+      if (propertyName != null && propertyName.trim().isNotEmpty) params['propertyName'] = propertyName.trim();
+      if (type != null && type.trim().isNotEmpty) params['type'] = type.trim();
+      if (category != null && category.trim().isNotEmpty) params['category'] = category.trim();
+      if (bedrooms != null && bedrooms.trim().isNotEmpty) params['bedrooms'] = bedrooms.trim();
+      if (purpose != null && purpose.trim().isNotEmpty) {
+        params['purpose'] = purpose.toLowerCase() == 'buy' ? 'Sell' : purpose.trim();
+      }
+      if (minPrice != null) params['minPrice'] = minPrice.toString();
+      if (maxPrice != null) params['maxPrice'] = maxPrice.toString();
+      if (minArea != null) params['minArea'] = minArea.toString();
+      if (maxArea != null) params['maxArea'] = maxArea.toString();
+      if (furnishing != null && furnishing.trim().isNotEmpty) params['furnishing'] = furnishing.trim();
+      if (possessionStatus != null && possessionStatus.trim().isNotEmpty) params['possessionStatus'] = possessionStatus.trim();
+      if (sortBy != null && sortBy.trim().isNotEmpty) params['sortBy'] = sortBy.trim();
+
+      final uri = Uri.parse('$_baseUrl/properties/search').replace(queryParameters: params);
+      final response = await http.get(uri).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final data = json.decode(response.body);
+        if (data is Map<String, dynamic>) {
+          return PropertySearchResult.fromJson(data);
+        }
+        return PropertySearchResult();
+      } else {
+        throw Exception('Failed to search properties. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Unable to search properties: $e');
+    }
+  }
+
 
   static Future<List<Property>> getProperties({
     String status = 'ACTIVE',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/property_model.dart';
 import 'models/property_filters.dart';
+import 'models/property_search_result.dart';
 import 'services/wishlist_api_service.dart';
 import 'filter_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -36,6 +37,8 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
   bool _isFetchingMore = false;
   bool _hasMore = true;
   int _currentPage = 1;
+  int _totalFound = 0;
+  PropertyParsedQuery? _parsedQuery;
   final ScrollController _scrollController = ScrollController();
 
   PropertyFilters? _filters;
@@ -88,23 +91,36 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
     }
 
     try {
-      final newProperties = await PropertyApiService.getProperties(
-        status: 'ACTIVE',
-        limit: 10,
-        page: _currentPage,
-        purpose: _filters?.purpose,
+      final queryText = _searchController.text.trim();
+      String? sortByParam;
+      if (_currentSortOption == 'Price — Low to High') {
+        sortByParam = 'price_asc';
+      } else if (_currentSortOption == 'Price — High to Low') {
+        sortByParam = 'price_desc';
+      }
+
+      final searchResult = await PropertyApiService.searchProperties(
+        q: queryText.isNotEmpty ? queryText : null,
+        city: _filters?.city,
+        state: _filters?.state,
         category: _filters?.category,
         type: _filters?.type,
-        city: _searchController.text.trim().isNotEmpty ? _searchController.text.trim() : _filters?.city,
-        state: _filters?.state,
         bedrooms: _filters?.bedrooms,
+        purpose: _filters?.purpose ?? 'Buy',
         minPrice: _filters?.minPrice,
         maxPrice: _filters?.maxPrice,
+        sortBy: sortByParam,
+        page: _currentPage,
+        limit: 10,
       );
+
+      final newProperties = searchResult.properties;
 
       if (!mounted) return;
 
       setState(() {
+        _parsedQuery = searchResult.parsedQuery;
+        _totalFound = searchResult.total;
         if (isRefresh) {
           _properties.clear();
         }
@@ -113,7 +129,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
             _properties.add(p);
           }
         }
-        if (newProperties.isEmpty || newProperties.length < 10) {
+        if (newProperties.isEmpty || _currentPage >= searchResult.totalPages || newProperties.length < 10) {
           _hasMore = false;
         }
         _isLoading = false;
@@ -138,6 +154,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
     _currentPage++;
     await _fetchProperties();
   }
+
 
   void _applySort() {
     setState(() {
@@ -388,7 +405,7 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: _filters != null && !_filters!.isEmpty ? accentBlue.withOpacity(0.1) : Theme.of(context).colorScheme.surface,
+                                color: _filters != null && !_filters!.isEmpty ? accentBlue.withValues(alpha: 0.1) : Theme.of(context).colorScheme.surface,
                                 border: Border.all(color: _filters != null && !_filters!.isEmpty ? accentBlue : Theme.of(context).colorScheme.outlineVariant),
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -432,22 +449,79 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${_properties.length} Properties Found',
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${_totalFound > 0 ? _totalFound : _properties.length} Properties Found',
+                            style: GoogleFonts.inter(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          if (_searchController.text.trim().isNotEmpty)
+                            InkWell(
+                              onTap: () {
+                                _searchController.clear();
+                                _fetchProperties(isRefresh: true);
+                              },
+                              child: Text(
+                                'Clear search',
+                                style: GoogleFonts.inter(
+                                  color: accentBlue,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        'in all locations',
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
+                      if (_parsedQuery != null &&
+                          ((_parsedQuery!.detectedBhk != null && _parsedQuery!.detectedBhk!.isNotEmpty) ||
+                              _parsedQuery!.detectedTypes.isNotEmpty)) ...[
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            if (_parsedQuery!.detectedBhk != null && _parsedQuery!.detectedBhk!.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: accentBlue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '${_parsedQuery!.detectedBhk} BHK',
+                                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: accentBlue),
+                                ),
+                              ),
+                            ..._parsedQuery!.detectedTypes.map(
+                              (t) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  t,
+                                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500, color: Theme.of(context).colorScheme.onSurface),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ] else ...[
+                        Text(
+                          _searchController.text.trim().isNotEmpty ? 'for "${_searchController.text.trim()}"' : 'in all locations',
+                          style: GoogleFonts.inter(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
               ],

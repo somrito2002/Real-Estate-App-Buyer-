@@ -9,6 +9,9 @@ import 'services/property_api_service.dart';
 import 'models/property_model.dart';
 import 'package:easy_localization/easy_localization.dart';
 
+import '../models/property_search_result.dart';
+import 'property_details_screen.dart';
+
 class SearchScreen extends StatefulWidget {
   final String initialCategory;
   final bool startVoiceSearchAutomatically;
@@ -30,8 +33,9 @@ class _SearchScreenState extends State<SearchScreen> {
   String _searchQuery = '';
   
   Timer? _debounce;
-  List<Property> _allProperties = [];
   List<Property> _suggestions = [];
+  PropertyParsedQuery? _parsedQuery;
+  bool _isLoadingSuggestions = false;
 
   // Voice search
   late stt.SpeechToText _speech;
@@ -43,7 +47,6 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _fetchProperties();
     
     if (widget.startVoiceSearchAutomatically) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -59,39 +62,41 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  Future<void> _fetchProperties() async {
-    try {
-      final properties = await PropertyApiService.getProperties(limit: 500);
-      if (mounted) {
-        setState(() {
-          _allProperties = properties;
-        });
-      }
-    } catch (_) {}
-  }
-
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     
     if (query.isEmpty) {
       setState(() {
         _suggestions = [];
+        _parsedQuery = null;
+        _isLoadingSuggestions = false;
       });
       return;
     }
 
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      final lowerQuery = query.toLowerCase();
-      final filtered = _allProperties.where((p) {
-        return p.title.toLowerCase().contains(lowerQuery) ||
-               p.location.toLowerCase().contains(lowerQuery) ||
-               p.city.toLowerCase().contains(lowerQuery);
-      }).toList();
+    setState(() {
+      _isLoadingSuggestions = true;
+    });
 
-      if (mounted) {
-        setState(() {
-          _suggestions = filtered.take(10).toList();
-        });
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        final result = await PropertyApiService.searchProperties(
+          q: query,
+          limit: 10,
+        );
+        if (mounted && _searchController.text.trim() == query) {
+          setState(() {
+            _suggestions = result.properties;
+            _parsedQuery = result.parsedQuery;
+            _isLoadingSuggestions = false;
+          });
+        }
+      } catch (_) {
+        if (mounted && _searchController.text.trim() == query) {
+          setState(() {
+            _isLoadingSuggestions = false;
+          });
+        }
       }
     });
   }
@@ -229,21 +234,41 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget _buildSuggestionItem(Property suggestion) {
     return InkWell(
       onTap: () {
-        _searchController.text = suggestion.title;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: suggestion.title)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PropertyDetailsScreen(property: suggestion),
+          ),
+        );
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
         child: Row(
           children: [
-            Icon(Icons.house_outlined, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
-            const SizedBox(width: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                suggestion.imageUrl,
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 52,
+                  height: 52,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: Icon(Icons.apartment, size: 24, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     suggestion.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Theme.of(context).colorScheme.onSurface,
@@ -253,20 +278,54 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 2),
                   Text(
                     '${suggestion.location}${suggestion.city.isNotEmpty ? ', ${suggestion.city}' : ''}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: accentBlue,
-                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w400,
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        suggestion.price,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: accentBlue,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (suggestion.type.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          '•  ${suggestion.type}',
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
+            ),
+            IconButton(
+              icon: Icon(Icons.north_west, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              tooltip: 'Fill search',
+              onPressed: () {
+                _searchController.text = suggestion.title;
+              },
             ),
           ],
         ),
       ),
     );
   }
+
 
   Widget _buildPopularCityChip(String city) {
     return InkWell(
@@ -386,12 +445,81 @@ class _SearchScreenState extends State<SearchScreen> {
                   const SizedBox(height: 8),
                   
                   if (_searchQuery.isNotEmpty) ...[
-                    if (_suggestions.isEmpty)
+                    if (_parsedQuery != null &&
+                        ((_parsedQuery!.detectedBhk != null && _parsedQuery!.detectedBhk!.isNotEmpty) ||
+                            _parsedQuery!.detectedTypes.isNotEmpty)) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              'Detected:',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (_parsedQuery!.detectedBhk != null && _parsedQuery!.detectedBhk!.isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: accentBlue.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: accentBlue.withValues(alpha: 0.3)),
+                                ),
+                                child: Text(
+                                  '${_parsedQuery!.detectedBhk} BHK',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: accentBlue,
+                                  ),
+                                ),
+                              ),
+                            ..._parsedQuery!.detectedTypes.map(
+                              (t) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                                ),
+                                child: Text(
+                                  t,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                      const SizedBox(height: 8),
+                    ],
+                    if (_isLoadingSuggestions)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: accentBlue,
+                          ),
+                        ),
+                      )
+                    else if (_suggestions.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24.0),
                         child: Center(
                           child: Text(
-                            'search.loading'.tr(),
+                            'No properties found matching "$_searchQuery"',
                             style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
