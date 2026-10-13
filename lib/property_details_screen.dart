@@ -2074,17 +2074,26 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     TextField(
                       controller: _visitNameController,
                       readOnly: true, // Freeze the name field
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: isDark ? Colors.white38 : const Color(0xFF9E9E9E),
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Enter your full name',
-                        hintStyle: GoogleFonts.inter(color: colorScheme.onSurfaceVariant),
+                        hintStyle: GoogleFonts.inter(color: isDark ? Colors.white30 : const Color(0xFFBDBDBD)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: colorScheme.outlineVariant),
+                          borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE0E0E0)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                          borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE0E0E0)),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: isDark ? Colors.white12 : const Color(0xFFE0E0E0)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
