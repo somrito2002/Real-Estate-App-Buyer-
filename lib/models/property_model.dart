@@ -46,6 +46,19 @@ class Partner {
       profileViews: views,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'fullName': fullName,
+      'companyName': companyName,
+      'number': number,
+      'email': email,
+      'profilePicture': profilePicture,
+      'partnerType': partnerType,
+      'profileViews': profileViews,
+    };
+  }
 }
 
 class Property {
@@ -283,6 +296,51 @@ class Property {
       rawArea: parseSafeDouble(json['area']) ?? parseSafeDouble(json['builtUpArea']) ?? parseSafeDouble(json['carpetArea']) ?? 0.0,
       purpose: json['purpose']?.toString() ?? '',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'partnerId': partnerId,
+      'title': title,
+      'description': description,
+      'location': location,
+      'city': city,
+      'area': area,
+      'builtUpArea': builtUpArea,
+      'address': address,
+      'facing': facing,
+      'parking': parking,
+      'floor': floor,
+      'furnishing': furnishing,
+      'age': age,
+      'carpetArea': carpetArea,
+      'totalFloors': totalFloors,
+      'waterSupply': waterSupply,
+      'type': type,
+      'price': price,
+      'category': category,
+      'imageUrl': imageUrl,
+      'status': status,
+      'specs': specs,
+      'constructionPhase': constructionPhase,
+      'budgetRange': budgetRange,
+      'bedrooms': bedrooms,
+      'bathrooms': bathrooms,
+      'balconies': balconies,
+      'amenities': amenities,
+      'images': images,
+      'lat': lat,
+      'lng': lng,
+      'createdAt': createdAt,
+      'partner': partner?.toJson(),
+      'contactName': contactName,
+      'role': role,
+      'isFavorite': isFavorite,
+      'rawPrice': rawPrice,
+      'rawArea': rawArea,
+      'purpose': purpose,
+    };
   }
 }
 

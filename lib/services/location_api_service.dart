@@ -29,4 +29,19 @@ class LocationApiService {
       rethrow;
     }
   }
+
+  /// Fetches popular states from GET /api/locations?popular=true.
+  static Future<List<LocationModel>> getPopularStates() async {
+    try {
+      final list = await getLocations(popular: true);
+      if (list.isNotEmpty) {
+        return list;
+      }
+      final all = await getLocations();
+      final popular = all.where((l) => l.isPopular).toList();
+      return popular.isNotEmpty ? popular : all;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

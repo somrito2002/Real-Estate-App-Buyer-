@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchHistoryService {
   static const String _key = 'recent_searches';
-  static const int _maxSearches = 5;
+  static const int _maxSearches = 25;
 
   static Future<List<String>> getRecentSearches() async {
     final prefs = await SharedPreferences.getInstance();
@@ -24,6 +24,13 @@ class SearchHistoryService {
       searches = searches.sublist(0, _maxSearches);
     }
     
+    await prefs.setStringList(_key, searches);
+  }
+
+  static Future<void> removeSearch(String query) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> searches = prefs.getStringList(_key) ?? [];
+    searches.remove(query);
     await prefs.setStringList(_key, searches);
   }
 

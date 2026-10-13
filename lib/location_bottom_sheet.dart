@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'location_picker_screen.dart';
+import 'services/google_places_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class LocationBottomSheet extends StatefulWidget {
@@ -13,41 +15,27 @@ class LocationBottomSheet extends StatefulWidget {
 }
 
 class _LocationBottomSheetState extends State<LocationBottomSheet> {
-  final List<Map<String, String>> popularCities = [
-    {
-      'name': 'Mumbai',
-      'image': 'https://images.unsplash.com/photo-1522204523234-8729aa6e3d5f?auto=format&fit=crop&q=80&w=300&h=200',
-    },
-    {
-      'name': 'Delhi',
-      'image': 'https://images.unsplash.com/photo-1587474260584-136574528ed5?auto=format&fit=crop&q=80&w=300&h=200',
-    },
-    {
-      'name': 'Bangalore',
-      'image': 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&q=80&w=300&h=200',
-    },
-    {
-      'name': 'Hyderabad',
-      'image': 'https://images.unsplash.com/photo-1620023602410-6c731454041d?auto=format&fit=crop&q=80&w=300&h=200',
-    },
-    {
-      'name': 'Pune',
-      'image': 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&q=80&w=300&h=200',
-    },
-    {
-      'name': 'Chennai',
-      'image': 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&q=80&w=300&h=200',
-    },
-  ];
+  final TextEditingController _searchController = TextEditingController();
+  List<PlaceSuggestion> _placeSuggestions = [];
+  bool _isSearchingPlaces = false;
+  Timer? _debounceTimer;
 
   final List<Map<String, String>> recentLocations = [
+    {
+      'title': 'Bengaluru',
+      'subtitle': 'Karnataka',
+    },
+    {
+      'title': 'Whitefield',
+      'subtitle': 'Bengaluru, Karnataka',
+    },
     {
       'title': 'DLF Phase 5',
       'subtitle': 'Gurgaon, Haryana',
     },
     {
-      'title': 'Whitefield',
-      'subtitle': 'Bangalore, Karnataka',
+      'title': 'Mumbai',
+      'subtitle': 'Maharashtra',
     },
   ];
 
@@ -97,6 +85,13 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
     if (mounted) setState(() => _isFetchingLocation = false);
   }
 
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
   /// Called when user explicitly taps "Use current location" button —
   /// opens the full-screen map picker for precise location selection.
   Future<void> _openMapPicker() async {
@@ -106,10 +101,7 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
       MaterialPageRoute(builder: (context) => const LocationPickerScreen()),
     );
     if (result != null && result is Map<String, dynamic> && mounted) {
-      setState(() {
-        _detectedCity = result['city'] ?? _detectedCity;
-        _detectedRegion = result['region'] ?? _detectedRegion;
-      });
+      Navigator.pop(context, result);
     }
   }
 
@@ -181,6 +173,36 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                 children: [
                   // Search Bar
                   TextField(
+                    controller: _searchController,
+                    textInputAction: TextInputAction.search,
+                    onChanged: (val) {
+                      _debounceTimer?.cancel();
+                      if (val.trim().isEmpty) {
+                        setState(() {
+                          _placeSuggestions = [];
+                          _isSearchingPlaces = false;
+                        });
+                        return;
+                      }
+                      _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+                        setState(() => _isSearchingPlaces = true);
+                        final results = await GooglePlacesService.getAutocompleteSuggestions(val.trim());
+                        if (mounted) {
+                          setState(() {
+                            _placeSuggestions = results;
+                            _isSearchingPlaces = false;
+                          });
+                        }
+                      });
+                    },
+                    onSubmitted: (val) {
+                      if (val.trim().isNotEmpty) {
+                        Navigator.pop(context, {
+                          'city': val.trim(),
+                          'region': '',
+                        });
+                      }
+                    },
                     decoration: InputDecoration(
                       hintText: 'location.search_hint'.tr(),
                       hintStyle: GoogleFonts.inter(
@@ -188,6 +210,18 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _placeSuggestions = [];
+                                  _isSearchingPlaces = false;
+                                });
+                              },
+                            )
+                          : null,
                       filled: true,
                       fillColor: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.white,
                       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -205,6 +239,52 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                       ),
                     ),
                   ),
+
+                  // Autocomplete Suggestions
+                  if (_isSearchingPlaces) ...[
+                    const SizedBox(height: 8),
+                    const LinearProgressIndicator(),
+                  ] else if (_placeSuggestions.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isDarkMode ? colorScheme.outlineVariant : Theme.of(context).colorScheme.outline),
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _placeSuggestions.length,
+                        separatorBuilder: (context, index) => Divider(
+                          height: 1,
+                          color: isDarkMode ? colorScheme.outlineVariant : Theme.of(context).colorScheme.surfaceContainerHighest,
+                        ),
+                        itemBuilder: (context, index) {
+                          final suggestion = _placeSuggestions[index];
+                          return ListTile(
+                            leading: Icon(Icons.location_on_outlined, color: colorScheme.primary, size: 20),
+                            title: Text(
+                              suggestion.mainText,
+                              style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                            ),
+                            subtitle: suggestion.secondaryText.isNotEmpty
+                                ? Text(
+                                    suggestion.secondaryText,
+                                    style: GoogleFonts.inter(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                                  )
+                                : null,
+                            onTap: () {
+                              Navigator.pop(context, {
+                                'city': suggestion.mainText,
+                                'region': suggestion.secondaryText,
+                              });
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
 
                   // ── Use Current Location ───────────────────────────────
@@ -306,82 +386,6 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
 
                   const SizedBox(height: 24),
                   
-                  // Popular Cities
-                  Text(
-                    'search.popular_cities'.tr(),
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: MediaQuery.of(context).orientation == Orientation.landscape ? 4 : 3,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.9,
-                    ),
-                    itemCount: popularCities.length,
-                    itemBuilder: (context, index) {
-                      final city = popularCities[index];
-                      return InkWell(
-                        onTap: () {
-                          Navigator.pop(context, {
-                            'city': city['name'],
-                            'region': '', // Default empty region for general cities
-                          });
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isDarkMode ? colorScheme.surfaceContainerHighest : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDarkMode ? colorScheme.outlineVariant : Theme.of(context).colorScheme.surfaceContainerHighest,
-                            ),
-                          ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: Image.network(
-                                city['image']!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: Theme.of(context).colorScheme.outline,
-                                  child: const Icon(Icons.location_city, color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Center(
-                                child: Text(
-                                  city['name']!,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      );
-                    },
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
                   // Recent Locations
                   Text(
                     'location.recent_locations'.tr(),
@@ -433,8 +437,10 @@ class _LocationBottomSheetState extends State<LocationBottomSheet> {
                           ),
                         ),
                         onTap: () {
-                          // Handle selection
-                          Navigator.pop(context);
+                          Navigator.pop(context, {
+                            'city': location['title']!,
+                            'region': location['subtitle']!,
+                          });
                         },
                       );
                     },

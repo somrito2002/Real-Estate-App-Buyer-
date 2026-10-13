@@ -204,7 +204,13 @@ class _BuyPropertiesScreenState extends State<BuyPropertiesScreen> {
             },
           ),
           title: Text(
-            'Bandra, Mumbai',
+            (_filters?.city != null && _filters!.city!.isNotEmpty)
+                ? _filters!.city!
+                : (_filters?.state != null && _filters!.state!.isNotEmpty)
+                    ? _filters!.state!
+                    : (widget.initialSearchQuery.isNotEmpty
+                        ? widget.initialSearchQuery
+                        : 'Explore Properties'),
             style: GoogleFonts.inter(
               color: Theme.of(context).colorScheme.onSurface,
               fontWeight: FontWeight.bold,

@@ -13,7 +13,10 @@ import 'help_and_support_screen.dart';
 import 'privacy_center_screen.dart';
 import 'terms_and_conditions_screen.dart';
 import 'services/auth_api_service.dart';
+import 'services/recently_viewed_service.dart';
 import 'models/user_profile.dart';
+import 'models/property_model.dart';
+import 'property_details_loader.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -30,6 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Null means profile hasn't been loaded yet or user is not logged in.
   UserProfile? _userProfile;
+  List<Property> _recentProperties = [];
 
   @override
   void initState() {
@@ -40,9 +44,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _init() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final recent = await RecentlyViewedService.getRecentlyViewed();
     if (!mounted) return;
     setState(() {
       _isLoggedIn = isLoggedIn;
+      _recentProperties = recent;
       _isLoading = false;
     });
     if (isLoggedIn) {
@@ -326,15 +332,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 }),
               ]),
 
-              _buildSectionTitle('profile.recently_viewed'.tr(), sectionTitleColor),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Text(
-                  'profile.viewed_today'.tr(),
-                  style: GoogleFonts.inter(fontSize: 13, color: subtitleColor),
+              if (_recentProperties.isNotEmpty) ...[
+                _buildSectionTitle('profile.recently_viewed'.tr(), sectionTitleColor),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    _recentProperties.length == 1
+                        ? 'You viewed 1 property'
+                        : 'You viewed ${_recentProperties.length} properties',
+                    style: GoogleFonts.inter(fontSize: 13, color: subtitleColor),
+                  ),
                 ),
-              ),
-              _buildRecentlyViewedList(cardBgColor, borderColor, titleColor, subtitleColor),
+                _buildRecentlyViewedList(cardBgColor, borderColor, titleColor, subtitleColor),
+              ],
 
               _buildSectionTitle('profile.follow_us'.tr(), sectionTitleColor),
               _buildCardGroup(cardBgColor, borderColor, [
@@ -522,114 +532,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildRecentlyViewedList(Color cardBgColor, Color borderColor,
       Color titleColor, Color subtitleColor) {
-    // Static recently-viewed list (not yet connected to a backend endpoint)
-    final properties = [
-      {
-        'title': 'Green Valley Re...',
-        'location': 'Raipur, Chhattisgarh',
-        'image':
-            'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=300&auto=format&fit=crop',
-        'tag': null,
-      },
-      {
-        'title': 'Skyline Heights',
-        'location': 'Bilaspur, Chhattisga...',
-        'image':
-            'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=300&auto=format&fit=crop',
-        'tag': null,
-      },
-      {
-        'title': 'DLF The Crest',
-        'location': 'Sector 54, Gurgaon',
-        'image':
-            'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=300&auto=format&fit=crop',
-        'tag': 'Ready to Move',
-      },
-    ];
-
     return SizedBox(
       height: 180,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: properties.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemCount: _recentProperties.length,
+        separatorBuilder: (c, i) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
-          final prop = properties[index];
-          return Container(
-            width: 140,
-            decoration: BoxDecoration(
-              color: cardBgColor,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(11)),
-                      child: Image.network(
-                        prop['image'] as String,
-                        height: 110,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 110,
-                          color: Colors.grey.shade300,
-                        ),
-                      ),
-                    ),
-                    if (prop['tag'] != null)
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF22C55E),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            prop['tag'] as String,
-                            style: GoogleFonts.inter(
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                color:
-                                    Theme.of(context).colorScheme.surface),
-                          ),
-                        ),
-                      ),
-                  ],
+          final prop = _recentProperties[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PropertyDetailsLoader(propertyId: prop.id),
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ).then((_) => _init());
+            },
+            child: Container(
+              width: 140,
+              decoration: BoxDecoration(
+                color: cardBgColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
                     children: [
-                      Text(
-                        prop['title'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: titleColor),
+                      ClipRRect(
+                        borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(11)),
+                        child: (prop.imageUrl.isNotEmpty)
+                            ? Image.network(
+                                prop.imageUrl,
+                                height: 110,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (c, e, s) => Container(
+                                  height: 110,
+                                  color: Colors.grey.shade300,
+                                  child: const Icon(Icons.home, color: Colors.grey),
+                                ),
+                              )
+                            : Container(
+                                height: 110,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.home, color: Colors.grey),
+                              ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        prop['location'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                            fontSize: 10, color: subtitleColor),
-                      ),
+                      if (prop.status.isNotEmpty)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF22C55E),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              prop.status,
+                              style: GoogleFonts.inter(
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.bold,
+                                  color:
+                                      Theme.of(context).colorScheme.surface),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          prop.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: titleColor),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          prop.location.isNotEmpty ? prop.location : prop.city,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                              fontSize: 10, color: subtitleColor),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

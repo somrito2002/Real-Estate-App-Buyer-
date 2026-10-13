@@ -22,6 +22,7 @@ import 'widgets/enquiry_bottom_sheet.dart';
 import 'services/property_api_service.dart';
 import 'services/wishlist_api_service.dart';
 import 'services/auth_api_service.dart';
+import 'services/recently_viewed_service.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Property property;
@@ -56,6 +57,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    RecentlyViewedService.addRecentlyViewed(widget.property);
     _checkLoginStatus();
     _fetchSimilarProperties();
     _fetchAqi();

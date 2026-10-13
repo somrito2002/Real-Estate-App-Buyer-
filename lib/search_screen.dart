@@ -11,6 +11,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../models/property_search_result.dart';
 import 'property_details_screen.dart';
+import 'recent_searches_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final String initialCategory;
@@ -43,10 +44,13 @@ class _SearchScreenState extends State<SearchScreen> {
   String _voiceText = '';
   String _existingVoiceText = '';
 
+  List<String> _recentSearches = [];
+
   @override
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    _loadRecentSearches();
     
     if (widget.startVoiceSearchAutomatically) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -60,6 +64,15 @@ class _SearchScreenState extends State<SearchScreen> {
       });
       _onSearchChanged(_searchQuery);
     });
+  }
+
+  Future<void> _loadRecentSearches() async {
+    final searches = await SearchHistoryService.getRecentSearches();
+    if (mounted) {
+      setState(() {
+        _recentSearches = searches;
+      });
+    }
   }
 
   void _onSearchChanged(String query) {
@@ -327,11 +340,100 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
 
+  Future<void> _executeSearch(String query) async {
+    final clean = query.trim();
+    if (clean.isEmpty) return;
+    await SearchHistoryService.addSearch(clean);
+    _loadRecentSearches();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BuyPropertiesScreen(initialSearchQuery: clean),
+      ),
+    ).then((_) {
+      _loadRecentSearches();
+    });
+  }
+
+  Future<void> _removeRecentSearch(String query) async {
+    await SearchHistoryService.removeSearch(query);
+    _loadRecentSearches();
+  }
+
+  Widget _buildRecentSearchItem(String search) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () {
+        _searchController.text = search;
+        _executeSearch(search);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+              ),
+              child: Icon(
+                Icons.history,
+                size: 22,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    search,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Recent search',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.close,
+                size: 20,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              splashRadius: 20,
+              tooltip: 'Remove',
+              onPressed: () => _removeRecentSearch(search),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPopularCityChip(String city) {
     return InkWell(
       onTap: () {
         _searchController.text = city;
-        Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: city)));
+        _executeSearch(city);
       },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -404,12 +506,8 @@ class _SearchScreenState extends State<SearchScreen> {
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      onSubmitted: (value) async {
-                        if (value.isNotEmpty) {
-                          await SearchHistoryService.addSearch(value);
-                          if (!context.mounted) return;
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => BuyPropertiesScreen(initialSearchQuery: value)));
-                        }
+                      onSubmitted: (value) {
+                        _executeSearch(value);
                       },
                     ),
                   ),
@@ -527,7 +625,55 @@ class _SearchScreenState extends State<SearchScreen> {
                     else
                       ..._suggestions.map((suggestion) => _buildSuggestionItem(suggestion)),
                   ] else ...[
-                    const SizedBox(height: 24),
+                    if (_recentSearches.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Recent',
+                            style: GoogleFonts.inter(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const RecentSearchesScreen(),
+                                ),
+                              ).then((_) {
+                                _loadRecentSearches();
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                              child: Text(
+                                'See All',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: accentBlue,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Column(
+                        children: _recentSearches
+                            .take(5)
+                            .map((s) => _buildRecentSearchItem(s))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                    const SizedBox(height: 8),
                     Text(
                       'search.popular_cities'.tr(),
                       style: GoogleFonts.inter(

@@ -23,6 +23,7 @@ import 'my_visits_screen.dart';
 import 'widgets/ad_popup_widget.dart';
 import 'services/property_api_service.dart';
 import 'services/location_api_service.dart';
+import 'services/recently_viewed_service.dart';
 import 'models/location_model.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -37,64 +38,29 @@ class _HomeScreenState extends State<HomeScreen> {
   int _bottomNavIndex = 0;
   late PageController _pageController;
   String _currentLocation = 'Locating...';
+  // ignore: unused_field
   String _currentState = '';
-  String _selectedCategory = 'Residential';
+  String _selectedCategory = 'All';
   final Map<String, int> _visibleItemCounts = {};
   
   bool _isLoading = true;
   List<Property> _properties = [];
   bool _isLoadingLocations = true;
-  List<LocationModel> _backendLocations = [];
+  List<LocationModel> _popularStates = [];
+  List<Property> _recentViews = [];
 
   // Ad popup — shows every time the user opens the home screen
   bool _showAdPopup = false;
 
   static const Color accentBlue = Color(0xFF4B85F0);
 
-  final Map<String, List<Map<String, dynamic>>> _statePopularLocations = {
-    'Maharashtra': [
-      {'name': 'Mumbai', 'count': '4.2k+', 'icon': Icons.location_city},
-      {'name': 'Pune', 'count': '3.1k+', 'icon': Icons.business},
-      {'name': 'Nagpur', 'count': '1.2k+', 'icon': Icons.home},
-      {'name': 'Nashik', 'count': '800+', 'icon': Icons.landscape},
-    ],
-    'Karnataka': [
-      {'name': 'Bangalore', 'count': '5.1k+', 'icon': Icons.business},
-      {'name': 'Mysore', 'count': '1.5k+', 'icon': Icons.account_balance},
-      {'name': 'Hubli', 'count': '600+', 'icon': Icons.home},
-      {'name': 'Mangalore', 'count': '900+', 'icon': Icons.beach_access},
-    ],
-    'Telangana': [
-      {'name': 'Hyderabad', 'count': '2.8k+', 'icon': Icons.castle},
-      {'name': 'Warangal', 'count': '500+', 'icon': Icons.account_balance},
-      {'name': 'Nizamabad', 'count': '300+', 'icon': Icons.home},
-      {'name': 'Karimnagar', 'count': '200+', 'icon': Icons.location_city},
-    ],
-    'Delhi': [
-      {'name': 'New Delhi', 'count': '3.8k+', 'icon': Icons.account_balance},
-      {'name': 'Dwarka', 'count': '1.2k+', 'icon': Icons.home},
-      {'name': 'Rohini', 'count': '900+', 'icon': Icons.location_city},
-      {'name': 'Vasant Kunj', 'count': '600+', 'icon': Icons.business},
-    ],
-    'Haryana': [
-      {'name': 'Gurgaon', 'count': '3.5k+', 'icon': Icons.business},
-      {'name': 'Faridabad', 'count': '1.1k+', 'icon': Icons.location_city},
-      {'name': 'Panipat', 'count': '400+', 'icon': Icons.home},
-      {'name': 'Karnal', 'count': '300+', 'icon': Icons.account_balance},
-    ],
-    'Chhattisgarh': [
-      {'name': 'Raipur', 'count': '1.2k+', 'icon': Icons.location_city},
-      {'name': 'Bhilai', 'count': '800+', 'icon': Icons.business},
-      {'name': 'Bilaspur', 'count': '500+', 'icon': Icons.home},
-      {'name': 'Korba', 'count': '300+', 'icon': Icons.account_balance},
-    ],
-  };
-
-  final List<Map<String, dynamic>> _defaultPopularLocations = [
-    {'name': 'Mumbai', 'count': '4.2k+', 'icon': Icons.location_city},
-    {'name': 'Delhi', 'count': '3.8k+', 'icon': Icons.account_balance},
-    {'name': 'Bangalore', 'count': '5.1k+', 'icon': Icons.business},
-    {'name': 'Hyderabad', 'count': '2.8k+', 'icon': Icons.castle},
+  final List<Map<String, dynamic>> _fallbackPopularStates = [
+    {'name': 'Maharashtra', 'count': '4+', 'icon': Icons.location_city},
+    {'name': 'Delhi', 'count': '3+', 'icon': Icons.account_balance},
+    {'name': 'Karnataka', 'count': '2+', 'icon': Icons.business},
+    {'name': 'Goa', 'count': '1+', 'icon': Icons.beach_access},
+    {'name': 'Gujarat', 'count': '1+', 'icon': Icons.landscape},
+    {'name': 'Tamil Nadu', 'count': '2+', 'icon': Icons.location_city},
   ];
 
   // Voice search
@@ -105,28 +71,42 @@ class _HomeScreenState extends State<HomeScreen> {
     _initializeData();
   }
 
-  Future<void> _initializeData() async {
-    // 1. Run location, property, and popular backend locations fetching in parallel
-    await Future.wait([
-      _fetchLocation().catchError((e) {
-        print('Location fetch error: $e');
-      }),
-      _fetchProperties(),
-      _fetchLocations(),
-    ]);
+  Future<void> _loadRecentViews() async {
+    final recent = await RecentlyViewedService.getRecentlyViewed();
+    if (mounted) {
+      setState(() {
+        _recentViews = recent;
+      });
+    }
   }
 
-  Future<void> _fetchLocations() async {
+  Future<void> _initializeData() async {
+    _loadRecentViews();
+    // 1. Fetch popular states in background
+    _fetchPopularStates();
+
+    // 2. Fetch location first with a 3-second timeout so _fetchProperties has the detected city
     try {
-      final locs = await LocationApiService.getLocations(popular: true);
+      await _fetchLocation().timeout(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('Initial location fetch timeout/error: $e');
+    }
+
+    // 3. Fetch properties filtered for the current location
+    await _fetchProperties();
+  }
+
+  Future<void> _fetchPopularStates() async {
+    try {
+      final states = await LocationApiService.getPopularStates();
       if (mounted) {
         setState(() {
-          _backendLocations = locs;
+          _popularStates = states;
           _isLoadingLocations = false;
         });
       }
     } catch (e) {
-      debugPrint('Error fetching popular locations: $e');
+      debugPrint('Error fetching popular states: $e');
       if (mounted) {
         setState(() {
           _isLoadingLocations = false;
@@ -135,9 +115,281 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  static const Map<String, String> _cityToStateMap = {
+    // Karnataka
+    'bengaluru': 'Karnataka',
+    'bangalore': 'Karnataka',
+    'whitefield': 'Karnataka',
+    'electronic city': 'Karnataka',
+    'mysuru': 'Karnataka',
+    'mysore': 'Karnataka',
+    'mangalore': 'Karnataka',
+    'mangaluru': 'Karnataka',
+    'hubli': 'Karnataka',
+
+    // Maharashtra
+    'mumbai': 'Maharashtra',
+    'bombay': 'Maharashtra',
+    'pune': 'Maharashtra',
+    'nagpur': 'Maharashtra',
+    'nashik': 'Maharashtra',
+    'thane': 'Maharashtra',
+    'navi mumbai': 'Maharashtra',
+
+    // Delhi / NCR
+    'delhi': 'Delhi',
+    'new delhi': 'Delhi',
+    'noida': 'Uttar Pradesh',
+    'greater noida': 'Uttar Pradesh',
+    'gurugram': 'Haryana',
+    'gurgaon': 'Haryana',
+    'dlf phase 5': 'Haryana',
+    'faridabad': 'Haryana',
+    'ghaziabad': 'Uttar Pradesh',
+
+    // Gujarat
+    'ahmedabad': 'Gujarat',
+    'surat': 'Gujarat',
+    'vadodara': 'Gujarat',
+    'baroda': 'Gujarat',
+    'rajkot': 'Gujarat',
+    'gandhinagar': 'Gujarat',
+
+    // Punjab
+    'ludhiana': 'Punjab',
+    'amritsar': 'Punjab',
+    'jalandhar': 'Punjab',
+    'patiala': 'Punjab',
+    'mohali': 'Punjab',
+    'chandigarh': 'Punjab',
+
+    // Goa
+    'goa': 'Goa',
+    'north goa': 'Goa',
+    'south goa': 'Goa',
+    'panaji': 'Goa',
+    'margao': 'Goa',
+
+    // Tamil Nadu
+    'chennai': 'Tamil Nadu',
+    'madras': 'Tamil Nadu',
+    'coimbatore': 'Tamil Nadu',
+    'madurai': 'Tamil Nadu',
+    'tiruchirappalli': 'Tamil Nadu',
+    'salem': 'Tamil Nadu',
+    'veeravanallur': 'Tamil Nadu',
+
+    // Telangana
+    'hyderabad': 'Telangana',
+    'secunderabad': 'Telangana',
+    'warangal': 'Telangana',
+
+    // Andhra Pradesh
+    'visakhapatnam': 'Andhra Pradesh',
+    'vijayawada': 'Andhra Pradesh',
+    'guntur': 'Andhra Pradesh',
+
+    // West Bengal
+    'kolkata': 'West Bengal',
+    'calcutta': 'West Bengal',
+    'howrah': 'West Bengal',
+    'durgapur': 'West Bengal',
+    'siliguri': 'West Bengal',
+
+    // Rajasthan
+    'jaipur': 'Rajasthan',
+    'udaipur': 'Rajasthan',
+    'jodhpur': 'Rajasthan',
+    'kota': 'Rajasthan',
+
+    // Uttar Pradesh
+    'lucknow': 'Uttar Pradesh',
+    'kanpur': 'Uttar Pradesh',
+    'varanasi': 'Uttar Pradesh',
+    'agra': 'Uttar Pradesh',
+    'prayagraj': 'Uttar Pradesh',
+
+    // Madhya Pradesh
+    'indore': 'Madhya Pradesh',
+    'bhopal': 'Madhya Pradesh',
+    'gwalior': 'Madhya Pradesh',
+    'jabalpur': 'Madhya Pradesh',
+
+    // Kerala
+    'kochi': 'Kerala',
+    'cochin': 'Kerala',
+    'thiruvananthapuram': 'Kerala',
+    'trivandrum': 'Kerala',
+    'kozhikode': 'Kerala',
+
+    // Chhattisgarh
+    'bilaspur': 'Chhattisgarh',
+    'raipur': 'Chhattisgarh',
+    'bhilai': 'Chhattisgarh',
+    'durg': 'Chhattisgarh',
+
+    // Bihar
+    'patna': 'Bihar',
+    'gaya': 'Bihar',
+
+    // Odisha
+    'bhubaneswar': 'Odisha',
+    'cuttack': 'Odisha',
+
+    // Assam
+    'guwahati': 'Assam',
+
+    // Uttarakhand
+    'dehradun': 'Uttarakhand',
+    'haridwar': 'Uttarakhand',
+
+    // Himachal Pradesh
+    'shimla': 'Himachal Pradesh',
+    'manali': 'Himachal Pradesh',
+    'dharamshala': 'Himachal Pradesh',
+
+    // Jammu & Kashmir
+    'srinagar': 'Jammu & Kashmir',
+    'jammu': 'Jammu & Kashmir',
+
+    // Jharkhand
+    'ranchi': 'Jharkhand',
+    'jamshedpur': 'Jharkhand',
+  };
+
+  /// Resolves the Indian State for a given location / city name.
+  String? _resolveState(String locationName) {
+    if (locationName.isEmpty || locationName == 'Locating...' || locationName == 'Unknown') {
+      return null;
+    }
+
+    final clean = locationName.trim().toLowerCase();
+
+    // Check direct known states list
+    const knownStates = [
+      'karnataka', 'maharashtra', 'delhi', 'gujarat', 'punjab', 'goa',
+      'tamil nadu', 'telangana', 'andhra pradesh', 'west bengal', 'rajasthan',
+      'uttar pradesh', 'madhya pradesh', 'kerala', 'chhattisgarh', 'bihar',
+      'odisha', 'assam', 'uttarakhand', 'himachal pradesh', 'haryana',
+      'jharkhand', 'jammu & kashmir'
+    ];
+    for (final s in knownStates) {
+      if (clean == s || clean.contains(s)) {
+        return s.split(' ').map((w) => w[0].toUpperCase() + w.substring(1)).join(' ');
+      }
+    }
+
+    // Check cities mapping
+    if (_cityToStateMap.containsKey(clean)) {
+      return _cityToStateMap[clean];
+    }
+
+    // Check partial containment in city map keys
+    for (final entry in _cityToStateMap.entries) {
+      if (clean.contains(entry.key) || entry.key.contains(clean)) {
+        return entry.value;
+      }
+    }
+
+    // Check if _popularStates contains this state
+    for (final loc in _popularStates) {
+      if (loc.state.toLowerCase() == clean || loc.state.toLowerCase().contains(clean)) {
+        return loc.state;
+      }
+      for (final c in loc.cities) {
+        if (c.toLowerCase() == clean || clean.contains(c.toLowerCase())) {
+          return loc.state;
+        }
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _fetchProperties() async {
+    setState(() => _isLoading = true);
     try {
-      final properties = await PropertyApiService.getProperties(limit: 10, status: 'ACTIVE');
+      final rawLoc = (_currentLocation.isNotEmpty &&
+              _currentLocation != 'Locating...' &&
+              _currentLocation != 'Unknown')
+          ? _currentLocation.trim()
+          : null;
+
+      List<Property> properties = [];
+
+      if (rawLoc != null) {
+        // 1. Determine which state the location belongs to
+        String? targetState = _currentState.isNotEmpty && _currentState != 'Unknown'
+            ? _currentState.trim()
+            : null;
+
+        // If targetState is not known or needs validation, resolve from location
+        final resolvedFromLoc = _resolveState(rawLoc);
+        if (resolvedFromLoc != null && resolvedFromLoc.isNotEmpty) {
+          targetState = resolvedFromLoc;
+          _currentState = resolvedFromLoc;
+        }
+
+        // 2. Query search/filter endpoint for ALL properties of that state
+        if (targetState != null && targetState.isNotEmpty) {
+          final stateResult = await PropertyApiService.searchProperties(
+            state: targetState,
+            status: 'ACTIVE',
+            limit: 50,
+          );
+          if (stateResult.properties.isNotEmpty) {
+            properties = stateResult.properties;
+          }
+        }
+
+        // 3. If state query returned empty or state was unknown, query by city/location
+        if (properties.isEmpty) {
+          String loc = rawLoc;
+          if (loc.toLowerCase() == 'bangalore') loc = 'Bengaluru';
+          if (loc.toLowerCase() == 'gurgaon') loc = 'Gurugram';
+          if (loc.toLowerCase() == 'bombay') loc = 'Mumbai';
+          if (loc.toLowerCase() == 'calcutta') loc = 'Kolkata';
+          if (loc.toLowerCase() == 'madras') loc = 'Chennai';
+
+          final cityResult = await PropertyApiService.searchProperties(
+            city: loc,
+            status: 'ACTIVE',
+            limit: 50,
+          );
+          if (cityResult.properties.isNotEmpty) {
+            properties = cityResult.properties;
+            // Update _currentState from the fetched properties' state if available
+            if (properties.first.location.isNotEmpty) {
+              final detectedState = _resolveState(properties.first.location);
+              if (detectedState != null) _currentState = detectedState;
+            }
+          } else {
+            // Also try by locality / query
+            final locResult = await PropertyApiService.searchProperties(
+              location: loc,
+              status: 'ACTIVE',
+              limit: 50,
+            );
+            if (locResult.properties.isNotEmpty) {
+              properties = locResult.properties;
+            } else {
+              final qResult = await PropertyApiService.searchProperties(
+                q: loc,
+                status: 'ACTIVE',
+                limit: 50,
+              );
+              properties = qResult.properties;
+            }
+          }
+        }
+      } else {
+        final result = await PropertyApiService.searchProperties(
+          status: 'ACTIVE',
+          limit: 50,
+        );
+        properties = result.properties;
+      }
+
       if (mounted) {
         setState(() {
           _properties = properties;
@@ -145,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } catch (e) {
-      print('Error fetching properties: $e');
+      debugPrint('Error fetching properties: $e');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -175,10 +427,18 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         if (placemarks.isNotEmpty) {
           if (mounted) {
+            final detected = placemarks[0].locality ?? placemarks[0].subAdministrativeArea ?? 'Unknown';
+            final adminState = placemarks[0].administrativeArea ?? '';
+            final bool shouldUpdate = _currentLocation == 'Locating...' || _currentLocation == 'Unknown';
             setState(() {
-              _currentLocation = placemarks[0].locality ?? placemarks[0].subAdministrativeArea ?? 'Unknown';
-              _currentState = placemarks[0].administrativeArea ?? '';
+              if (shouldUpdate) {
+                _currentLocation = detected;
+              }
+              _currentState = adminState.isNotEmpty ? adminState : (_resolveState(detected) ?? '');
             });
+            if (shouldUpdate) {
+              _fetchProperties();
+            }
           }
         }
       } else {
@@ -599,16 +859,16 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             
-            // Categories (Residential, Commercial, Plots, etc.)
+            // Categories (All, Residential, Commercial, Plots)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
+                  _buildSecondaryFilter('All'),
                   _buildSecondaryFilter('Residential'),
                   _buildSecondaryFilter('Commercial'),
                   _buildSecondaryFilter('Plots'),
-                  _buildSecondaryFilter('PG/Co-living'),
                 ],
               ),
             ),
@@ -740,13 +1000,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (result != null && result is Map<String, dynamic>) {
                   setState(() {
                     if (result['city'] != null && result['city'].toString().isNotEmpty) {
-                      _currentLocation = result['city'];
+                      final cityStr = result['city'].toString().trim();
+                      _currentLocation = cityStr.contains(',') ? cityStr.split(',').first.trim() : cityStr;
                     }
                     if (result['region'] != null && result['region'].toString().isNotEmpty) {
                       final parts = result['region'].toString().split(', ');
-                      _currentState = parts.last;
+                      _currentState = parts.last.trim();
+                    } else if (_currentLocation.isNotEmpty) {
+                      final resolved = _resolveState(_currentLocation);
+                      if (resolved != null) _currentState = resolved;
                     }
                   });
+                  await _fetchProperties();
                 }
               },
               child: Container(
@@ -793,71 +1058,247 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+  Widget _buildEmptyLocationView() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.15),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F5FF),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.location_off_rounded,
+              size: 42,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Sorry ! We are not available at Your Location .',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface,
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            _currentLocation.isNotEmpty && _currentLocation != 'Locating...' && _currentLocation != 'Unknown'
+                ? 'We currently don\'t have any active listings in $_currentLocation. Explore properties across other popular states below or change location.'
+                : 'We currently don\'t have any active listings in this area. Explore properties across other popular states below.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: colorScheme.onSurfaceVariant,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Category content builder ──────────────────────────────────────────────
   List<Widget> _buildCategoryContent() {
+    if (_isLoading) {
+      return [
+        _buildSectionHeader(AppLocalizations.of(context)!.homeFeatProp),
+        Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()),
+        const SizedBox(height: 24),
+        _buildSectionHeader('Popular States'),
+        _buildPopularLocationsSection(),
+      ];
+    }
+
+    if (_properties.isEmpty) {
+      return [
+        _buildEmptyLocationView(),
+        const SizedBox(height: 12),
+        _buildSectionHeader('Popular States'),
+        _buildPopularLocationsSection(),
+      ];
+    }
+
+    List<Property> filteredProps = _properties;
+    if (_selectedCategory == 'Commercial') {
+      final comm = _properties.where((p) => p.category.toLowerCase() == 'commercial').toList();
+      if (comm.isNotEmpty) filteredProps = comm;
+    } else if (_selectedCategory == 'Residential') {
+      final res = _properties.where((p) => p.category.toLowerCase() == 'residential').toList();
+      if (res.isNotEmpty) filteredProps = res;
+    } else if (_selectedCategory == 'Plots') {
+      final plots = _properties.where((p) => p.category.toLowerCase().contains('plot') || p.category.toLowerCase().contains('land')).toList();
+      if (plots.isNotEmpty) filteredProps = plots;
+    }
+    // When _selectedCategory == 'All', filteredProps = _properties (all types of properties of that state)
+
     switch (_selectedCategory) {
       case 'Commercial':
         return [
-          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatComm, onLoadMore: () => setState(() => _visibleItemCounts['comm_feat'] = (_visibleItemCounts['comm_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeFeatComm,
+            hasMore: filteredProps.length > (_visibleItemCounts['comm_feat'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['comm_feat'] = (_visibleItemCounts['comm_feat'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_feat', filteredProps.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeNewOffice, onLoadMore: () => setState(() => _visibleItemCounts['comm_new'] = (_visibleItemCounts['comm_new'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeNewOffice,
+            hasMore: filteredProps.length > (_visibleItemCounts['comm_new'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['comm_new'] = (_visibleItemCounts['comm_new'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_new', filteredProps.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader('Popular Locations'),
+          _buildSectionHeader('Popular States'),
           _buildPopularLocationsSection(),
-          const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['comm_recent'] = (_visibleItemCounts['comm_recent'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('comm_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          if (_recentViews.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              AppLocalizations.of(context)!.homeRecentView,
+              hasMore: _recentViews.length > (_visibleItemCounts['comm_recent'] ?? 3),
+              onLoadMore: () => setState(() => _visibleItemCounts['comm_recent'] = (_visibleItemCounts['comm_recent'] ?? 3) + 2),
+            ),
+            _buildHorizontalQueue('comm_recent', _recentViews.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          ],
         ];
 
       case 'Plots':
         return [
-          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_feat'] = (_visibleItemCounts['plots_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeFeatPlots,
+            hasMore: filteredProps.length > (_visibleItemCounts['plots_feat'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['plots_feat'] = (_visibleItemCounts['plots_feat'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_feat', filteredProps.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeNewPlots, onLoadMore: () => setState(() => _visibleItemCounts['plots_new'] = (_visibleItemCounts['plots_new'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeNewPlots,
+            hasMore: filteredProps.length > (_visibleItemCounts['plots_new'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['plots_new'] = (_visibleItemCounts['plots_new'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_new', filteredProps.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader('Popular Locations'),
+          _buildSectionHeader('Popular States'),
           _buildPopularLocationsSection(),
-          const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['plots_recent'] = (_visibleItemCounts['plots_recent'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('plots_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          if (_recentViews.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              AppLocalizations.of(context)!.homeRecentView,
+              hasMore: _recentViews.length > (_visibleItemCounts['plots_recent'] ?? 3),
+              onLoadMore: () => setState(() => _visibleItemCounts['plots_recent'] = (_visibleItemCounts['plots_recent'] ?? 3) + 2),
+            ),
+            _buildHorizontalQueue('plots_recent', _recentViews.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          ],
         ];
 
-      case 'PG/Co-living':
+      case 'Residential':
         return [
-          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_feat'] = (_visibleItemCounts['pg_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeFeatProp,
+            hasMore: filteredProps.length > (_visibleItemCounts['res_feat'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['res_feat'] = (_visibleItemCounts['res_feat'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_feat', filteredProps.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeNewPg, onLoadMore: () => setState(() => _visibleItemCounts['pg_new'] = (_visibleItemCounts['pg_new'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeNewProp,
+            hasMore: filteredProps.length > (_visibleItemCounts['res_new'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['res_new'] = (_visibleItemCounts['res_new'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_new', filteredProps.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader('Popular Locations'),
+          _buildSectionHeader('Popular States'),
           _buildPopularLocationsSection(),
-          const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['pg_recent'] = (_visibleItemCounts['pg_recent'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('pg_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          if (_recentViews.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              AppLocalizations.of(context)!.homeRecentView,
+              hasMore: _recentViews.length > (_visibleItemCounts['res_recent'] ?? 3),
+              onLoadMore: () => setState(() => _visibleItemCounts['res_recent'] = (_visibleItemCounts['res_recent'] ?? 3) + 2),
+            ),
+            _buildHorizontalQueue('res_recent', _recentViews.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          ],
         ];
 
-      // Residential (default)
+      // All (default)
+      case 'All':
       default:
         return [
-          _buildSectionHeader(AppLocalizations.of(context)!.homeFeatProp, onLoadMore: () => setState(() => _visibleItemCounts['res_feat'] = (_visibleItemCounts['res_feat'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeFeatProp,
+            hasMore: _properties.length > (_visibleItemCounts['all_feat'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['all_feat'] = (_visibleItemCounts['all_feat'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('all_feat', _properties.map((p) => _buildFeaturedPropertyCard(p.title, 'By ${p.partnerName}', p.location, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeNewProp, onLoadMore: () => setState(() => _visibleItemCounts['res_new'] = (_visibleItemCounts['res_new'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.homeNewProp,
+            hasMore: _properties.length > (_visibleItemCounts['all_new'] ?? 3),
+            onLoadMore: () => setState(() => _visibleItemCounts['all_new'] = (_visibleItemCounts['all_new'] ?? 3) + 2),
+          ),
+          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('all_new', _properties.map((p) => _buildNewProjectCard(p.title, p.price, property: p)).toList()),
           const SizedBox(height: 24),
-          _buildSectionHeader('Popular Locations'),
+          _buildSectionHeader('Popular States'),
           _buildPopularLocationsSection(),
-          const SizedBox(height: 24),
-          _buildSectionHeader(AppLocalizations.of(context)!.homeRecentView, onLoadMore: () => setState(() => _visibleItemCounts['res_recent'] = (_visibleItemCounts['res_recent'] ?? 3) + 2)),
-          _isLoading ? Padding(padding: const EdgeInsets.only(left: 16), child: _buildShimmerSkeleton()) : _buildHorizontalQueue('res_recent', _properties.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          if (_recentViews.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              AppLocalizations.of(context)!.homeRecentView,
+              hasMore: _recentViews.length > (_visibleItemCounts['all_recent'] ?? 3),
+              onLoadMore: () => setState(() => _visibleItemCounts['all_recent'] = (_visibleItemCounts['all_recent'] ?? 3) + 2),
+            ),
+            _buildHorizontalQueue('all_recent', _recentViews.map((p) => _buildRecentlyViewedCard(p.title, p.location, p.price, property: p)).toList()),
+          ],
         ];
     }
   }
+
+  IconData _getStateIcon(String state) {
+    switch (state.toLowerCase().trim()) {
+      case 'goa':
+        return Icons.beach_access;
+      case 'delhi':
+        return Icons.account_balance;
+      case 'karnataka':
+        return Icons.business;
+      case 'maharashtra':
+        return Icons.location_city;
+      case 'gujarat':
+        return Icons.landscape;
+      case 'tamil nadu':
+        return Icons.location_city;
+      case 'punjab':
+        return Icons.landscape;
+      case 'telangana':
+        return Icons.business;
+      default:
+        return Icons.location_city;
+    }
+  }
+
   Widget _buildPopularLocationsSection() {
     if (_isLoadingLocations) {
       return Padding(
@@ -866,26 +1307,26 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (_backendLocations.isNotEmpty) {
+    if (_popularStates.isNotEmpty) {
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: _backendLocations.map((loc) {
-            final displayName = loc.cities.isNotEmpty ? loc.cities.first : loc.state;
-            final subtitle = '${loc.propertiesCount} Properties';
+          children: _popularStates.map((loc) {
+            final stateName = loc.state;
+            final count = loc.propertiesCount;
+            final subtitle = '$count ${count == 1 ? 'Property' : 'Properties'}';
             return _buildLocationAvatar(
-              displayName,
+              stateName,
               subtitle,
-              Icons.location_city,
-              imageUrl: loc.image,
+              _getStateIcon(stateName),
+              imageUrl: loc.image.isNotEmpty ? loc.image : null,
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => BuyPropertiesScreen(
                       initialFilters: PropertyFilters(
-                        city: loc.cities.isNotEmpty ? loc.cities.first : null,
                         state: loc.state,
                       ),
                     ),
@@ -898,14 +1339,31 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Fallback to state / default local popular locations if backend list is empty
+    // Fallback to popular states if offline / backend list is empty
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: (_statePopularLocations[_currentState] ?? _defaultPopularLocations).map((loc) {
-          return _buildLocationAvatar(loc['name'], '${loc['count']} Properties', loc['icon']);
+        children: _fallbackPopularStates.map((loc) {
+          final stateName = loc['name'] as String;
+          return _buildLocationAvatar(
+            stateName,
+            '${loc['count']} Properties',
+            loc['icon'] as IconData,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BuyPropertiesScreen(
+                    initialFilters: PropertyFilters(
+                      state: stateName,
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
         }).toList(),
       ),
     );
@@ -954,12 +1412,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     
-    final count = _visibleItemCounts[key] ?? 3;
-    
-    List<Widget> queueItems = [];
-    for (int i = 0; i < count; i++) {
-      queueItems.add(children[i % children.length]);
-    }
+    final maxVisible = _visibleItemCounts[key] ?? 3;
+    final int count = children.length < maxVisible ? children.length : maxVisible;
+    final queueItems = children.sublist(0, count);
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -971,7 +1426,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, {VoidCallback? onLoadMore}) {
+  Widget _buildSectionHeader(String title, {VoidCallback? onLoadMore, bool hasMore = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -981,7 +1436,7 @@ class _HomeScreenState extends State<HomeScreen> {
             title,
             style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
           ),
-          if (onLoadMore != null)
+          if (onLoadMore != null && hasMore)
             TextButton(
               onPressed: onLoadMore,
               style: TextButton.styleFrom(
@@ -1215,34 +1670,45 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildLocationAvatar(String city, String subtitle, IconData icon, {String? imageUrl, VoidCallback? onTap}) {
+  Widget _buildLocationAvatar(String title, String subtitle, IconData icon, {String? imageUrl, VoidCallback? onTap}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
       child: GestureDetector(
         onTap: onTap ?? () {
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => BuyPropertiesScreen(
-                initialFilters: PropertyFilters(city: city),
+                initialFilters: PropertyFilters(state: title),
               ),
             ),
           );
         },
         child: Column(
           children: [
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-              backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
-                  ? CachedNetworkImageProvider(imageUrl)
-                  : null,
-              child: (imageUrl == null || imageUrl.isEmpty)
-                  ? Icon(icon, size: 28, color: Theme.of(context).colorScheme.onSurfaceVariant)
-                  : null,
+            ClipOval(
+              child: Container(
+                width: 64,
+                height: 64,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                child: (imageUrl != null && imageUrl.isNotEmpty)
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Center(
+                          child: Icon(icon, size: 28, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                        errorWidget: (context, url, error) => Center(
+                          child: Icon(icon, size: 28, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      )
+                    : Center(
+                        child: Icon(icon, size: 28, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(city, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+            Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
             const SizedBox(height: 2),
             Text(subtitle, style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 9)),
           ],
@@ -1261,7 +1727,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: TiltPropertyCard(
         onTap: property != null
             ? () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => PropertyDetailsLoader(propertyId: property.id)),
+                ).then((_) => _loadRecentViews());
               }
             : null,
         child: Container(
