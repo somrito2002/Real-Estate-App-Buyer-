@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'login_screen.dart';
+import 'services/auth_api_service.dart';
 
 const Color accentBlue = Color(0xFF4285F4);
 
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({super.key});
+  final String? email;
+  final String? otp;
+
+  const ResetPasswordScreen({super.key, this.email, this.otp});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -18,6 +23,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -60,32 +66,77 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return Colors.red;
   }
 
-  void _onResetPassword() {
+  Future<void> _onResetPassword() async {
     final pass = _passwordController.text;
     final confirm = _confirmController.text;
 
-    if (pass.isEmpty || pass.length < 8) {
+    if (pass.isEmpty || pass.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 8 characters long')),
+        const SnackBar(
+          content: Text('Password must be at least 6 characters long.'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       return;
     }
 
     if (pass != confirm) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match')),
+        const SnackBar(
+          content: Text('Passwords do not match.'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
       return;
     }
 
-    // Success - direct to login page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset successfully')),
-    );
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
+    setState(() => _isLoading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final email = widget.email ?? prefs.getString('cached_email') ?? '';
+      final otp = widget.otp ?? prefs.getString('cached_otp') ?? '';
+
+      if (email.isEmpty || otp.isEmpty) {
+        throw Exception('Session details missing. Please restart the password reset process.');
+      }
+
+      final res = await AuthApiService.resetPassword(
+        email: email,
+        otp: otp,
+        newPassword: pass,
+      );
+
+      // Clean cached otp from local preferences
+      await prefs.remove('cached_otp');
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      final successMsg = res['message']?.toString() ??
+          'Password reset successful. Please log in with your new password.';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(successMsg),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   @override
@@ -289,23 +340,33 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _onResetPassword,
+                  onPressed: _isLoading ? null : _onResetPassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentBlue,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: accentBlue.withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    'Reset Password',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          'Reset Password',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
             ],

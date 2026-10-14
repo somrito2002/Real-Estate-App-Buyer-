@@ -103,7 +103,11 @@ class _OtpScreenState extends State<OtpScreen> {
       final prefs = await SharedPreferences.getInstance();
       final email = prefs.getString('cached_email') ?? widget.phoneNumber;
       
-      await AuthApiService.verifyOtp(email: email, otp: otp);
+      if (widget.isPasswordRecovery) {
+        await AuthApiService.verifyResetOtp(email: email, otp: otp);
+      } else {
+        await AuthApiService.verifyOtp(email: email, otp: otp);
+      }
       await prefs.setString('cached_otp', otp);
 
       if (!mounted) return;
@@ -137,7 +141,11 @@ class _OtpScreenState extends State<OtpScreen> {
       final prefs = await SharedPreferences.getInstance();
       final email = prefs.getString('cached_email') ?? widget.phoneNumber;
       
-      await AuthApiService.sendOtp(email: email);
+      if (widget.isPasswordRecovery) {
+        await AuthApiService.forgotPassword(identifier: email);
+      } else {
+        await AuthApiService.sendOtp(email: email);
+      }
       for (final c in _controllers) {
         c.clear();
       }

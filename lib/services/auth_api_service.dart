@@ -182,6 +182,63 @@ class AuthApiService {
     );
   }
 
+  // ─── Forgot / Reset Password Flow ─────────────────────────────────────────
+
+  /// Step 1 — Request Password Reset OTP.
+  ///
+  /// POST /api/auth/forgot-password
+  /// [identifier] can be an email or registered 10-digit phone number.
+  /// Returns: { "message": "...", "email": "...", "maskedEmail": "..." }
+  static Future<Map<String, dynamic>> forgotPassword({
+    required String identifier,
+  }) async {
+    return _post(
+      '$_baseUrl/forgot-password',
+      body: {
+        'identifier': identifier.trim(),
+      },
+      headers: await _publicHeaders,
+    );
+  }
+
+  /// Step 2 — Verify Reset OTP.
+  ///
+  /// POST /api/auth/verify-reset-otp
+  /// Validates that the 6-digit OTP entered for [email] is valid and unexpired.
+  static Future<Map<String, dynamic>> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    return _post(
+      '$_baseUrl/verify-reset-otp',
+      body: {
+        'email': email.trim(),
+        'otp': otp.trim(), // string to preserve leading zeros
+      },
+      headers: await _publicHeaders,
+    );
+  }
+
+  /// Step 3 — Reset Password.
+  ///
+  /// POST /api/auth/reset-password
+  /// Verifies OTP, hashes new password, updates database, and clears OTP.
+  static Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    return _post(
+      '$_baseUrl/reset-password',
+      body: {
+        'email': email.trim(),
+        'otp': otp.trim(),
+        'newPassword': newPassword, // NEVER log this
+      },
+      headers: await _publicHeaders,
+    );
+  }
+
   // ─── Login ────────────────────────────────────────────────────────────────
 
   /// Login with email or phone number + password.

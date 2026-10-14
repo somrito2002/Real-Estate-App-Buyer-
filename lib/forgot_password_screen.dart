@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'otp_screen.dart';
+import 'services/auth_api_service.dart';
 
 const Color accentBlue = Color(0xFF4285F4);
 const Color iconRed = Color(0xFFF44336);
@@ -14,11 +16,67 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleSendOtp() async {
+    final input = _emailController.text.trim();
+    if (input.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your registered email or phone number.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final res = await AuthApiService.forgotPassword(identifier: input);
+
+      final returnedEmail = res['email']?.toString() ?? input;
+      final maskedEmail = res['maskedEmail']?.toString() ?? returnedEmail;
+      final message = res['message']?.toString() ?? 'OTP sent successfully.';
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_email', returnedEmail);
+      await prefs.setString('cached_masked_email', maskedEmail);
+
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => OtpScreen(
+            phoneNumber: returnedEmail,
+            isPasswordRecovery: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   @override
@@ -143,34 +201,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    final input = _emailController.text.trim();
-                    if (input.isEmpty) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => OtpScreen(
-                          phoneNumber: input,
-                          isPasswordRecovery: true,
-                        ),
-                      ),
-                    );
-                  },
+                  onPressed: _isLoading ? null : _handleSendOtp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: accentBlue,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: accentBlue.withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    'Send OTP',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          'Send OTP',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 24),
